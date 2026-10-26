@@ -122,6 +122,16 @@ tr.marcada td{background:var(--ok-claro)}
 .chip.VERIFICAR{background:var(--aviso-claro);color:var(--aviso)}
 .chip.AGUARDANDO,.chip.PROCESSANDO,.chip.SENHA_GERADA{background:var(--azul-claro);color:var(--azul)}
 .pequeno{font-size:13px;color:var(--suave)}
+.engrenagem{border:0;background:none;color:#fff;width:40px;height:40px;border-radius:8px;display:grid;place-items:center;padding:0}
+.engrenagem:hover{background:rgba(255,255,255,.12)}
+.engrenagem svg{width:24px;height:24px}
+.link{background:none;border:0;color:var(--azul);text-decoration:underline;padding:0;font-size:15px}
+dialog select{width:100%;font:inherit;font-size:17px;padding:10px;border:2px solid var(--linha);border-radius:8px;margin-bottom:8px;background:#fff}
+dialog .secao{border-top:1px solid var(--linha);padding-top:16px;margin-top:16px}
+dialog h4{margin:0 0 8px;font-size:17px}
+.form-col{display:flex;flex-direction:column;gap:12px;max-width:420px}
+.form-col label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
+.form-col input{font:inherit;font-size:18px;padding:10px 12px;border:2px solid var(--linha);border-radius:8px}
 .vazio{padding:28px;text-align:center;color:var(--suave)}
 input[type=checkbox]{width:22px;height:22px;accent-color:var(--azul)}
 .alerta{background:var(--aviso-claro);color:var(--aviso);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-weight:500}
@@ -250,16 +260,38 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <span id="cxTurnoInfo"></span>
     <button class="btn peq sec" id="cxFechar" style="display:none">Fechar turno</button>
     <a href="#" class="btn peq sec" style="text-decoration:none">Tela do cliente</a>
+    <span id="cxUsuario" style="font-size:15px"></span>
+    <button class="engrenagem esconder" id="cxEngrenagem" aria-label="Configurações" title="Configurações">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </header>
   <div class="conteudo">
 
     <section class="cartao" id="cxLogin">
       <h2>Entrar no painel do caixa</h2>
       <div class="linha-form">
-        <label>PIN do caixa<input id="cxPin" type="password" inputmode="numeric"></label>
+        <label>Usuário<input id="cxUser" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+        <label>Senha<input id="cxSenha" type="password" autocomplete="current-password"></label>
         <button class="btn" id="cxEntrar">Entrar</button>
       </div>
       <p class="pequeno" id="cxLoginMsg"></p>
+      <p style="margin-top:14px;display:flex;gap:22px;flex-wrap:wrap">
+        <button class="link" id="cxPrimeiro">Primeiro acesso</button>
+        <button class="link" id="cxEsqueci">Esqueci minha senha</button>
+      </p>
+    </section>
+
+    <section class="cartao esconder" id="cxPedido">
+      <h2 id="pdTitulo">Pedir acesso</h2>
+      <p class="pequeno" id="pdTexto" style="margin:-6px 0 14px">O pedido vai por e-mail para o gerente aprovar. Assim que ele aprovar, você entra com o usuário e a senha escolhidos.</p>
+      <div class="form-col">
+        <label>Usuário<input id="pdUser" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ex.: claudio.f"></label>
+        <label id="pdNomeL">Nome completo<input id="pdNome" autocomplete="name"></label>
+        <label>Nova senha (mínimo 6 caracteres)<input id="pdSenha" type="password" autocomplete="new-password"></label>
+        <label>Repita a nova senha<input id="pdSenha2" type="password" autocomplete="new-password"></label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn lar" id="pdEnviar">Enviar para aprovação</button><button class="btn sec" id="pdVoltar">Voltar</button></div>
+        <p class="pequeno" id="pdMsg" style="font-size:15px"></p>
+      </div>
     </section>
 
     <section id="cxSemTurno" class="esconder">
@@ -267,7 +299,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <h2>Abrir turno</h2>
         <p class="pequeno" style="margin-top:-6px">Enquanto não houver turno aberto, a tela do cliente fica bloqueada.</p>
         <div class="linha-form">
-          <label>Nome de quem está abrindo<input id="cxNome" autocomplete="name"></label>
+          <label>Turno aberto em nome de<input id="cxNome" autocomplete="name" readonly></label>
           <button class="btn lar" id="cxAbrir">Abrir turno</button>
         </div>
         <p class="pequeno" id="cxAbrirMsg"></p>
@@ -331,6 +363,23 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   <p>A tela do cliente será bloqueada e o relatório de conferência abrirá para impressão.</p>
   <label class="chk"><input type="checkbox" id="dFecharEvo" checked> Fechar também o caixa no EVO</label>
   <div class="acoes"><button class="btn sec" id="dFecharCanc">Cancelar</button><button class="btn lar" id="dFecharOk">Fechar turno</button></div>
+</dialog>
+<dialog id="dConfig">
+  <h3>Configurações</h3>
+  <h4>Impressora do comprovante</h4>
+  <p style="margin-bottom:8px">Impressoras do computador do robô (DP002). O comprovante do cliente sai na escolhida.</p>
+  <select id="cfgImpressora" aria-label="Impressora"></select>
+  <p class="pequeno" id="cfgImpInfo"></p>
+  <div class="acoes" style="justify-content:flex-start"><button class="btn" id="cfgImpSalvar">Salvar impressora</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
+  <div class="secao">
+    <h4>Minha senha</h4>
+    <p style="margin-bottom:10px">Uma nova senha só passa a valer depois que o gerente aprova pelo e-mail.</p>
+    <button class="btn sec" id="cfgSenha">Redefinir minha senha</button>
+  </div>
+  <div class="secao acoes" style="justify-content:space-between">
+    <button class="btn sec" id="cfgSair">Sair do painel</button>
+    <button class="btn" id="cfgFechar">Fechar</button>
+  </div>
 </dialog>
 <dialog id="dResolver">
   <h3>Resolver resgate</h3>
@@ -524,14 +573,28 @@ function iniciarTotem() {
 /* =====================================================================
    CAIXA
    ===================================================================== */
-const C = { pin: sessionStorage.getItem('banho_pin_caixa'), turno: null, lista: [], lotes: [], sel: new Set(), timer: null, aba: 'codigos' };
+const C = { sessao: sessionStorage.getItem('banho_sessao'), usuario: null, nome: '', admin: false, turno: null, lista: [], lotes: [], sel: new Set(), timer: null, aba: 'codigos', pedido: null };
+async function apiCx(acao, dados) {
+  const r = await api(acao, Object.assign({ sessao: C.sessao }, dados || {}));
+  if (r && r.sessaoInvalida) { sairCaixa('Sua sessão terminou. Entre de novo.'); }
+  return r;
+}
+function sairCaixa(msg) {
+  C.sessao = null; C.turno = null; sessionStorage.removeItem('banho_sessao'); clearInterval(C.timer);
+  $('#cxUsuario').textContent = ''; $('#cxEngrenagem').classList.add('esconder');
+  mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = msg || '';
+}
 
 async function entrarCaixa() {
   mostrar('vCaixa');
-  if (!C.pin) { mostrarSecao('cxLogin'); return; }
-  const r = await api('caixa_estado', { pin: C.pin });
-  if (r.pinErrado) { C.pin = null; sessionStorage.removeItem('banho_pin_caixa'); mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = 'PIN incorreto.'; return; }
+  if (!C.sessao) { mostrarSecao(C.pedido ? 'cxPedido' : 'cxLogin'); return; }
+  const r = await apiCx('caixa_estado');
+  if (r.sessaoInvalida) return;
   if (!r.ok) { mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = r.erro; return; }
+  C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin;
+  $('#cxUsuario').textContent = r.nome; $('#cxEngrenagem').classList.remove('esconder');
+  $('#cxNome').value = r.admin ? (guardar.get('banho_ultimo_caixa') || '') : r.nome;
+  $('#cxNome').readOnly = !r.admin;
   $('#cxPosto').textContent = r.posto || '';
   sinalRobo(r.roboOnline);
   C.turno = r.turno;
@@ -542,14 +605,14 @@ async function entrarCaixa() {
 }
 
 function mostrarSecao(id) {
-  ['cxLogin', 'cxSemTurno', 'cxComTurno'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
+  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
   $('#cxFechar').style.display = id === 'cxComTurno' ? '' : 'none';
   $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` : '';
 }
 function sinalRobo(on) { const s = $('#cxRobo'); s.className = 'sinal ' + (on ? 'on' : 'off'); s.textContent = on ? 'Robô ligado' : 'Robô desligado'; }
 
 async function carregarTurnos() {
-  const r = await api('caixa_turnos', { pin: C.pin });
+  const r = await apiCx('caixa_turnos');
   const tb = $('#cxTurnos');
   if (!r.ok || !r.turnos.length) { tb.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum turno registrado ainda.</td></tr>'; return; }
   tb.innerHTML = r.turnos.map(t => `<tr><td>${esc(t.caixa)}</td><td>${esc(t.abertura)}</td><td>${esc(t.fechamento || 'aberto')}</td><td>${esc(t.qtd)}</td>
@@ -559,7 +622,7 @@ async function carregarTurnos() {
 
 async function atualizarPainel(silencioso) {
   if (!C.turno) return;
-  const r = await api('caixa_painel', { pin: C.pin, turnoId: C.turno.id });
+  const r = await apiCx('caixa_painel', { turnoId: C.turno.id });
   if (!r.ok) { if (!silencioso) alertas([{ t: r.erro, erro: true }]); return; }
   sinalRobo(r.roboOnline);
   if (!r.turno) { C.turno = null; entrarCaixa(); return; }
@@ -599,10 +662,10 @@ function desenharLista() {
   tb.querySelectorAll('[data-sel]').forEach(c => c.onchange = () => { c.checked ? C.sel.add(c.dataset.sel) : C.sel.delete(c.dataset.sel); });
   tb.querySelectorAll('[data-ok]').forEach(c => c.onchange = async () => {
     const it = C.lista.find(x => x.id === c.dataset.ok); if (it) it.ok = c.checked; desenharLista();
-    await api('caixa_marcarOk', { pin: C.pin, ids: [c.dataset.ok], ok: c.checked });
+    await apiCx('caixa_marcarOk', { ids: [c.dataset.ok], ok: c.checked });
   });
   tb.querySelectorAll('[data-reimp]').forEach(b => b.onclick = async () => {
-    b.disabled = true; b.textContent = 'Enviado'; await api('caixa_reimprimir', { pin: C.pin, id: b.dataset.reimp });
+    b.disabled = true; b.textContent = 'Enviado'; await apiCx('caixa_reimprimir', { id: b.dataset.reimp });
   });
   tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
 }
@@ -618,7 +681,7 @@ function desenharLotes() {
   tb.querySelectorAll('[data-salvaopnf]').forEach(b => b.onclick = async () => {
     const v = tb.querySelector(`[data-opnf="${b.dataset.salvaopnf}"]`).value.trim();
     b.disabled = true; b.textContent = 'Salvando…';
-    const r = await api('caixa_salvarOpnf', { pin: C.pin, lote: b.dataset.salvaopnf, opnf: v });
+    const r = await apiCx('caixa_salvarOpnf', { lote: b.dataset.salvaopnf, opnf: v });
     b.textContent = r.ok ? 'Salvo' : 'Erro'; setTimeout(() => { b.disabled = false; b.textContent = 'Salvar'; }, 1500);
     atualizarPainel(true);
   });
@@ -636,7 +699,7 @@ function abrirResolver(id) {
   const d = $('#dResolver'); const it = C.lista.find(x => x.id === id) || {};
   $('#dResCod').value = it.codigo || ''; $('#dResTk').value = it.ticket || '';
   $('#dResOk').onclick = async () => {
-    const r = await api('caixa_resolverManual', { pin: C.pin, id, codigo: $('#dResCod').value.trim(), ticket: $('#dResTk').value.trim(), caixa: C.turno && C.turno.caixa });
+    const r = await apiCx('caixa_resolverManual', { id, codigo: $('#dResCod').value.trim(), ticket: $('#dResTk').value.trim(), caixa: C.turno && C.turno.caixa });
     if (!r.ok) { alert(r.erro); return; }
     d.close(); atualizarPainel();
   };
@@ -644,7 +707,7 @@ function abrirResolver(id) {
 }
 
 async function abrirRelatorio(turnoId, dadosProntos) {
-  const r = dadosProntos ? { ok: true, relatorio: dadosProntos } : await api('caixa_relatorio', { pin: C.pin, turnoId });
+  const r = dadosProntos ? { ok: true, relatorio: dadosProntos } : await apiCx('caixa_relatorio', { turnoId });
   if (!r.ok || !r.relatorio) { alert(r.erro || 'Relatório não encontrado.'); return; }
   const R = r.relatorio;
   const linhas = R.resgates.map((x, i) => `<tr class="${x.ok ? 'ok' : ''}"><td>${i + 1}</td><td>${esc(x.hora.slice(11, 16))}</td><td><b>${esc(x.codigo || '—')}</b></td>
@@ -671,15 +734,80 @@ async function abrirRelatorio(turnoId, dadosProntos) {
 }
 
 function iniciarCaixa() {
-  $('#cxEntrar').onclick = async () => { C.pin = $('#cxPin').value.trim(); sessionStorage.setItem('banho_pin_caixa', C.pin); $('#cxPin').value = ''; entrarCaixa(); };
-  $('#cxPin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#cxEntrar').click(); });
-  $('#cxNome').value = guardar.get('banho_ultimo_caixa') || '';
+  $('#cxUser').value = guardar.get('banho_ultimo_usuario') || '';
+  $('#cxEntrar').onclick = async () => {
+    const usuario = $('#cxUser').value.trim(), senha = $('#cxSenha').value;
+    if (!usuario || !senha) { $('#cxLoginMsg').textContent = 'Informe usuário e senha.'; return; }
+    $('#cxEntrar').disabled = true; $('#cxLoginMsg').textContent = 'Entrando…';
+    const r = await api('acesso_login', { usuario, senha });
+    $('#cxEntrar').disabled = false; $('#cxSenha').value = '';
+    if (!r.ok) { $('#cxLoginMsg').textContent = r.erro; return; }
+    C.sessao = r.sessao; sessionStorage.setItem('banho_sessao', r.sessao); guardar.set('banho_ultimo_usuario', r.usuario);
+    $('#cxLoginMsg').textContent = ''; entrarCaixa();
+  };
+  ['#cxUser', '#cxSenha'].forEach(x => $(x).addEventListener('keydown', e => { if (e.key === 'Enter') $('#cxEntrar').click(); }));
+  const abrirPedido = (tipo) => {
+    const novo = tipo === 'novo';
+    $('#pdTitulo').textContent = novo ? 'Primeiro acesso' : 'Nova senha';
+    $('#pdNomeL').classList.toggle('esconder', !novo);
+    $('#pdUser').value = novo ? '' : ($('#cxUser').value.trim() || C.usuario || '');
+    $('#pdUser').readOnly = !novo && !!C.usuario;
+    ['#pdNome', '#pdSenha', '#pdSenha2'].forEach(x => $(x).value = '');
+    $('#pdMsg').textContent = ''; $('#pdEnviar').disabled = false;
+    C.pedido = { tipo }; mostrarSecao('cxPedido');
+  };
+  $('#cxPrimeiro').onclick = () => abrirPedido('novo');
+  $('#cxEsqueci').onclick = () => abrirPedido('senha');
+  $('#pdVoltar').onclick = () => { C.pedido = null; clearInterval(C.pedidoTimer); C.sessao ? entrarCaixa() : mostrarSecao('cxLogin'); };
+  $('#pdEnviar').onclick = async () => {
+    const usuario = $('#pdUser').value.trim().toLowerCase(), nome = $('#pdNome').value.trim(), senha = $('#pdSenha').value;
+    if (senha !== $('#pdSenha2').value) { $('#pdMsg').textContent = 'As duas senhas não são iguais.'; return; }
+    $('#pdEnviar').disabled = true; $('#pdMsg').textContent = 'Enviando…';
+    const r = await api('acesso_solicitar', { usuario, nome: C.pedido.tipo === 'novo' ? nome : '', senha });
+    if (!r.ok) { $('#pdEnviar').disabled = false; $('#pdMsg').textContent = r.erro; return; }
+    ['#pdSenha', '#pdSenha2'].forEach(x => $(x).value = '');
+    $('#pdMsg').textContent = 'Pedido enviado para o gerente. Esta tela avisa quando ele decidir; você também pode voltar e tentar entrar depois.';
+    clearInterval(C.pedidoTimer);
+    C.pedidoTimer = setInterval(async () => {
+      const st = await api('acesso_status', { id: r.id });
+      if (!st.ok || st.status === 'PENDENTE') return;
+      clearInterval(C.pedidoTimer);
+      $('#pdMsg').textContent = st.status === 'APROVADA' ? 'Aprovado! Toque em Voltar e entre com a nova senha.' : 'O gerente negou o pedido. Fale com ele.';
+      if (st.status === 'APROVADA') { $('#cxUser').value = usuario; if (C.sessao) sairCaixa('Senha nova aprovada. Entre de novo.'); }
+    }, 10000);
+  };
+  // engrenagem
+  $('#cxEngrenagem').onclick = async () => {
+    $('#dConfig').showModal();
+    const sel = $('#cfgImpressora'); sel.innerHTML = '<option>Carregando…</option>'; $('#cfgImpInfo').textContent = '';
+    const r = await apiCx('caixa_impressoras');
+    if (!r.ok) { $('#cfgImpInfo').textContent = r.erro; return; }
+    const pad = r.padrao ? ' (' + r.padrao + ')' : '';
+    sel.innerHTML = '<option value="">Impressora padrão do Windows' + esc(pad) + '</option>' + r.lista.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+    sel.value = r.escolhida || '';
+    $('#cfgImpInfo').textContent = r.lista.length ? 'Lista enviada pelo robô em ' + r.atualizadoEm + '.' : 'O robô ainda não enviou a lista de impressoras. Ligue o robô no DP002 e abra de novo.';
+  };
+  $('#cfgImpSalvar').onclick = async () => {
+    $('#cfgImpSalvar').disabled = true;
+    const r = await apiCx('caixa_definirImpressora', { nome: $('#cfgImpressora').value });
+    $('#cfgImpSalvar').disabled = false;
+    $('#cfgImpInfo').textContent = r.ok ? 'Salvo. Os próximos comprovantes saem em: ' + (r.escolhida || 'impressora padrão do Windows') + '.' : r.erro;
+  };
+  $('#cfgImpTeste').onclick = async () => {
+    const ult = C.lista.find(x => x.status === 'CONCLUIDO' && x.ticket);
+    if (!ult) { $('#cfgImpInfo').textContent = 'Ainda não há ticket neste turno para reimprimir.'; return; }
+    await apiCx('caixa_reimprimir', { id: ult.id });
+    $('#cfgImpInfo').textContent = 'Pedido de reimpressão da senha ' + ult.ticket + ' enviado ao robô.';
+  };
+  $('#cfgSenha').onclick = () => { $('#dConfig').close(); abrirPedido('senha'); };
+  $('#cfgSair').onclick = async () => { $('#dConfig').close(); await apiCx('caixa_sair'); sairCaixa('Você saiu do painel.'); };
+  $('#cfgFechar').onclick = () => $('#dConfig').close();
   $('#cxAbrir').onclick = async () => {
     const nome = $('#cxNome').value.trim();
     $('#cxAbrirMsg').textContent = 'Abrindo…';
-    const r = await api('caixa_abrirTurno', { pin: C.pin, nome });
+    const r = await apiCx('caixa_abrirTurno', { nome });
     if (!r.ok) { $('#cxAbrirMsg').textContent = r.erro; return; }
-    guardar.set('banho_ultimo_caixa', nome); $('#cxAbrirMsg').textContent = '';
+    if (C.admin) guardar.set('banho_ultimo_caixa', nome); $('#cxAbrirMsg').textContent = '';
     entrarCaixa();
   };
   document.querySelectorAll('.abas button').forEach(b => b.onclick = () => {
@@ -701,7 +829,7 @@ function iniciarCaixa() {
   $('#dLoteOk').onclick = async () => {
     const s = selecionados();
     $('#dLoteOk').disabled = true;
-    const r = await api('caixa_criarLote', { pin: C.pin, turnoId: C.turno.id, ids: s.map(x => x.id), opnf: $('#dLoteOpnf').value.trim(), caixa: C.turno.caixa });
+    const r = await apiCx('caixa_criarLote', { turnoId: C.turno.id, ids: s.map(x => x.id), opnf: $('#dLoteOpnf').value.trim(), caixa: C.turno.caixa });
     $('#dLoteOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     C.sel.clear(); $('#dLote').close(); atualizarPainel();
@@ -710,7 +838,7 @@ function iniciarCaixa() {
   $('#dFecharCanc').onclick = () => $('#dFechar').close();
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
-    const r = await api('caixa_fecharTurno', { pin: C.pin, turnoId: C.turno.id, fecharEvo: $('#dFecharEvo').checked });
+    const r = await apiCx('caixa_fecharTurno', { turnoId: C.turno.id, fecharEvo: $('#dFecharEvo').checked });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
