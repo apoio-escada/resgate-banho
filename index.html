@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vale banho · Postos Pichilau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+:root{
+  --azul:#0A3A8C; --azul-esc:#072A66; --azul-claro:#E3EBF7;
+  --laranja:#F07F00; --laranja-esc:#C96A00;
+  --fundo:#F2F5F9; --papel:#FFFFFF; --tinta:#14213D; --suave:#5B6B85; --linha:#D5DDE8;
+  --ok:#1E8E4E; --ok-claro:#E2F4EA; --erro:#C62828; --erro-claro:#FCE8E8; --aviso:#9A5B00; --aviso-claro:#FFF1DC;
+  --cond:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --corpo:'Barlow','Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--corpo);color:var(--tinta);background:var(--fundo);font-size:17px;line-height:1.45;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.esconder{display:none!important}
+h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
+
+/* ---------------- TOTEM ---------------- */
+#vTotem{min-height:100%}
+#totem{min-height:100vh;display:grid;grid-template-columns:minmax(300px,38%) 1fr}
+.faixa{background:var(--azul);color:#fff;padding:48px 44px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.faixa::after{content:"";position:absolute;right:-1px;top:0;bottom:0;width:22px;
+  background:repeating-linear-gradient(180deg,var(--fundo) 0 14px,transparent 14px 28px)}
+.marca{font-family:var(--cond);font-size:22px;letter-spacing:.02em;opacity:.9}
+.marca b{color:var(--laranja)}
+.faixa h1{font-size:clamp(46px,6vw,84px);margin:28px 0 18px}
+.faixa p{font-size:20px;max-width:30ch;opacity:.92;margin:0}
+.lgpd{font-size:14px!important;opacity:.7!important;margin-top:28px!important}
+.palco{padding:40px clamp(20px,5vw,72px);display:flex;flex-direction:column;justify-content:center;max-width:760px;width:100%}
+.campo{margin-bottom:20px}
+.campo label{display:block;font-weight:600;font-size:18px;margin-bottom:6px}
+.campo input{width:100%;font-family:var(--cond);font-size:44px;letter-spacing:.04em;padding:10px 18px;border:2px solid var(--linha);
+  border-radius:10px;background:var(--papel);color:var(--tinta);caret-color:var(--laranja)}
+.campo input.ativo{border-color:var(--azul);box-shadow:0 0 0 4px var(--azul-claro)}
+.campo .dica{font-size:15px;color:var(--suave);margin-top:4px}
+.campo .msg{color:var(--erro);font-weight:600;font-size:16px;margin-top:4px;min-height:1px}
+.teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 22px}
+.teclado button{font-family:var(--cond);font-size:34px;padding:12px 0;border:0;border-radius:10px;background:var(--papel);
+  color:var(--tinta);box-shadow:inset 0 -3px 0 var(--linha)}
+.teclado button:active{transform:translateY(2px);box-shadow:none}
+.teclado .fn{font-family:var(--corpo);font-size:18px;font-weight:600;color:var(--suave)}
+.vale{width:100%;border:0;border-radius:14px;background:var(--laranja);color:#fff;font-family:var(--cond);font-size:46px;
+  padding:18px;box-shadow:inset 0 -6px 0 var(--laranja-esc)}
+.vale:disabled{background:#B9C3D2;box-shadow:none;cursor:not-allowed}
+.vale:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 -3px 0 var(--laranja-esc)}
+.cantinho{position:fixed;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--suave);text-decoration:none;opacity:.6}
+
+/* telas cheias do totem */
+.tela{min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center}
+.tela .caixa{max-width:620px}
+.tela h2{font-size:clamp(40px,6vw,64px);margin-bottom:14px}
+.tela p{font-size:22px;color:var(--suave);margin:0 auto 26px;max-width:34ch}
+.btn{border:0;border-radius:10px;padding:14px 26px;font-weight:600;font-size:18px;background:var(--azul);color:#fff}
+.btn.sec{background:var(--papel);color:var(--azul);box-shadow:inset 0 0 0 2px var(--azul)}
+.btn.lar{background:var(--laranja)}
+.btn.peq{padding:8px 14px;font-size:15px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* progresso */
+.passos{list-style:none;padding:0;margin:28px auto 0;text-align:left;max-width:440px}
+.passos li{display:flex;gap:14px;align-items:center;font-size:21px;padding:10px 0;color:var(--suave)}
+.passos li i{width:30px;height:30px;border-radius:50%;border:3px solid var(--linha);flex:none;display:grid;place-items:center;font-style:normal;font-size:16px;color:#fff}
+.passos li.agora{color:var(--tinta);font-weight:600}
+.passos li.agora i{border-color:var(--laranja);border-top-color:transparent;animation:gira .9s linear infinite}
+.passos li.feito{color:var(--tinta)}
+.passos li.feito i{background:var(--ok);border-color:var(--ok)}
+@keyframes gira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.passos li.agora i{animation:none;border-top-color:var(--laranja)}}
+
+/* ticket da senha: o elemento memorável */
+.ticket{background:var(--papel);border-radius:16px;padding:30px 48px 34px;position:relative;margin:0 auto 24px;display:inline-block;min-width:min(380px,100%);
+  box-shadow:0 2px 0 var(--linha)}
+.ticket::before,.ticket::after{content:"";position:absolute;top:96px;width:34px;height:34px;border-radius:50%;background:var(--fundo)}
+.ticket::before{left:-17px}.ticket::after{right:-17px}
+.ticket .rotulo{font-size:20px;color:var(--suave);padding-bottom:20px;border-bottom:3px dashed var(--linha);margin-bottom:6px}
+.ticket .senha{font-family:var(--cond);font-weight:700;font-size:clamp(96px,18vw,180px);white-space:nowrap;line-height:1;color:var(--azul);letter-spacing:.02em}
+.ticket .rodape{font-size:18px;color:var(--suave)}
+.contagem{font-size:16px;color:var(--suave)}
+
+/* ---------------- CAIXA ---------------- */
+#caixa{min-height:100%}
+.topo{background:var(--azul);color:#fff;padding:12px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+body.modo-caixa::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--azul);z-index:10}
+.topo h1{font-size:26px;margin-right:auto}
+.topo h1 small{font-family:var(--corpo);font-weight:500;font-size:15px;opacity:.8;margin-left:8px}
+.sinal{display:inline-flex;align-items:center;gap:7px;font-size:15px}
+.sinal::before{content:"";width:10px;height:10px;border-radius:50%;background:#9AA6B8}
+.sinal.on::before{background:#3DDC84}.sinal.off::before{background:#FF6B6B}
+.conteudo{max-width:1180px;margin:0 auto;padding:22px 24px 60px}
+.cartao{background:var(--papel);border-radius:12px;padding:22px 24px;margin-bottom:18px;border:1px solid var(--linha)}
+.cartao h2{font-size:28px;margin-bottom:12px}
+.linha-form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.linha-form label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:15px}
+.linha-form input{font:inherit;font-size:18px;padding:10px 12px;border:2px solid var(--linha);border-radius:8px;min-width:220px}
+.abas{display:flex;gap:4px;border-bottom:2px solid var(--linha);margin-bottom:16px}
+.abas button{border:0;background:none;padding:10px 18px;font-weight:600;color:var(--suave);border-bottom:3px solid transparent;margin-bottom:-2px}
+.abas button[aria-selected="true"]{color:var(--azul);border-bottom-color:var(--laranja)}
+.barra{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.barra .info{margin-right:auto;color:var(--suave);font-size:15px}
+.rolagem{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th{text-align:left;font-size:14px;color:var(--suave);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--linha);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--linha);vertical-align:middle}
+tr.marcada td{background:var(--ok-claro)}
+.cod{font-family:var(--cond);font-size:24px;letter-spacing:.06em;font-weight:600;border:0;background:var(--azul-claro);color:var(--azul);
+  border-radius:6px;padding:2px 10px;min-width:130px;text-align:left}
+.cod.copiado{background:var(--ok);color:#fff}
+.chip{display:inline-block;border-radius:20px;padding:2px 10px;font-size:13px;font-weight:600;white-space:nowrap}
+.chip.CONCLUIDO{background:var(--ok-claro);color:var(--ok)}
+.chip.ERRO{background:var(--erro-claro);color:var(--erro)}
+.chip.VERIFICAR{background:var(--aviso-claro);color:var(--aviso)}
+.chip.AGUARDANDO,.chip.PROCESSANDO,.chip.SENHA_GERADA{background:var(--azul-claro);color:var(--azul)}
+.pequeno{font-size:13px;color:var(--suave)}
+.vazio{padding:28px;text-align:center;color:var(--suave)}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--azul)}
+.alerta{background:var(--aviso-claro);color:var(--aviso);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-weight:500}
+.alerta.erro{background:var(--erro-claro);color:var(--erro)}
+
+dialog{border:0;border-radius:14px;padding:26px;max-width:460px;width:calc(100% - 32px);color:var(--tinta)}
+dialog::backdrop{background:rgba(7,42,102,.45)}
+dialog h3{font-size:28px;margin-bottom:10px}
+dialog p{margin:0 0 14px;color:var(--suave)}
+dialog input[type=text]{width:100%;font:inherit;font-size:22px;padding:10px 12px;border:2px solid var(--linha);border-radius:8px;margin-bottom:14px}
+dialog .acoes{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;font-weight:500}
+
+/* ---------------- RELATÓRIO (impressão A4) ---------------- */
+#relatorio{background:#fff;max-width:820px;margin:0 auto;padding:28px 34px;color:#000}
+#relatorio h2{font-size:30px}
+#relatorio .sub{color:#333;margin:2px 0 18px}
+#relatorio dl{display:grid;grid-template-columns:repeat(4,auto);gap:4px 18px;margin:0 0 18px;font-size:15px}
+#relatorio dt{color:#555}#relatorio dd{margin:0;font-weight:600}
+#relatorio table{font-size:14px}
+#relatorio td,#relatorio th{padding:5px 8px;border-bottom:1px solid #bbb}
+#relatorio tr.ok td{background:#DFF2E6;font-weight:600}
+#relatorio .assin{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:70px}
+#relatorio .assin div{border-top:1.5px solid #000;padding-top:6px;text-align:center;font-size:14px}
+.nao-imprime{display:flex;gap:10px;justify-content:center;margin:18px 0}
+@media print{
+  body{background:#fff}
+  body.imprimindo > *:not(#vRelatorio){display:none!important}
+  #vRelatorio .nao-imprime{display:none!important}
+  #relatorio{padding:0;max-width:none}
+  @page{size:A4;margin:14mm}
+}
+
+@media (max-width:820px){
+  #totem{grid-template-columns:1fr}
+  .faixa{padding:26px 22px}.faixa::after{display:none}
+  .faixa h1{font-size:46px;margin:14px 0 8px}
+  .lgpd{display:none}
+  .palco{padding:22px}
+  .campo input{font-size:34px}
+  .vale{font-size:38px}
+}
+</style>
+</head>
+<body>
+
+<!-- ====================== TOTEM ====================== -->
+<div id="vTotem" class="esconder">
+  <section id="totem">
+    <aside class="faixa">
+      <div>
+        <div class="marca">Postos <b>Pichilau</b> · <span id="tPosto"></span></div>
+        <h1>Seu banho com pontos ClubPetro</h1>
+        <p>Digite seu CPF e sua data de nascimento. A senha do banho sai impressa em seguida.</p>
+      </div>
+      <p class="lgpd">Seu CPF e sua data de nascimento são usados só para este resgate no ClubPetro e não ficam guardados neste aparelho.</p>
+    </aside>
+    <main class="palco">
+      <div class="campo">
+        <label for="iCpf">CPF</label>
+        <input id="iCpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14">
+        <div class="msg" id="mCpf"></div>
+      </div>
+      <div class="campo">
+        <label for="iNasc">Data de nascimento</label>
+        <input id="iNasc" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10">
+        <div class="msg" id="mNasc"></div>
+      </div>
+      <div class="teclado" id="teclado"></div>
+      <button class="vale" id="bVale" disabled>Vale banho</button>
+    </main>
+  </section>
+  <a class="cantinho" href="#caixa">Área do caixa</a>
+</div>
+
+<div id="vProcesso" class="tela esconder">
+  <div class="caixa">
+    <h2>Gerando sua senha</h2>
+    <p>Aguarde aqui, leva menos de um minuto.</p>
+    <ul class="passos" id="passos">
+      <li data-p="fila"><i></i>Pedido recebido</li>
+      <li data-p="club"><i></i>Resgatando o banho no ClubPetro</li>
+      <li data-p="evo"><i></i>Gerando a senha do banho</li>
+      <li data-p="imp"><i></i>Imprimindo o comprovante</li>
+    </ul>
+  </div>
+</div>
+
+<div id="vSenha" class="tela esconder">
+  <div class="caixa">
+    <div class="ticket">
+      <div class="rotulo">Senha do seu banho</div>
+      <div class="senha" id="sNum">—</div>
+      <div class="rodape" id="sRodape">Retire seu comprovante na impressora.</div>
+    </div>
+    <p class="contagem" id="sConta"></p>
+    <button class="btn sec" id="bNovo">Concluir</button>
+  </div>
+</div>
+
+<div id="vAviso" class="tela esconder">
+  <div class="caixa">
+    <h2 id="aTitulo"></h2>
+    <p id="aTexto"></p>
+    <button class="btn lar" id="aBotao">Tentar de novo</button>
+  </div>
+</div>
+
+<div id="vConfigurar" class="tela esconder">
+  <div class="caixa">
+    <h2>Configurar este aparelho</h2>
+    <p>Digite o PIN do posto. Ele fica salvo neste aparelho e só precisa ser informado uma vez.</p>
+    <div class="linha-form" style="justify-content:center">
+      <input id="cfgPin" type="password" inputmode="numeric" placeholder="PIN do posto" style="font-size:28px;text-align:center;width:240px;padding:10px;border:2px solid var(--linha);border-radius:10px">
+      <button class="btn" id="cfgSalvar">Salvar</button>
+    </div>
+    <p class="pequeno" id="cfgMsg" style="margin-top:14px"></p>
+  </div>
+</div>
+
+<!-- ====================== CAIXA ====================== -->
+<div id="vCaixa" class="esconder">
+  <header class="topo">
+    <h1>Resgate de banho <small id="cxPosto"></small></h1>
+    <span class="sinal" id="cxRobo">Robô</span>
+    <span id="cxTurnoInfo"></span>
+    <button class="btn peq sec" id="cxFechar" style="display:none">Fechar turno</button>
+    <a href="#" class="btn peq sec" style="text-decoration:none">Tela do cliente</a>
+  </header>
+  <div class="conteudo">
+
+    <section class="cartao" id="cxLogin">
+      <h2>Entrar no painel do caixa</h2>
+      <div class="linha-form">
+        <label>PIN do caixa<input id="cxPin" type="password" inputmode="numeric"></label>
+        <button class="btn" id="cxEntrar">Entrar</button>
+      </div>
+      <p class="pequeno" id="cxLoginMsg"></p>
+    </section>
+
+    <section id="cxSemTurno" class="esconder">
+      <div class="cartao">
+        <h2>Abrir turno</h2>
+        <p class="pequeno" style="margin-top:-6px">Enquanto não houver turno aberto, a tela do cliente fica bloqueada.</p>
+        <div class="linha-form">
+          <label>Nome de quem está abrindo<input id="cxNome" autocomplete="name"></label>
+          <button class="btn lar" id="cxAbrir">Abrir turno</button>
+        </div>
+        <p class="pequeno" id="cxAbrirMsg"></p>
+      </div>
+      <div class="cartao">
+        <h2>Relatórios de turnos anteriores</h2>
+        <div class="rolagem"><table><thead><tr><th>Caixa</th><th>Abertura</th><th>Fechamento</th><th>Resgates</th><th></th></tr></thead>
+        <tbody id="cxTurnos"><tr><td colspan="5" class="vazio">Carregando…</td></tr></tbody></table></div>
+      </div>
+    </section>
+
+    <section id="cxComTurno" class="esconder">
+      <div id="cxAlertas"></div>
+      <nav class="abas" role="tablist">
+        <button role="tab" aria-selected="true" data-aba="codigos">Códigos</button>
+        <button role="tab" aria-selected="false" data-aba="lotes">Lotes e OPNF</button>
+      </nav>
+
+      <div id="abaCodigos">
+        <div class="barra">
+          <span class="info" id="cxResumo"></span>
+          <button class="btn peq sec" id="cxSelPend">Selecionar os sem lote</button>
+          <button class="btn peq sec" id="cxCopiar">Copiar selecionados</button>
+          <button class="btn peq lar" id="cxLote">Fechar lote com OPNF</button>
+        </div>
+        <p class="pequeno" style="margin:-4px 0 10px">Toque no código para copiar e colar na descrição do item 15 · Ficha de banho Pichilau+ no B2Click.</p>
+        <div class="rolagem"><table>
+          <thead><tr><th></th><th>Hora</th><th>Código do resgate</th><th>Senha</th><th>Situação</th><th>Lote / OPNF</th><th>OK</th><th></th></tr></thead>
+          <tbody id="cxLista"></tbody>
+        </table></div>
+      </div>
+
+      <div id="abaLotes" class="esconder">
+        <div class="rolagem"><table>
+          <thead><tr><th>Lote</th><th>Criado em</th><th>Qtd</th><th>Códigos</th><th>OPNF</th><th></th></tr></thead>
+          <tbody id="cxLotes"></tbody>
+        </table></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ====================== RELATÓRIO ====================== -->
+<div id="vRelatorio" class="esconder">
+  <div class="nao-imprime">
+    <button class="btn" id="relImprimir">Imprimir relatório</button>
+    <button class="btn sec" id="relVoltar">Voltar ao painel</button>
+  </div>
+  <article id="relatorio"></article>
+</div>
+
+<!-- diálogos -->
+<dialog id="dLote">
+  <h3>Fechar lote</h3>
+  <p id="dLoteTxt"></p>
+  <input type="text" id="dLoteOpnf" inputmode="numeric" placeholder="Número da OPNF (pode preencher depois)">
+  <div class="acoes"><button class="btn sec" value="cancelar" id="dLoteCanc">Cancelar</button><button class="btn lar" id="dLoteOk">Fechar lote</button></div>
+</dialog>
+<dialog id="dFechar">
+  <h3>Fechar turno</h3>
+  <p>A tela do cliente será bloqueada e o relatório de conferência abrirá para impressão.</p>
+  <label class="chk"><input type="checkbox" id="dFecharEvo" checked> Fechar também o caixa no EVO</label>
+  <div class="acoes"><button class="btn sec" id="dFecharCanc">Cancelar</button><button class="btn lar" id="dFecharOk">Fechar turno</button></div>
+</dialog>
+<dialog id="dResolver">
+  <h3>Resolver resgate</h3>
+  <p>Confira no ClubPetro (histórico do cliente) e no EVO. Se o banho foi resgatado, informe o código e a senha.</p>
+  <input type="text" id="dResCod" placeholder="Código do resgate">
+  <input type="text" id="dResTk" inputmode="numeric" placeholder="Senha do EVO (se gerada)">
+  <div class="acoes"><button class="btn sec" id="dResCanc">Cancelar</button><button class="btn lar" id="dResOk">Salvar</button></div>
+</dialog>
+
+<script>
+'use strict';
+const CFG = window.APP_CONFIG || {};
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const guardar = { get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+                  set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
+                  del(k) { try { localStorage.removeItem(k); } catch (_) {} } };
+
+async function api(acao, dados) {
+  if (!CFG.API_URL || /COLE_AQUI/.test(CFG.API_URL)) return { ok: false, erro: 'Servidor não configurado (config.js).' };
+  try {
+    const r = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                        body: JSON.stringify(Object.assign({ acao }, dados || {})) });
+    return await r.json();
+  } catch (e) { return { ok: false, erro: 'Sem conexão com o servidor.', rede: true }; }
+}
+
+const VISTAS = ['vTotem', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vCaixa', 'vRelatorio'];
+function mostrar(id) { VISTAS.forEach(v => document.getElementById(v).classList.toggle('esconder', v !== id)); document.body.classList.toggle('modo-caixa', id === 'vCaixa'); }
+
+/* =====================================================================
+   TOTEM
+   ===================================================================== */
+const T = { pin: guardar.get('banho_pin_posto'), campo: 'cpf', pedido: null, timer: null, estado: null };
+
+function mascaraCpfOk(d) { d = d.slice(0, 11); let s = d.slice(0, 3); if (d.length > 3) s += '.' + d.slice(3, 6); if (d.length > 6) s += '.' + d.slice(6, 9); if (d.length > 9) s += '-' + d.slice(9); return s; }
+function mascaraData(d) { d = d.slice(0, 8); let s = d.slice(0, 2); if (d.length > 2) s += '/' + d.slice(2, 4); if (d.length > 4) s += '/' + d.slice(4); return s; }
+function cpfValido(c) {
+  if (!/^\d{11}$/.test(c) || /^(\d)\1{10}$/.test(c)) return false;
+  for (let t = 9; t < 11; t++) { let s = 0; for (let i = 0; i < t; i++) s += c[i] * (t + 1 - i); if (((s * 10) % 11) % 10 != c[t]) return false; }
+  return true;
+}
+function dataValida(v) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v); if (!m) return false;
+  const d = new Date(+m[3], m[2] - 1, +m[1]), ano = new Date().getFullYear();
+  return d.getDate() == m[1] && d.getMonth() == m[2] - 1 && +m[3] > ano - 110 && +m[3] <= ano - 14;
+}
+const digitos = el => el.value.replace(/\D/g, '');
+
+function montarTeclado() {
+  const t = $('#teclado');
+  ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Limpar', '0', 'Apagar'].forEach(k => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = k;
+    if (k.length > 1) b.className = 'fn';
+    b.addEventListener('click', () => tecla(k));
+    t.appendChild(b);
+  });
+}
+function campoAtivo() { return T.campo === 'cpf' ? $('#iCpf') : $('#iNasc'); }
+function ativar(c) {
+  T.campo = c;
+  $('#iCpf').classList.toggle('ativo', c === 'cpf'); $('#iNasc').classList.toggle('ativo', c === 'nasc');
+}
+function tecla(k) {
+  const el = campoAtivo(); let d = digitos(el);
+  if (k === 'Limpar') d = ''; else if (k === 'Apagar') d = d.slice(0, -1); else d += k;
+  aplicar(el, d);
+}
+function aplicar(el, d) {
+  if (el.id === 'iCpf') { el.value = mascaraCpfOk(d); if (d.length === 11 && cpfValido(d)) { ativar('nasc'); if (document.activeElement === el) $('#iNasc').focus(); } }
+  else el.value = mascaraData(d);
+  validarTotem(false);
+}
+function validarTotem(mostrarErros) {
+  const cpf = digitos($('#iCpf')), nasc = $('#iNasc').value;
+  const okCpf = cpfValido(cpf), okNasc = dataValida(nasc);
+  $('#mCpf').textContent = (cpf.length === 11 && !okCpf) || (mostrarErros && !okCpf) ? 'CPF inválido. Confira os números.' : '';
+  $('#mNasc').textContent = (nasc.length === 10 && !okNasc) || (mostrarErros && !okNasc && nasc) ? 'Data inválida. Use dia/mês/ano, por exemplo 09/04/1980.' : '';
+  $('#bVale').disabled = !(okCpf && okNasc);
+  return okCpf && okNasc;
+}
+function limparTotem() { $('#iCpf').value = ''; $('#iNasc').value = ''; $('#mCpf').textContent = ''; $('#mNasc').textContent = ''; ativar('cpf'); validarTotem(false); }
+
+function avisoTotem(titulo, texto, botao, acao) {
+  $('#aTitulo').textContent = titulo; $('#aTexto').textContent = texto;
+  const b = $('#aBotao'); b.textContent = botao || 'Tentar de novo'; b.classList.toggle('esconder', botao === null);
+  b.onclick = acao || (() => irTotem());
+  mostrar('vAviso');
+}
+
+async function verificarEstado() {
+  if (location.hash.startsWith('#caixa')) return;
+  if (!T.pin) { mostrar('vConfigurar'); return; }
+  if (T.pedido) return;
+  const r = await api('totem_estado', { pin: T.pin });
+  if (r.pinErrado) { T.pin = null; guardar.del('banho_pin_posto'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O PIN do posto mudou. Digite o novo PIN.'; return; }
+  T.estado = r;
+  if (r.posto) $('#tPosto').textContent = r.posto;
+  const visivel = id => !document.getElementById(id).classList.contains('esconder');
+  if (!r.ok) { if (!visivel('vTotem')) avisoTotem('Sem conexão', 'Não foi possível falar com o servidor. Procure o caixa.', null); return; }
+  if (!r.turno) { avisoTotem('Resgate fechado no momento', 'Procure o caixa para resgatar seu banho.', null); return; }
+  if (!r.roboOnline) { avisoTotem('Resgate indisponível no momento', 'Procure o caixa para resgatar seu banho.', null); return; }
+  if (visivel('vAviso') && $('#aBotao').classList.contains('esconder')) irTotem();
+  else if (!visivel('vTotem') && !visivel('vAviso') && !visivel('vSenha')) irTotem();
+}
+
+function irTotem() { limparTotem(); mostrar('vTotem'); }
+
+async function pedirBanho() {
+  if (!validarTotem(true)) return;
+  $('#bVale').disabled = true;
+  marcarPassos('fila');
+  mostrar('vProcesso');
+  const r = await api('totem_solicitar', { pin: T.pin, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
+  limparTotem();                                   // não deixa o CPF na tela
+  if (!r.ok) { avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
+  T.pedido = r.id;
+  acompanhar(Date.now());
+}
+
+function marcarPassos(etapaAtual) {
+  const ordem = ['fila', 'club', 'evo', 'imp'];
+  const idx = ordem.indexOf(etapaAtual);
+  document.querySelectorAll('#passos li').forEach((li, i) => {
+    li.className = i < idx ? 'feito' : i === idx ? 'agora' : '';
+    li.querySelector('i').textContent = i < idx ? '✓' : '';
+  });
+}
+const ETAPA_PASSO = { RECEBIDO: 'fila', CLUBPETRO: 'club', CLUBPETRO_FINALIZANDO: 'club', CLUBPETRO_OK: 'evo', EVO_EMITINDO: 'evo', EVO_OK: 'imp' };
+
+async function acompanhar(inicio) {
+  const r = await api('totem_consultar', { pin: T.pin, id: T.pedido });
+  if (r.ok) {
+    if (r.status === 'CONCLUIDO' || (r.status === 'SENHA_GERADA' && r.ticket)) {
+      if (r.status === 'CONCLUIDO') { mostrarSenha(r); return; }
+      marcarPassos('imp');
+    } else if (r.status === 'ERRO') {
+      T.pedido = null;
+      avisoTotem('Não foi possível resgatar', r.mensagem || 'Procure o caixa.'); return;
+    } else if (r.status === 'VERIFICAR') {
+      T.pedido = null;
+      avisoTotem('Procure o caixa', r.mensagem || 'Seu resgate precisa de uma conferência.', 'Concluir'); return;
+    } else marcarPassos(ETAPA_PASSO[r.etapa] || 'fila');
+  }
+  if (Date.now() - inicio > 3 * 60 * 1000) {
+    T.pedido = null;
+    avisoTotem('Está demorando mais que o normal', 'Procure o caixa. Seu pedido continua sendo processado.', 'Concluir'); return;
+  }
+  setTimeout(() => acompanhar(inicio), 1800);
+}
+
+function mostrarSenha(r) {
+  T.pedido = null;
+  $('#sNum').textContent = r.ticket || '—';
+  $('#sRodape').textContent = r.mensagem || 'Retire seu comprovante na impressora.';
+  mostrar('vSenha');
+  let s = Number(CFG.TEMPO_TELA_SENHA || 25);
+  clearInterval(T.timer);
+  const tick = () => { $('#sConta').textContent = `Esta tela volta ao início em ${s} s.`; if (s-- <= 0) { clearInterval(T.timer); irTotem(); } };
+  tick(); T.timer = setInterval(tick, 1000);
+}
+
+function iniciarTotem() {
+  montarTeclado();
+  $('#iCpf').addEventListener('focus', () => ativar('cpf'));
+  $('#iNasc').addEventListener('focus', () => ativar('nasc'));
+  ['#iCpf', '#iNasc'].forEach(s => $(s).addEventListener('input', e => aplicar(e.target, digitos(e.target))));
+  $('#iNasc').addEventListener('keydown', e => { if (e.key === 'Enter') pedirBanho(); });
+  $('#iCpf').addEventListener('keydown', e => { if (e.key === 'Enter') ativar('nasc'), $('#iNasc').focus(); });
+  $('#bVale').addEventListener('click', pedirBanho);
+  // teclado físico também funciona quando o foco está no teclado da tela
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('vTotem').classList.contains('esconder')) return;
+    if (e.target && e.target.tagName === 'INPUT') return;
+    if (/^\d$/.test(e.key)) { e.preventDefault(); tecla(e.key); }
+    else if (e.key === 'Backspace') { e.preventDefault(); tecla('Apagar'); }
+    else if (e.key === 'Enter' && !$('#bVale').disabled) { e.preventDefault(); pedirBanho(); }
+  });
+  $('#bNovo').addEventListener('click', () => { clearInterval(T.timer); irTotem(); });
+  $('#cfgSalvar').addEventListener('click', async () => {
+    const pin = $('#cfgPin').value.trim(); if (!pin) return;
+    $('#cfgMsg').textContent = 'Conferindo…';
+    const r = await api('totem_estado', { pin });
+    if (r.pinErrado) { $('#cfgMsg').textContent = 'PIN incorreto.'; return; }
+    if (!r.ok) { $('#cfgMsg').textContent = r.erro; return; }
+    T.pin = pin; guardar.set('banho_pin_posto', pin); $('#cfgPin').value = ''; irTotem(); verificarEstado();
+  });
+  setInterval(verificarEstado, 15000);
+}
+
+/* =====================================================================
+   CAIXA
+   ===================================================================== */
+const C = { pin: sessionStorage.getItem('banho_pin_caixa'), turno: null, lista: [], lotes: [], sel: new Set(), timer: null, aba: 'codigos' };
+
+async function entrarCaixa() {
+  mostrar('vCaixa');
+  if (!C.pin) { mostrarSecao('cxLogin'); return; }
+  const r = await api('caixa_estado', { pin: C.pin });
+  if (r.pinErrado) { C.pin = null; sessionStorage.removeItem('banho_pin_caixa'); mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = 'PIN incorreto.'; return; }
+  if (!r.ok) { mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = r.erro; return; }
+  $('#cxPosto').textContent = r.posto || '';
+  sinalRobo(r.roboOnline);
+  C.turno = r.turno;
+  if (C.turno) { mostrarSecao('cxComTurno'); atualizarPainel(); }
+  else { mostrarSecao('cxSemTurno'); carregarTurnos(); }
+  clearInterval(C.timer);
+  C.timer = setInterval(() => { if (location.hash.startsWith('#caixa') && C.turno) atualizarPainel(true); }, 6000);
+}
+
+function mostrarSecao(id) {
+  ['cxLogin', 'cxSemTurno', 'cxComTurno'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
+  $('#cxFechar').style.display = id === 'cxComTurno' ? '' : 'none';
+  $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` : '';
+}
+function sinalRobo(on) { const s = $('#cxRobo'); s.className = 'sinal ' + (on ? 'on' : 'off'); s.textContent = on ? 'Robô ligado' : 'Robô desligado'; }
+
+async function carregarTurnos() {
+  const r = await api('caixa_turnos', { pin: C.pin });
+  const tb = $('#cxTurnos');
+  if (!r.ok || !r.turnos.length) { tb.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum turno registrado ainda.</td></tr>'; return; }
+  tb.innerHTML = r.turnos.map(t => `<tr><td>${esc(t.caixa)}</td><td>${esc(t.abertura)}</td><td>${esc(t.fechamento || 'aberto')}</td><td>${esc(t.qtd)}</td>
+    <td><button class="btn peq sec" data-rel="${esc(t.id)}">Relatório</button></td></tr>`).join('');
+  tb.querySelectorAll('[data-rel]').forEach(b => b.onclick = () => abrirRelatorio(b.dataset.rel));
+}
+
+async function atualizarPainel(silencioso) {
+  if (!C.turno) return;
+  const r = await api('caixa_painel', { pin: C.pin, turnoId: C.turno.id });
+  if (!r.ok) { if (!silencioso) alertas([{ t: r.erro, erro: true }]); return; }
+  sinalRobo(r.roboOnline);
+  if (!r.turno) { C.turno = null; entrarCaixa(); return; }
+  C.lista = r.resgates.slice().reverse(); C.lotes = r.lotes;
+  desenharLista(); desenharLotes();
+  const av = [];
+  if (!r.roboOnline) av.push({ t: 'O robô do DP002 está sem sinal. A tela do cliente está bloqueada. Confira se o INICIAR.bat está aberto.', erro: true });
+  const ver = C.lista.filter(x => x.status === 'VERIFICAR').length;
+  if (ver) av.push({ t: `${ver} resgate(s) precisam de conferência. Veja as linhas marcadas como Verificar.` });
+  const semImp = C.lista.filter(x => /impressora falhou/i.test(x.mensagem)).length;
+  if (semImp) av.push({ t: `${semImp} comprovante(s) não imprimiram. Use Reimprimir na linha.` });
+  alertas(av);
+}
+function alertas(lista) { $('#cxAlertas').innerHTML = lista.map(a => `<div class="alerta ${a.erro ? 'erro' : ''}">${esc(a.t)}</div>`).join(''); }
+
+function desenharLista() {
+  const tb = $('#cxLista');
+  const conc = C.lista.filter(x => x.status === 'CONCLUIDO');
+  $('#cxResumo').textContent = `${conc.length} resgatado(s) · ${conc.filter(x => x.ok).length} conferido(s) · ${conc.filter(x => !x.lote).length} sem lote`;
+  if (!C.lista.length) { tb.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum resgate neste turno ainda.</td></tr>'; return; }
+  const nomes = { CONCLUIDO: 'Concluído', ERRO: 'Recusado', VERIFICAR: 'Verificar', AGUARDANDO: 'Na fila', PROCESSANDO: 'Processando', SENHA_GERADA: 'Imprimindo' };
+  tb.innerHTML = C.lista.map(x => {
+    const podeSel = x.status === 'CONCLUIDO' && x.codigo && !x.lote;
+    return `<tr class="${x.ok ? 'marcada' : ''}">
+      <td>${podeSel ? `<input type="checkbox" data-sel="${esc(x.id)}" ${C.sel.has(x.id) ? 'checked' : ''} aria-label="Selecionar">` : ''}</td>
+      <td>${esc(x.hora.slice(11, 16))}</td>
+      <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}</td>
+      <td>${esc(x.ticket)}</td>
+      <td><span class="chip ${esc(x.status)}">${nomes[x.status] || esc(x.status)}</span>${x.mensagem ? `<div class="pequeno">${esc(x.mensagem)}</div>` : ''}</td>
+      <td>${x.lote ? `${esc(x.lote.slice(-6))}<div class="pequeno">${x.opnf ? 'OPNF ' + esc(x.opnf) : 'sem OPNF'}</div>` : ''}</td>
+      <td>${x.status === 'CONCLUIDO' ? `<input type="checkbox" data-ok="${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
+      <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
+          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+  tb.querySelectorAll('[data-copia]').forEach(b => b.onclick = () => copiar(b.dataset.copia, b));
+  tb.querySelectorAll('[data-sel]').forEach(c => c.onchange = () => { c.checked ? C.sel.add(c.dataset.sel) : C.sel.delete(c.dataset.sel); });
+  tb.querySelectorAll('[data-ok]').forEach(c => c.onchange = async () => {
+    const it = C.lista.find(x => x.id === c.dataset.ok); if (it) it.ok = c.checked; desenharLista();
+    await api('caixa_marcarOk', { pin: C.pin, ids: [c.dataset.ok], ok: c.checked });
+  });
+  tb.querySelectorAll('[data-reimp]').forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Enviado'; await api('caixa_reimprimir', { pin: C.pin, id: b.dataset.reimp });
+  });
+  tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
+}
+
+function desenharLotes() {
+  const tb = $('#cxLotes');
+  if (!C.lotes.length) { tb.innerHTML = '<tr><td colspan="6" class="vazio">Nenhum lote fechado neste turno.</td></tr>'; return; }
+  tb.innerHTML = C.lotes.slice().reverse().map(l => `<tr>
+    <td>${esc(l.lote.slice(-6))}</td><td>${esc(l.criado.slice(11, 16))}</td><td>${esc(l.qtd)}</td>
+    <td class="pequeno">${esc(l.codigos)}</td>
+    <td><input data-opnf="${esc(l.lote)}" value="${esc(l.opnf)}" inputmode="numeric" placeholder="OPNF" style="font:inherit;width:120px;padding:6px 8px;border:2px solid var(--linha);border-radius:6px"></td>
+    <td><button class="btn peq" data-salvaopnf="${esc(l.lote)}">Salvar</button></td></tr>`).join('');
+  tb.querySelectorAll('[data-salvaopnf]').forEach(b => b.onclick = async () => {
+    const v = tb.querySelector(`[data-opnf="${b.dataset.salvaopnf}"]`).value.trim();
+    b.disabled = true; b.textContent = 'Salvando…';
+    const r = await api('caixa_salvarOpnf', { pin: C.pin, lote: b.dataset.salvaopnf, opnf: v });
+    b.textContent = r.ok ? 'Salvo' : 'Erro'; setTimeout(() => { b.disabled = false; b.textContent = 'Salvar'; }, 1500);
+    atualizarPainel(true);
+  });
+}
+
+async function copiar(texto, botao) {
+  try { await navigator.clipboard.writeText(texto); }
+  catch (_) { const t = document.createElement('textarea'); t.value = texto; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  if (botao) { botao.classList.add('copiado'); setTimeout(() => botao.classList.remove('copiado'), 1500); }
+}
+
+function selecionados() { return C.lista.filter(x => C.sel.has(x.id) && !x.lote); }
+
+function abrirResolver(id) {
+  const d = $('#dResolver'); const it = C.lista.find(x => x.id === id) || {};
+  $('#dResCod').value = it.codigo || ''; $('#dResTk').value = it.ticket || '';
+  $('#dResOk').onclick = async () => {
+    const r = await api('caixa_resolverManual', { pin: C.pin, id, codigo: $('#dResCod').value.trim(), ticket: $('#dResTk').value.trim(), caixa: C.turno && C.turno.caixa });
+    if (!r.ok) { alert(r.erro); return; }
+    d.close(); atualizarPainel();
+  };
+  d.showModal();
+}
+
+async function abrirRelatorio(turnoId, dadosProntos) {
+  const r = dadosProntos ? { ok: true, relatorio: dadosProntos } : await api('caixa_relatorio', { pin: C.pin, turnoId });
+  if (!r.ok || !r.relatorio) { alert(r.erro || 'Relatório não encontrado.'); return; }
+  const R = r.relatorio;
+  const linhas = R.resgates.map((x, i) => `<tr class="${x.ok ? 'ok' : ''}"><td>${i + 1}</td><td>${esc(x.hora.slice(11, 16))}</td><td><b>${esc(x.codigo || '—')}</b></td>
+    <td>${esc(x.ticket)}</td><td>${esc(x.opnf)}</td><td>${x.ok ? 'OK ✓' : ''}</td><td>${x.status === 'VERIFICAR' ? 'Verificar' : ''}</td></tr>`).join('')
+    || '<tr><td colspan="7">Nenhum resgate no turno.</td></tr>';
+  $('#relatorio').innerHTML = `
+    <h2>Resgate de banho ClubPetro · Conferência de turno</h2>
+    <div class="sub">Postos Pichilau · ${esc(R.posto)}</div>
+    <dl>
+      <dt>Data</dt><dd>${esc(R.abertura.slice(0, 10))}</dd>
+      <dt>Aberto por</dt><dd>${esc(R.caixa)}</dd>
+      <dt>Início</dt><dd>${esc(R.abertura.slice(11, 16))}</dd>
+      <dt>Fim</dt><dd>${esc(R.fechamento ? R.fechamento.slice(11, 16) : 'em aberto')}</dd>
+      <dt>Banhos resgatados</dt><dd>${esc(R.qtd)}</dd>
+      <dt>Conferidos (OK)</dt><dd>${esc(R.qtdOk)} de ${esc(R.qtd)}</dd>
+      <dt>Caixa EVO</dt><dd>${esc(R.caixaEvo === 'PENDENTE' ? 'fechamento enviado' : (R.caixaEvo || 'não fechado pelo app'))}</dd>
+      <dt>Gerado em</dt><dd>${esc(R.geradoEm)}</dd>
+    </dl>
+    <table><thead><tr><th>#</th><th>Hora</th><th>Código do resgate</th><th>Senha EVO</th><th>OPNF</th><th>Conferido</th><th></th></tr></thead>
+    <tbody>${linhas}</tbody></table>
+    <p style="font-size:13px;margin-top:10px">Linhas destacadas foram marcadas como OK pelo caixa.</p>
+    <div class="assin"><div>${esc(R.caixa)}<br>Caixa</div><div>Conferente</div></div>`;
+  mostrar('vRelatorio');
+}
+
+function iniciarCaixa() {
+  $('#cxEntrar').onclick = async () => { C.pin = $('#cxPin').value.trim(); sessionStorage.setItem('banho_pin_caixa', C.pin); $('#cxPin').value = ''; entrarCaixa(); };
+  $('#cxPin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#cxEntrar').click(); });
+  $('#cxNome').value = guardar.get('banho_ultimo_caixa') || '';
+  $('#cxAbrir').onclick = async () => {
+    const nome = $('#cxNome').value.trim();
+    $('#cxAbrirMsg').textContent = 'Abrindo…';
+    const r = await api('caixa_abrirTurno', { pin: C.pin, nome });
+    if (!r.ok) { $('#cxAbrirMsg').textContent = r.erro; return; }
+    guardar.set('banho_ultimo_caixa', nome); $('#cxAbrirMsg').textContent = '';
+    entrarCaixa();
+  };
+  document.querySelectorAll('.abas button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.abas button').forEach(x => x.setAttribute('aria-selected', x === b));
+    $('#abaCodigos').classList.toggle('esconder', b.dataset.aba !== 'codigos');
+    $('#abaLotes').classList.toggle('esconder', b.dataset.aba !== 'lotes');
+  });
+  $('#cxSelPend').onclick = () => { C.lista.filter(x => x.status === 'CONCLUIDO' && x.codigo && !x.lote).forEach(x => C.sel.add(x.id)); desenharLista(); };
+  $('#cxCopiar').onclick = () => {
+    const s = selecionados(); if (!s.length) { alert('Selecione os códigos primeiro.'); return; }
+    copiar(s.map(x => x.codigo).join('\n'), $('#cxCopiar'));
+  };
+  $('#cxLote').onclick = () => {
+    const s = selecionados(); if (!s.length) { alert('Selecione os códigos que entraram no lote.'); return; }
+    $('#dLoteTxt').textContent = `${s.length} código(s): ${s.map(x => x.codigo).join(', ')}. Depois de registrar no B2Click, informe o número da OPNF.`;
+    $('#dLoteOpnf').value = ''; $('#dLote').showModal();
+  };
+  $('#dLoteCanc').onclick = () => $('#dLote').close();
+  $('#dLoteOk').onclick = async () => {
+    const s = selecionados();
+    $('#dLoteOk').disabled = true;
+    const r = await api('caixa_criarLote', { pin: C.pin, turnoId: C.turno.id, ids: s.map(x => x.id), opnf: $('#dLoteOpnf').value.trim(), caixa: C.turno.caixa });
+    $('#dLoteOk').disabled = false;
+    if (!r.ok) { alert(r.erro); return; }
+    C.sel.clear(); $('#dLote').close(); atualizarPainel();
+  };
+  $('#cxFechar').onclick = () => $('#dFechar').showModal();
+  $('#dFecharCanc').onclick = () => $('#dFechar').close();
+  $('#dFecharOk').onclick = async () => {
+    $('#dFecharOk').disabled = true;
+    const r = await api('caixa_fecharTurno', { pin: C.pin, turnoId: C.turno.id, fecharEvo: $('#dFecharEvo').checked });
+    $('#dFecharOk').disabled = false;
+    if (!r.ok) { alert(r.erro); return; }
+    $('#dFechar').close(); C.turno = null; C.sel.clear();
+    abrirRelatorio(null, r.relatorio);
+  };
+  $('#dResCanc').onclick = () => $('#dResolver').close();
+  $('#relImprimir').onclick = () => { document.body.classList.add('imprimindo'); window.print(); document.body.classList.remove('imprimindo'); };
+  $('#relVoltar').onclick = () => entrarCaixa();
+}
+
+/* =====================================================================
+   ROTAS
+   ===================================================================== */
+function rota() {
+  if (location.hash.startsWith('#caixa')) entrarCaixa();
+  else { clearInterval(C.timer); if (!T.pin) mostrar('vConfigurar'); else { irTotem(); verificarEstado(); } }
+}
+iniciarTotem(); iniciarCaixa();
+window.addEventListener('hashchange', rota);
+rota();
+</script>
+</body>
+</html>
