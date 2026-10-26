@@ -247,7 +247,13 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <div id="vConfigurar" class="tela esconder">
   <div class="caixa">
     <h2>Configurar este aparelho</h2>
-    <p>Digite o PIN do posto. Ele fica salvo neste aparelho e só precisa ser informado uma vez.</p>
+    <p>Entre com o usuário do totem (ou com o PIN do posto). Fica salvo neste aparelho e só precisa ser feito uma vez.</p>
+    <div class="linha-form" style="justify-content:center;margin-bottom:14px">
+      <input id="cfgTUser" placeholder="Usuário do totem" autocapitalize="none" spellcheck="false" style="font-size:22px;width:220px;padding:10px;border:2px solid var(--linha);border-radius:10px">
+      <input id="cfgTSenha" type="password" placeholder="Senha" style="font-size:22px;width:180px;padding:10px;border:2px solid var(--linha);border-radius:10px">
+      <button class="btn" id="cfgTEntrar">Entrar</button>
+    </div>
+    <p class="pequeno" style="margin:0 0 10px">ou</p>
     <div class="linha-form" style="justify-content:center">
       <input id="cfgPin" type="password" inputmode="numeric" placeholder="PIN do posto" style="font-size:28px;text-align:center;width:240px;padding:10px;border:2px solid var(--linha);border-radius:10px">
       <button class="btn" id="cfgSalvar">Salvar</button>
@@ -303,7 +309,8 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <h2>Abrir turno</h2>
         <p class="pequeno" style="margin-top:-6px">Enquanto não houver turno aberto, a tela do cliente fica bloqueada.</p>
         <div class="linha-form">
-          <label>Turno aberto em nome de<input id="cxNome" autocomplete="name" readonly></label>
+          <label id="cxOperadorL">Caixa que está abrindo o turno<select id="cxOperador" style="font:inherit;font-size:18px;padding:10px 12px;border:2px solid var(--linha);border-radius:8px;min-width:260px;background:#fff"></select></label>
+          <label id="cxNomeL" class="esconder">Turno aberto em nome de<input id="cxNome" autocomplete="name"></label>
           <button class="btn lar" id="cxAbrir">Abrir turno</button>
         </div>
         <p class="pequeno" id="cxAbrirMsg"></p>
@@ -313,6 +320,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <div class="rolagem"><table><thead><tr><th>Caixa</th><th>Abertura</th><th>Fechamento</th><th>Resgates</th><th></th></tr></thead>
         <tbody id="cxTurnos"><tr><td colspan="5" class="vazio">Carregando…</td></tr></tbody></table></div>
       </div>
+    </section>
+
+    <section class="cartao esconder" id="cxUsuarios">
+      <div class="barra"><h2 style="margin:0;margin-right:auto">Usuários</h2>
+        <button class="btn peq lar" id="usNovo">Novo usuário</button><button class="btn peq sec" id="usVoltar">Voltar ao painel</button></div>
+      <p class="pequeno" style="margin:-4px 0 12px">Perfis: <b>Caixa</b> abre turno e monta lotes · <b>Totem</b> só libera a tela do cliente · <b>Auditor</b> faz tudo, inclusive esta tela. A senha do EVO fica guardada protegida no servidor e não aparece na planilha.</p>
+      <div class="rolagem"><table>
+        <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Situação</th><th>Login EVO</th><th>Último acesso</th><th></th></tr></thead>
+        <tbody id="usLista"></tbody></table></div>
     </section>
 
     <section class="cartao esconder" id="cxAguardaEvo">
@@ -382,6 +398,16 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   <p class="pequeno" id="cfgImpInfo"></p>
   <div class="acoes" style="justify-content:flex-start"><button class="btn" id="cfgImpSalvar">Salvar impressora</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
   <div class="secao">
+    <h4>Fechamentos</h4>
+    <p style="margin-bottom:10px">Reimprima o relatório do app ou o fechamento do EVO de turnos anteriores.</p>
+    <button class="btn sec" id="cfgFechamentos">Fechamentos anteriores</button>
+  </div>
+  <div class="secao esconder" id="cfgSecAuditor">
+    <h4>Auditor</h4>
+    <p style="margin-bottom:10px">Cadastre caixas, totem e auditores, com o login do EVO de cada caixa, e redefina senhas.</p>
+    <button class="btn sec" id="cfgUsuarios">Usuários</button>
+  </div>
+  <div class="secao">
     <h4>Minha senha</h4>
     <p style="margin-bottom:10px">Uma nova senha só passa a valer depois que o gerente aprova pelo e-mail.</p>
     <button class="btn sec" id="cfgSenha">Redefinir minha senha</button>
@@ -390,6 +416,37 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn sec" id="cfgSair">Sair do painel</button>
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
+</dialog>
+<dialog id="dUsuario">
+  <h3 id="duTitulo">Usuário</h3>
+  <div class="form-col" style="max-width:none">
+    <label>Nome completo<input id="duNome"></label>
+    <label>Usuário (para entrar no painel)<input id="duUser" autocapitalize="none" spellcheck="false" placeholder="ex.: ana.p"></label>
+    <label>Perfil<select id="duPerfil" style="font:inherit;font-size:17px;padding:10px;border:2px solid var(--linha);border-radius:8px;background:#fff">
+      <option value="CAIXA">Caixa</option><option value="TOTEM">Totem</option><option value="AUDITOR">Auditor</option></select></label>
+    <label>Situação<select id="duStatus" style="font:inherit;font-size:17px;padding:10px;border:2px solid var(--linha);border-radius:8px;background:#fff">
+      <option value="ATIVO">Ativo</option><option value="BLOQUEADO">Bloqueado</option></select></label>
+    <label id="duSenhaL">Senha inicial do painel (mínimo 6)<input id="duSenha" type="password" autocomplete="new-password"></label>
+    <div id="duEvo">
+      <label>Login do EVO<input id="duLoginEvo" autocapitalize="none" spellcheck="false"></label>
+      <label style="margin-top:12px">Senha do EVO <span class="pequeno" id="duEvoInfo"></span><input id="duSenhaEvo" type="password" autocomplete="new-password" placeholder="deixe em branco para manter"></label>
+    </div>
+  </div>
+  <p class="pequeno" id="duMsg" style="color:var(--erro);margin-top:10px"></p>
+  <div class="acoes"><button class="btn sec" id="duCanc">Cancelar</button><button class="btn lar" id="duSalvar">Salvar</button></div>
+</dialog>
+<dialog id="dSenhaUsuario">
+  <h3>Redefinir senha</h3>
+  <p id="dsTxt"></p>
+  <input type="text" id="dsSenha" placeholder="Nova senha (mínimo 6)" autocomplete="off">
+  <p class="pequeno" id="dsMsg" style="color:var(--erro)"></p>
+  <div class="acoes"><button class="btn sec" id="dsCanc">Cancelar</button><button class="btn lar" id="dsOk">Salvar nova senha</button></div>
+</dialog>
+<dialog id="dFechamentos" style="max-width:720px">
+  <h3>Fechamentos anteriores</h3>
+  <div class="rolagem"><table><thead><tr><th>Caixa</th><th>Abertura</th><th>Fechamento</th><th>EVO</th><th></th></tr></thead><tbody id="dfLista"></tbody></table></div>
+  <p class="pequeno" id="dfMsg" style="margin-top:10px"></p>
+  <div class="acoes"><button class="btn" id="dfFechar">Fechar</button></div>
 </dialog>
 <dialog id="dCancelar">
   <h3>Marcar como cancelado</h3>
@@ -430,7 +487,7 @@ function mostrar(id) { VISTAS.forEach(v => document.getElementById(v).classList.
 /* =====================================================================
    TOTEM
    ===================================================================== */
-const T = { pin: guardar.get('banho_pin_posto'), campo: 'cpf', pedido: null, timer: null, estado: null };
+const T = { pin: guardar.get('banho_pin_posto'), sessao: guardar.get('banho_sessao_totem'), campo: 'cpf', pedido: null, timer: null, estado: null };
 
 function mascaraCpfOk(d) { d = d.slice(0, 11); let s = d.slice(0, 3); if (d.length > 3) s += '.' + d.slice(3, 6); if (d.length > 6) s += '.' + d.slice(6, 9); if (d.length > 9) s += '-' + d.slice(9); return s; }
 function mascaraData(d) { d = d.slice(0, 8); let s = d.slice(0, 2); if (d.length > 2) s += '/' + d.slice(2, 4); if (d.length > 4) s += '/' + d.slice(4); return s; }
@@ -489,12 +546,12 @@ function avisoTotem(titulo, texto, botao, acao) {
 
 async function verificarEstado() {
   if (location.hash.startsWith('#caixa')) return;
-  if (!T.pin) { mostrar('vConfigurar'); return; }
+  if (!T.pin && !T.sessao) { mostrar('vConfigurar'); return; }
   if (T.pedido || !document.getElementById('vProcesso').classList.contains('esconder')) return;
-  const r = await api('totem_estado', { pin: T.pin });
+  const r = await api('totem_estado', { pin: T.pin, sessao: T.sessao });
   // a resposta pode chegar depois que o cliente já tocou em Vale banho: aí não mexe na tela
   if (T.pedido || T.enviando || !document.getElementById('vProcesso').classList.contains('esconder')) return;
-  if (r.pinErrado) { T.pin = null; guardar.del('banho_pin_posto'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O PIN do posto mudou. Digite o novo PIN.'; return; }
+  if (r.pinErrado) { T.pin = null; T.sessao = null; guardar.del('banho_pin_posto'); guardar.del('banho_sessao_totem'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O acesso deste totem expirou. Entre de novo.'; return; }
   T.estado = r;
   if (r.posto) $('#tPosto').textContent = r.posto;
   const visivel = id => !document.getElementById(id).classList.contains('esconder');
@@ -513,7 +570,7 @@ async function pedirBanho() {
   T.enviando = true;
   marcarPassos('fila');
   mostrar('vProcesso');
-  const r = await api('totem_solicitar', { pin: T.pin, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
+  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
   limparTotem();                                   // não deixa o CPF na tela
   if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
   T.pedido = r.id; T.enviando = false;
@@ -531,7 +588,7 @@ function marcarPassos(etapaAtual) {
 const ETAPA_PASSO = { RECEBIDO: 'fila', CLUBPETRO: 'club', CLUBPETRO_FINALIZANDO: 'club', CLUBPETRO_OK: 'evo', EVO_EMITINDO: 'evo', EVO_OK: 'imp' };
 
 async function acompanhar(inicio) {
-  const r = await api('totem_consultar', { pin: T.pin, id: T.pedido });
+  const r = await api('totem_consultar', { pin: T.pin, sessao: T.sessao, id: T.pedido });
   if (r.ok) {
     if (r.status === 'CONCLUIDO' || (r.status === 'SENHA_GERADA' && r.ticket)) {
       if (r.status === 'CONCLUIDO') { mostrarSenha(r); return; }
@@ -579,6 +636,16 @@ function iniciarTotem() {
     else if (e.key === 'Enter' && !$('#bVale').disabled) { e.preventDefault(); pedirBanho(); }
   });
   $('#bNovo').addEventListener('click', () => { clearInterval(T.timer); irTotem(); });
+  $('#cfgTEntrar').addEventListener('click', async () => {
+    const usuario = $('#cfgTUser').value.trim(), senha = $('#cfgTSenha').value;
+    if (!usuario || !senha) { $('#cfgMsg').textContent = 'Informe usuário e senha do totem.'; return; }
+    $('#cfgMsg').textContent = 'Conferindo…';
+    const r = await api('acesso_login', { usuario, senha, paraTotem: true });
+    $('#cfgTSenha').value = '';
+    if (!r.ok) { $('#cfgMsg').textContent = r.erro; return; }
+    T.sessao = r.sessao; guardar.set('banho_sessao_totem', r.sessao); $('#cfgMsg').textContent = '';
+    irTotem(); verificarEstado();
+  });
   $('#cfgSalvar').addEventListener('click', async () => {
     const pin = $('#cfgPin').value.trim(); if (!pin) return;
     $('#cfgMsg').textContent = 'Conferindo…';
@@ -596,7 +663,7 @@ function iniciarTotem() {
 const C = { sessao: sessionStorage.getItem('banho_sessao'), usuario: null, nome: '', admin: false, turno: null, lista: [], lotes: [], sel: new Set(), timer: null, aba: 'codigos', pedido: null };
 async function apiCx(acao, dados) {
   const r = await api(acao, Object.assign({ sessao: C.sessao }, dados || {}));
-  if (r && r.sessaoInvalida) { sairCaixa('Sua sessão terminou. Entre de novo.'); }
+  if (r && r.sessaoInvalida) { sairCaixa(r.erro && !/expirada/i.test(r.erro) ? r.erro : 'Sua sessão terminou. Entre de novo.'); }
   return r;
 }
 function sairCaixa(msg) {
@@ -611,7 +678,8 @@ async function entrarCaixa() {
   const r = await apiCx('caixa_estado');
   if (r.sessaoInvalida) return;
   if (!r.ok) { mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = r.erro; return; }
-  C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin;
+  C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin; C.perfil = r.perfil;
+  $('#cfgSecAuditor').classList.toggle('esconder', r.perfil !== 'AUDITOR');
   $('#cxUsuario').textContent = r.nome; $('#cxEngrenagem').classList.remove('esconder');
   $('#cxNome').value = r.admin ? (guardar.get('banho_ultimo_caixa') || '') : r.nome;
   $('#cxNome').readOnly = !r.admin;
@@ -619,17 +687,28 @@ async function entrarCaixa() {
   sinalRobo(r.roboOnline);
   C.turno = r.turno;
   if (C.turno) { mostrarSecao('cxComTurno'); atualizarPainel(); }
-  else { mostrarSecao('cxSemTurno'); carregarTurnos(); }
+  else { mostrarSecao('cxSemTurno'); carregarTurnos(); carregarOperadores(); }
   clearInterval(C.timer);
   C.timer = setInterval(() => { if (location.hash.startsWith('#caixa') && C.turno) atualizarPainel(true); }, 6000);
 }
 
 function mostrarSecao(id) {
-  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
+  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo', 'cxUsuarios'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
   $('#cxFechar').style.display = id === 'cxComTurno' ? '' : 'none';
   $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` : '';
 }
 function sinalRobo(on) { const s = $('#cxRobo'); s.className = 'sinal ' + (on ? 'on' : 'off'); s.textContent = on ? 'Robô ligado' : 'Robô desligado'; }
+
+async function carregarOperadores() {
+  const r = await apiCx('caixa_operadores');
+  const sel = $('#cxOperador');
+  const ops = (r.ok && r.operadores) || [];
+  $('#cxOperadorL').classList.toggle('esconder', !ops.length);
+  $('#cxNomeL').classList.toggle('esconder', !!ops.length);
+  sel.innerHTML = '<option value="">Escolha o caixa…</option>' + ops.map(o =>
+    `<option value="${esc(o.usuario)}">${esc(o.nome)}${o.temEvo ? '' : ' (sem login do EVO)'}</option>`).join('');
+  if (ops.some(o => o.usuario === C.usuario)) sel.value = C.usuario;
+}
 
 async function carregarTurnos() {
   const r = await apiCx('caixa_turnos');
@@ -716,6 +795,87 @@ async function copiar(texto, botao) {
 }
 
 function selecionados() { return C.lista.filter(x => C.sel.has(x.id) && !x.lote); }
+
+// ---------- fechamentos anteriores (reimpressão)
+async function abrirFechamentos() {
+  const d = $('#dFechamentos'); d.showModal();
+  $('#dfLista').innerHTML = '<tr><td colspan="5" class="vazio">Carregando…</td></tr>'; $('#dfMsg').textContent = '';
+  const r = await apiCx('caixa_turnos');
+  const lista = ((r.ok && r.turnos) || []).filter(t => t.status === 'FECHADO');
+  if (!lista.length) { $('#dfLista').innerHTML = '<tr><td colspan="5" class="vazio">Nenhum turno fechado ainda.</td></tr>'; return; }
+  $('#dfLista').innerHTML = lista.slice(0, 15).map(t => `<tr><td>${esc(t.caixa)}</td><td>${esc(t.abertura.slice(0, 16))}</td><td>${esc(t.fechamento.slice(0, 16))}</td>
+    <td class="pequeno">${esc(t.caixaEvo || '—')}</td>
+    <td style="white-space:nowrap"><button class="btn peq" data-rapp="${esc(t.id)}">Relatório do app</button>
+    <button class="btn peq sec" data-revo="${esc(t.id)}">Fechamento EVO</button></td></tr>`).join('');
+  $('#dfLista').querySelectorAll('[data-rapp]').forEach(b => b.onclick = () => { d.close(); abrirRelatorio(b.dataset.rapp); });
+  $('#dfLista').querySelectorAll('[data-revo]').forEach(b => b.onclick = async () => {
+    b.disabled = true; $('#dfMsg').textContent = 'Pedido enviado ao robô. O fechamento do EVO sai na impressora em alguns segundos.';
+    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo });
+    if (!r2.ok) { $('#dfMsg').textContent = r2.erro; b.disabled = false; return; }
+    for (let i = 0; i < 20; i++) {
+      await new Promise(ok => setTimeout(ok, 3000));
+      const st = await apiCx('caixa_comando', { id: r2.comando });
+      if (st.ok && st.status === 'OK') { $('#dfMsg').textContent = 'Fechamento do EVO reimpresso.'; b.disabled = false; return; }
+      if (st.ok && st.status === 'ERRO') { $('#dfMsg').textContent = st.mensagem; b.disabled = false; return; }
+    }
+    $('#dfMsg').textContent = 'O robô não respondeu. Confira se ele está ligado no DP002.'; b.disabled = false;
+  });
+}
+
+// ---------- usuários (só auditor)
+const PERFIL_NOME = { CAIXA: 'Caixa', TOTEM: 'Totem', AUDITOR: 'Auditor' };
+async function abrirUsuarios() {
+  clearInterval(C.timer);
+  mostrarSecao('cxUsuarios');
+  $('#usLista').innerHTML = '<tr><td colspan="7" class="vazio">Carregando…</td></tr>';
+  const r = await apiCx('caixa_usuarios');
+  if (!r.ok) { $('#usLista').innerHTML = `<tr><td colspan="7" class="vazio">${esc(r.erro)}</td></tr>`; return; }
+  C.usuarios = r.usuarios;
+  if (!r.usuarios.length) { $('#usLista').innerHTML = '<tr><td colspan="7" class="vazio">Nenhum usuário cadastrado. Toque em Novo usuário.</td></tr>'; return; }
+  $('#usLista').innerHTML = r.usuarios.map(u => `<tr class="${u.status !== 'ATIVO' ? 'cancelada' : ''}">
+    <td>${esc(u.nome)}</td><td>${esc(u.usuario)}</td><td>${esc(PERFIL_NOME[u.perfil] || u.perfil)}</td>
+    <td><span class="chip ${u.status === 'ATIVO' ? 'CONCLUIDO' : 'ERRO'}">${u.status === 'ATIVO' ? 'Ativo' : 'Bloqueado'}</span></td>
+    <td>${u.perfil === 'TOTEM' ? '—' : esc(u.loginEvo || '—') + (u.perfil !== 'TOTEM' && u.loginEvo && !u.temSenhaEvo ? ' <span class="pequeno">(sem senha)</span>' : '')}</td>
+    <td class="pequeno">${esc(u.ultimo || '')}</td>
+    <td style="white-space:nowrap"><button class="btn peq sec" data-ued="${esc(u.usuario)}">Editar</button>
+      <button class="btn peq sec" data-usen="${esc(u.usuario)}">Redefinir senha</button></td></tr>`).join('');
+  $('#usLista').querySelectorAll('[data-ued]').forEach(b => b.onclick = () => editarUsuario(C.usuarios.find(u => u.usuario === b.dataset.ued)));
+  $('#usLista').querySelectorAll('[data-usen]').forEach(b => b.onclick = () => redefinirSenha(C.usuarios.find(u => u.usuario === b.dataset.usen)));
+}
+function editarUsuario(u) {
+  const novo = !u;
+  $('#duTitulo').textContent = novo ? 'Novo usuário' : 'Editar ' + u.nome;
+  $('#duNome').value = novo ? '' : u.nome;
+  $('#duUser').value = novo ? '' : u.usuario; $('#duUser').readOnly = !novo;
+  $('#duPerfil').value = novo ? 'CAIXA' : u.perfil;
+  $('#duStatus').value = novo ? 'ATIVO' : u.status;
+  $('#duSenhaL').classList.toggle('esconder', !novo); $('#duSenha').value = '';
+  $('#duLoginEvo').value = novo ? '' : (u.loginEvo || ''); $('#duSenhaEvo').value = '';
+  $('#duEvoInfo').textContent = !novo && u.temSenhaEvo ? '(já cadastrada)' : '';
+  $('#duEvo').classList.toggle('esconder', $('#duPerfil').value === 'TOTEM');
+  $('#duMsg').textContent = '';
+  $('#duSalvar').onclick = async () => {
+    $('#duSalvar').disabled = true;
+    const r = await apiCx('caixa_salvarUsuario', { usuario: $('#duUser').value.trim().toLowerCase(), nome: $('#duNome').value.trim(),
+      perfil: $('#duPerfil').value, status: $('#duStatus').value, senha: novo ? $('#duSenha').value : '',
+      loginEvo: $('#duPerfil').value === 'TOTEM' ? '' : $('#duLoginEvo').value.trim(), senhaEvo: $('#duSenhaEvo').value });
+    $('#duSalvar').disabled = false;
+    if (!r.ok) { $('#duMsg').textContent = r.erro; return; }
+    $('#duSenha').value = ''; $('#duSenhaEvo').value = '';
+    $('#dUsuario').close(); abrirUsuarios();
+  };
+  $('#dUsuario').showModal();
+}
+function redefinirSenha(u) {
+  $('#dsTxt').textContent = 'Nova senha do painel para ' + u.nome + ' (' + u.usuario + '). A pessoa é desconectada e entra com a nova senha.';
+  $('#dsSenha').value = ''; $('#dsMsg').textContent = '';
+  $('#dsOk').onclick = async () => {
+    const r = await apiCx('caixa_definirSenhaUsuario', { usuario: u.usuario, senha: $('#dsSenha').value });
+    if (!r.ok) { $('#dsMsg').textContent = r.erro; return; }
+    $('#dsSenha').value = ''; $('#dSenhaUsuario').close(); abrirUsuarios();
+  };
+  $('#dSenhaUsuario').showModal();
+}
 
 function abrirCancelar(id) {
   const d = $('#dCancelar'); const it = C.lista.find(x => x.id === id) || {};
@@ -869,12 +1029,23 @@ function iniciarCaixa() {
     $('#cfgImpInfo').textContent = 'Pedido de reimpressão da senha ' + ult.ticket + ' enviado ao robô.';
   };
   $('#cfgSenha').onclick = () => { $('#dConfig').close(); abrirPedido('senha'); };
+  $('#cfgFechamentos').onclick = () => { $('#dConfig').close(); abrirFechamentos(); };
+  $('#dfFechar').onclick = () => $('#dFechamentos').close();
+  $('#cfgUsuarios').onclick = () => { $('#dConfig').close(); abrirUsuarios(); };
+  $('#usVoltar').onclick = () => entrarCaixa();
+  $('#usNovo').onclick = () => editarUsuario(null);
+  $('#duCanc').onclick = () => $('#dUsuario').close();
+  $('#dsCanc').onclick = () => $('#dSenhaUsuario').close();
+  $('#duPerfil').onchange = () => $('#duEvo').classList.toggle('esconder', $('#duPerfil').value === 'TOTEM');
   $('#cfgSair').onclick = async () => { $('#dConfig').close(); await apiCx('caixa_sair'); sairCaixa('Você saiu do painel.'); };
   $('#cfgFechar').onclick = () => $('#dConfig').close();
   $('#cxAbrir').onclick = async () => {
     const nome = $('#cxNome').value.trim();
+    const usaMenu = !$('#cxOperadorL').classList.contains('esconder');
+    const operador = usaMenu ? $('#cxOperador').value : '';
+    if (usaMenu && !operador) { $('#cxAbrirMsg').textContent = 'Escolha o caixa no menu.'; return; }
     $('#cxAbrirMsg').textContent = 'Abrindo…';
-    const r = await apiCx('caixa_abrirTurno', { nome });
+    const r = await apiCx('caixa_abrirTurno', { nome, operador });
     if (!r.ok) { $('#cxAbrirMsg').textContent = r.erro; return; }
     if (C.admin) guardar.set('banho_ultimo_caixa', nome); $('#cxAbrirMsg').textContent = '';
     entrarCaixa();
@@ -926,7 +1097,7 @@ function iniciarCaixa() {
    ===================================================================== */
 function rota() {
   if (location.hash.startsWith('#caixa')) entrarCaixa();
-  else { clearInterval(C.timer); if (!T.pin) mostrar('vConfigurar'); else { irTotem(); verificarEstado(); } }
+  else { clearInterval(C.timer); if (!T.pin && !T.sessao) mostrar('vConfigurar'); else { irTotem(); verificarEstado(); } }
 }
 iniciarTotem(); iniciarCaixa();
 window.addEventListener('hashchange', rota);
