@@ -121,6 +121,10 @@ tr.marcada td{background:var(--ok-claro)}
 .chip.ERRO{background:var(--erro-claro);color:var(--erro)}
 .chip.VERIFICAR{background:var(--aviso-claro);color:var(--aviso)}
 .chip.AGUARDANDO,.chip.PROCESSANDO,.chip.SENHA_GERADA{background:var(--azul-claro);color:var(--azul)}
+.chip.CANCELADO{background:#E7EAF0;color:#4A5568}
+tr.cancelada td{color:var(--suave)}
+tr.cancelada .cod{text-decoration:line-through;opacity:.7}
+#relatorio tr.cancelado td{color:#666;text-decoration:line-through}
 .pequeno{font-size:13px;color:var(--suave)}
 .engrenagem{border:0;background:none;color:#fff;width:40px;height:40px;border-radius:8px;display:grid;place-items:center;padding:0}
 .engrenagem:hover{background:rgba(255,255,255,.12)}
@@ -387,6 +391,13 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
 </dialog>
+<dialog id="dCancelar">
+  <h3>Marcar como cancelado</h3>
+  <p id="dCanTxt"></p>
+  <input type="text" id="dCanMotivo" placeholder="Motivo do cancelamento">
+  <p class="pequeno" id="dCanMsg" style="color:var(--erro)"></p>
+  <div class="acoes"><button class="btn sec" id="dCanCanc">Voltar</button><button class="btn lar" id="dCanOk">Cancelar resgate</button></div>
+</dialog>
 <dialog id="dResolver">
   <h3>Resolver resgate</h3>
   <p>Confira no ClubPetro (histórico do cliente) e no EVO. Se o banho foi resgatado, informe o código e a senha.</p>
@@ -649,10 +660,10 @@ function desenharLista() {
   const conc = C.lista.filter(x => x.status === 'CONCLUIDO');
   $('#cxResumo').textContent = `${conc.length} resgatado(s) · ${conc.filter(x => x.ok).length} conferido(s) · ${conc.filter(x => !x.lote).length} sem lote`;
   if (!C.lista.length) { tb.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum resgate neste turno ainda.</td></tr>'; return; }
-  const nomes = { CONCLUIDO: 'Concluído', ERRO: 'Recusado', VERIFICAR: 'Verificar', AGUARDANDO: 'Na fila', PROCESSANDO: 'Processando', SENHA_GERADA: 'Imprimindo' };
+  const nomes = { CONCLUIDO: 'Concluído', ERRO: 'Recusado', VERIFICAR: 'Verificar', AGUARDANDO: 'Na fila', PROCESSANDO: 'Processando', SENHA_GERADA: 'Imprimindo', CANCELADO: 'Cancelado' };
   tb.innerHTML = C.lista.map(x => {
     const podeSel = x.status === 'CONCLUIDO' && x.codigo && !x.lote;
-    return `<tr class="${x.ok ? 'marcada' : ''}">
+    return `<tr class="${x.status === 'CANCELADO' ? 'cancelada' : x.ok ? 'marcada' : ''}">
       <td>${podeSel ? `<input type="checkbox" data-sel="${esc(x.id)}" ${C.sel.has(x.id) ? 'checked' : ''} aria-label="Selecionar">` : ''}</td>
       <td>${esc(x.hora.slice(11, 16))}</td>
       <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}</td>
@@ -661,7 +672,8 @@ function desenharLista() {
       <td>${x.lote ? `${esc(x.lote.slice(-6))}<div class="pequeno">${x.opnf ? 'OPNF ' + esc(x.opnf) : 'sem OPNF'}</div>` : ''}</td>
       <td>${x.status === 'CONCLUIDO' ? `<input type="checkbox" data-ok="${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
       <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
-          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir</button>` : ''}</td>
+          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir</button>` : ''}
+          ${(x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}</td>
     </tr>`;
   }).join('');
   tb.querySelectorAll('[data-copia]').forEach(b => b.onclick = () => copiar(b.dataset.copia, b));
@@ -674,6 +686,7 @@ function desenharLista() {
     b.disabled = true; b.textContent = 'Enviado'; await apiCx('caixa_reimprimir', { id: b.dataset.reimp });
   });
   tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
+  tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
 }
 
 function desenharLotes() {
@@ -701,6 +714,23 @@ async function copiar(texto, botao) {
 
 function selecionados() { return C.lista.filter(x => C.sel.has(x.id) && !x.lote); }
 
+function abrirCancelar(id) {
+  const d = $('#dCancelar'); const it = C.lista.find(x => x.id === id) || {};
+  $('#dCanTxt').textContent = 'Resgate das ' + (it.hora || '').slice(11, 16) + (it.codigo ? ' · código ' + it.codigo : '') + (it.ticket ? ' · senha ' + it.ticket : '') +
+    '. Antes, cancele também no ClubPetro e no EVO, se o resgate ou o ticket chegaram a ser feitos.';
+  $('#dCanMotivo').value = ''; $('#dCanMsg').textContent = '';
+  $('#dCanOk').onclick = async () => {
+    const motivo = $('#dCanMotivo').value.trim();
+    if (motivo.length < 5) { $('#dCanMsg').textContent = 'Escreva o motivo.'; return; }
+    $('#dCanOk').disabled = true;
+    const r = await apiCx('caixa_cancelar', { id, motivo });
+    $('#dCanOk').disabled = false;
+    if (!r.ok) { $('#dCanMsg').textContent = r.erro; return; }
+    d.close(); atualizarPainel();
+  };
+  d.showModal();
+}
+
 function abrirResolver(id) {
   const d = $('#dResolver'); const it = C.lista.find(x => x.id === id) || {};
   $('#dResCod').value = it.codigo || ''; $('#dResTk').value = it.ticket || '';
@@ -716,8 +746,9 @@ async function abrirRelatorio(turnoId, dadosProntos) {
   const r = dadosProntos ? { ok: true, relatorio: dadosProntos } : await apiCx('caixa_relatorio', { turnoId });
   if (!r.ok || !r.relatorio) { alert(r.erro || 'Relatório não encontrado.'); return; }
   const R = r.relatorio;
-  const linhas = R.resgates.map((x, i) => `<tr class="${x.ok ? 'ok' : ''}"><td>${i + 1}</td><td>${esc(x.hora.slice(11, 16))}</td><td><b>${esc(x.codigo || '—')}</b></td>
-    <td>${esc(x.ticket)}</td><td>${esc(x.opnf)}</td><td>${x.ok ? 'OK ✓' : ''}</td><td>${x.status === 'VERIFICAR' ? 'Verificar' : ''}</td></tr>`).join('')
+  const linhas = R.resgates.map((x, i) => `<tr class="${x.status === 'CANCELADO' ? 'cancelado' : x.ok ? 'ok' : ''}"><td>${i + 1}</td><td>${esc(x.hora.slice(11, 16))}</td><td><b>${esc(x.codigo || '—')}</b></td>
+    <td>${esc(x.ticket)}</td><td>${esc(x.opnf)}</td><td>${x.ok ? 'OK ✓' : ''}</td><td>${x.status === 'VERIFICAR' ? 'Verificar' : x.status === 'CANCELADO' ? 'Cancelado' : ''}</td></tr>`
+    + (x.status === 'CANCELADO' ? `<tr><td></td><td colspan="6" style="font-size:12px;color:#444">${esc(x.mensagem)}</td></tr>` : '')).join('')
     || '<tr><td colspan="7">Nenhum resgate no turno.</td></tr>';
   $('#relatorio').innerHTML = `
     <h2>Resgate de banho ClubPetro · Conferência de turno</h2>
@@ -882,6 +913,7 @@ function iniciarCaixa() {
     aguardarFechamentoEvo(r.comando, turnoId);
   };
   $('#dResCanc').onclick = () => $('#dResolver').close();
+  $('#dCanCanc').onclick = () => $('#dCancelar').close();
   $('#relImprimir').onclick = () => { document.body.classList.add('imprimindo'); window.print(); document.body.classList.remove('imprimindo'); };
   $('#relVoltar').onclick = () => entrarCaixa();
 }
