@@ -414,8 +414,9 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   </div>
   <div class="secao esconder" id="cfgSecAuditor">
     <h4>Auditor</h4>
-    <p style="margin-bottom:10px">Cadastre caixas, totem e auditores, com o login do EVO de cada caixa, e redefina senhas.</p>
+    <p style="margin-bottom:10px">Cadastre caixas, totem e auditores (com o login do EVO de cada caixa) e configure o posto: site do EVO e login do ClubPetro.</p>
     <button class="btn sec" id="cfgUsuarios">Usuários</button>
+    <button class="btn sec" id="cfgPosto">Configurações do posto</button>
   </div>
   <div class="secao">
     <h4>Minha senha</h4>
@@ -444,6 +445,21 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   </div>
   <p class="pequeno" id="duMsg" style="color:var(--erro);margin-top:10px"></p>
   <div class="acoes"><button class="btn sec" id="duCanc">Cancelar</button><button class="btn lar" id="duSalvar">Salvar</button></div>
+</dialog>
+<dialog id="dPosto" style="max-width:560px">
+  <h3>Configurações do posto</h3>
+  <p>Valem para o robô deste posto. Ao salvar, ele recarrega sozinho em alguns segundos.</p>
+  <div class="form-col" style="max-width:none">
+    <label>Nome do posto<input id="dpPosto" placeholder="ex.: Escada BR"></label>
+    <label>Site do EVO<input id="dpEvoUrl" placeholder="ex.: http://192.168.194.230/" autocapitalize="none" spellcheck="false"></label>
+    <label>Cartão do EVO usado no resgate<input id="dpEvoBotao" placeholder="ex.: B.PICHILAUMAIS"></label>
+    <label>Prêmio no ClubPetro<input id="dpProduto" placeholder="ex.: Banho"></label>
+    <label>Login do portal ClubPetro<input id="dpClubLogin" autocapitalize="none" spellcheck="false" autocomplete="off"></label>
+    <label>Senha do portal ClubPetro <span class="pequeno" id="dpClubInfo"></span><input id="dpClubSenha" type="password" autocomplete="new-password" placeholder="deixe em branco para manter"></label>
+    <label>E-mail que aprova pedidos de senha<input id="dpEmail" type="email" autocomplete="off"></label>
+  </div>
+  <p class="pequeno" id="dpMsg" style="color:var(--erro);margin-top:10px"></p>
+  <div class="acoes"><button class="btn sec" id="dpCanc">Cancelar</button><button class="btn lar" id="dpSalvar">Salvar</button></div>
 </dialog>
 <dialog id="dSenhaUsuario">
   <h3>Redefinir senha</h3>
@@ -837,6 +853,26 @@ async function abrirFechamentos() {
   });
 }
 
+// ---------- configurações do posto (só auditor)
+async function abrirConfigPosto() {
+  const d = $('#dPosto'); $('#dpMsg').textContent = 'Carregando…'; d.showModal();
+  const r = await apiCx('caixa_configPosto');
+  if (!r.ok) { $('#dpMsg').textContent = r.erro; return; }
+  $('#dpPosto').value = r.posto || ''; $('#dpEvoUrl').value = r.evoUrl || ''; $('#dpEvoBotao').value = r.evoBotao || '';
+  $('#dpProduto').value = r.produto || 'Banho'; $('#dpClubLogin').value = r.clubLogin || ''; $('#dpClubSenha').value = '';
+  $('#dpEmail').value = r.emailAprovacao || '';
+  $('#dpClubInfo').textContent = r.temSenhaClub ? '(já cadastrada)' : '(não cadastrada)';
+  $('#dpMsg').textContent = '';
+  $('#dpSalvar').onclick = async () => {
+    $('#dpSalvar').disabled = true; $('#dpMsg').textContent = '';
+    const s = await apiCx('caixa_salvarConfigPosto', { posto: $('#dpPosto').value, evoUrl: $('#dpEvoUrl').value, evoBotao: $('#dpEvoBotao').value,
+      produto: $('#dpProduto').value, clubLogin: $('#dpClubLogin').value, clubSenha: $('#dpClubSenha').value, emailAprovacao: $('#dpEmail').value });
+    $('#dpSalvar').disabled = false;
+    if (!s.ok) { $('#dpMsg').textContent = s.erro; return; }
+    $('#dpClubSenha').value = ''; d.close(); entrarCaixa();
+  };
+}
+
 // ---------- usuários (só auditor)
 const PERFIL_NOME = { CAIXA: 'Caixa', TOTEM: 'Totem', AUDITOR: 'Auditor' };
 async function abrirUsuarios() {
@@ -1053,6 +1089,8 @@ function iniciarCaixa() {
   $('#cfgFechamentos').onclick = () => { $('#dConfig').close(); abrirFechamentos(); };
   $('#dfFechar').onclick = () => $('#dFechamentos').close();
   $('#cfgUsuarios').onclick = () => { $('#dConfig').close(); abrirUsuarios(); };
+  $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
+  $('#dpCanc').onclick = () => $('#dPosto').close();
   $('#usVoltar').onclick = () => entrarCaixa();
   $('#usNovo').onclick = () => editarUsuario(null);
   $('#duCanc').onclick = () => $('#dUsuario').close();
