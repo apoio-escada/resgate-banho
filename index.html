@@ -376,9 +376,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <!-- ====================== RELATÓRIO ====================== -->
 <div id="vRelatorio" class="esconder">
   <div class="nao-imprime">
-    <button class="btn" id="relImprimir">Imprimir relatório</button>
+    <button class="btn" id="relImprimirRobo">Imprimir na impressora do fechamento</button>
+    <button class="btn sec" id="relImprimir">Imprimir neste computador</button>
     <button class="btn sec" id="relVoltar">Voltar ao painel</button>
   </div>
+  <p class="pequeno" id="relMsg" style="text-align:center;margin:-6px 0 12px"></p>
   <article id="relatorio"></article>
 </div>
 
@@ -397,11 +399,14 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 </dialog>
 <dialog id="dConfig">
   <h3>Configurações</h3>
-  <h4>Impressora do comprovante</h4>
-  <p style="margin-bottom:8px">Impressoras do computador do robô (DP002). O comprovante do cliente sai na escolhida.</p>
-  <select id="cfgImpressora" aria-label="Impressora"></select>
+  <h4>Impressoras</h4>
+  <p style="margin-bottom:8px">Impressoras do computador do robô (DP002). Podem ser a mesma.</p>
+  <label style="display:block;font-weight:600;font-size:15px;margin-bottom:4px">Senha do cliente</label>
+  <select id="cfgImpressora" aria-label="Impressora da senha"></select>
+  <label style="display:block;font-weight:600;font-size:15px;margin:6px 0 4px">Fechamento do EVO e relatório do turno</label>
+  <select id="cfgImpFech" aria-label="Impressora do fechamento"></select>
   <p class="pequeno" id="cfgImpInfo"></p>
-  <div class="acoes" style="justify-content:flex-start"><button class="btn" id="cfgImpSalvar">Salvar impressora</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
+  <div class="acoes" style="justify-content:flex-start"><button class="btn" id="cfgImpSalvar">Salvar impressoras</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
   <div class="secao">
     <h4>Fechamentos</h4>
     <p style="margin-bottom:10px">Reimprima o relatório do app ou o fechamento do EVO de turnos anteriores.</p>
@@ -916,6 +921,8 @@ function abrirResolver(id) {
 }
 
 async function abrirRelatorio(turnoId, dadosProntos) {
+  C.relTurno = turnoId; $('#relMsg').textContent = '';
+  $('#relImprimirRobo').classList.toggle('esconder', !turnoId);
   const r = dadosProntos ? { ok: true, relatorio: dadosProntos } : await apiCx('caixa_relatorio', { turnoId });
   if (!r.ok || !r.relatorio) { alert(r.erro || 'Relatório não encontrado.'); return; }
   const R = r.relatorio;
@@ -954,8 +961,8 @@ async function aguardarFechamentoEvo(comandoId, turnoId) {
     const r = await apiCx('caixa_comando', { id: comandoId });
     if (r.ok && r.status === 'OK') {
       const rel = await apiCx('caixa_relatorio', { turnoId });
-      msg.textContent = 'Fechamento do EVO impresso. Abrindo o relatório do app…';
-      setTimeout(() => abrirRelatorio(null, rel.relatorio), 800);
+      msg.textContent = 'Fechamento do EVO impresso. O relatório do turno sai em seguida na mesma impressora…';
+      setTimeout(() => abrirRelatorio(turnoId, rel.relatorio), 800);
       return;
     }
     if (r.ok && r.status === 'ERRO') {
@@ -968,7 +975,7 @@ async function aguardarFechamentoEvo(comandoId, turnoId) {
     }
     setTimeout(verificar, 3000);
   };
-  bt.onclick = async () => { const rel = await apiCx('caixa_relatorio', { turnoId }); abrirRelatorio(null, rel.relatorio); };
+  bt.onclick = async () => { const rel = await apiCx('caixa_relatorio', { turnoId }); abrirRelatorio(turnoId, rel.relatorio); };
   verificar();
 }
 
@@ -1018,19 +1025,23 @@ function iniciarCaixa() {
   // engrenagem
   $('#cxEngrenagem').onclick = async () => {
     $('#dConfig').showModal();
-    const sel = $('#cfgImpressora'); sel.innerHTML = '<option>Carregando…</option>'; $('#cfgImpInfo').textContent = '';
+    const sel = $('#cfgImpressora'), selF = $('#cfgImpFech');
+    sel.innerHTML = selF.innerHTML = '<option>Carregando…</option>'; $('#cfgImpInfo').textContent = '';
     const r = await apiCx('caixa_impressoras');
     if (!r.ok) { $('#cfgImpInfo').textContent = r.erro; return; }
     const pad = r.padrao ? ' (' + r.padrao + ')' : '';
-    sel.innerHTML = '<option value="">Impressora padrão do Windows' + esc(pad) + '</option>' + r.lista.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
-    sel.value = r.escolhida || '';
+    const opcoes = r.lista.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+    sel.innerHTML = '<option value="">Impressora padrão do Windows' + esc(pad) + '</option>' + opcoes;
+    selF.innerHTML = '<option value="">A mesma da senha</option>' + opcoes;
+    sel.value = r.escolhida || ''; selF.value = r.escolhidaFechamento || '';
     $('#cfgImpInfo').textContent = r.lista.length ? 'Lista enviada pelo robô em ' + r.atualizadoEm + '.' : 'O robô ainda não enviou a lista de impressoras. Ligue o robô no DP002 e abra de novo.';
   };
   $('#cfgImpSalvar').onclick = async () => {
     $('#cfgImpSalvar').disabled = true;
-    const r = await apiCx('caixa_definirImpressora', { nome: $('#cfgImpressora').value });
+    const r = await apiCx('caixa_definirImpressora', { tipo: 'senha', nome: $('#cfgImpressora').value });
+    const r2 = r.ok ? await apiCx('caixa_definirImpressora', { tipo: 'fechamento', nome: $('#cfgImpFech').value }) : r;
     $('#cfgImpSalvar').disabled = false;
-    $('#cfgImpInfo').textContent = r.ok ? 'Salvo. Os próximos comprovantes saem em: ' + (r.escolhida || 'impressora padrão do Windows') + '.' : r.erro;
+    $('#cfgImpInfo').textContent = r2.ok ? 'Salvo. Senha: ' + (r.escolhida || 'padrão do Windows') + ' · Fechamento: ' + (r2.escolhida || 'a mesma da senha') + '.' : r2.erro;
   };
   $('#cfgImpTeste').onclick = async () => {
     const ult = C.lista.find(x => x.status === 'CONCLUIDO' && x.ticket);
@@ -1093,11 +1104,18 @@ function iniciarCaixa() {
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
-    if (!r.comando) { abrirRelatorio(null, r.relatorio); return; }
+    if (!$('#dFecharEvo').checked) { abrirRelatorio(turnoId, r.relatorio); $('#relMsg').textContent = 'O relatório do turno está saindo na impressora do fechamento.'; return; }
     aguardarFechamentoEvo(r.comando, turnoId);
   };
   $('#dResCanc').onclick = () => $('#dResolver').close();
   $('#dCanCanc').onclick = () => $('#dCancelar').close();
+  $('#relImprimirRobo').onclick = async () => {
+    if (!C.relTurno) return;
+    $('#relImprimirRobo').disabled = true; $('#relMsg').textContent = 'Enviando ao robô…';
+    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno });
+    $('#relImprimirRobo').disabled = false;
+    $('#relMsg').textContent = r.ok ? 'O relatório do turno está saindo na impressora do fechamento (formato bobina).' : r.erro;
+  };
   $('#relImprimir').onclick = () => { document.body.classList.add('imprimindo'); window.print(); document.body.classList.remove('imprimindo'); };
   $('#relVoltar').onclick = () => entrarCaixa();
 }
