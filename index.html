@@ -492,6 +492,8 @@ async function verificarEstado() {
   if (!T.pin) { mostrar('vConfigurar'); return; }
   if (T.pedido || !document.getElementById('vProcesso').classList.contains('esconder')) return;
   const r = await api('totem_estado', { pin: T.pin });
+  // a resposta pode chegar depois que o cliente já tocou em Vale banho: aí não mexe na tela
+  if (T.pedido || T.enviando || !document.getElementById('vProcesso').classList.contains('esconder')) return;
   if (r.pinErrado) { T.pin = null; guardar.del('banho_pin_posto'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O PIN do posto mudou. Digite o novo PIN.'; return; }
   T.estado = r;
   if (r.posto) $('#tPosto').textContent = r.posto;
@@ -508,12 +510,13 @@ function irTotem() { limparTotem(); mostrar('vTotem'); }
 async function pedirBanho() {
   if (!validarTotem(true)) return;
   $('#bVale').disabled = true;
+  T.enviando = true;
   marcarPassos('fila');
   mostrar('vProcesso');
   const r = await api('totem_solicitar', { pin: T.pin, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
   limparTotem();                                   // não deixa o CPF na tela
-  if (!r.ok) { avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
-  T.pedido = r.id;
+  if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
+  T.pedido = r.id; T.enviando = false;
   acompanhar(Date.now());
 }
 
