@@ -490,7 +490,7 @@ function avisoTotem(titulo, texto, botao, acao) {
 async function verificarEstado() {
   if (location.hash.startsWith('#caixa')) return;
   if (!T.pin) { mostrar('vConfigurar'); return; }
-  if (T.pedido) return;
+  if (T.pedido || !document.getElementById('vProcesso').classList.contains('esconder')) return;
   const r = await api('totem_estado', { pin: T.pin });
   if (r.pinErrado) { T.pin = null; guardar.del('banho_pin_posto'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O PIN do posto mudou. Digite o novo PIN.'; return; }
   T.estado = r;
