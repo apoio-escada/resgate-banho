@@ -311,6 +311,12 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       </div>
     </section>
 
+    <section class="cartao esconder" id="cxAguardaEvo">
+      <h2>Fechando o caixa no EVO</h2>
+      <p id="evoMsg" style="font-size:18px;margin:6px 0 16px"></p>
+      <button class="btn" id="evoContinuar">Ver relatório do app</button>
+    </section>
+
     <section id="cxComTurno" class="esconder">
       <div id="cxAlertas"></div>
       <nav class="abas" role="tablist">
@@ -360,7 +366,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 </dialog>
 <dialog id="dFechar">
   <h3>Fechar turno</h3>
-  <p>A tela do cliente será bloqueada e o relatório de conferência abrirá para impressão.</p>
+  <p>A tela do cliente será bloqueada. Primeiro o robô fecha o caixa no EVO e imprime o fechamento; depois abre o relatório do app para impressão.</p>
   <label class="chk"><input type="checkbox" id="dFecharEvo" checked> Fechar também o caixa no EVO</label>
   <div class="acoes"><button class="btn sec" id="dFecharCanc">Cancelar</button><button class="btn lar" id="dFecharOk">Fechar turno</button></div>
 </dialog>
@@ -605,7 +611,7 @@ async function entrarCaixa() {
 }
 
 function mostrarSecao(id) {
-  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
+  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
   $('#cxFechar').style.display = id === 'cxComTurno' ? '' : 'none';
   $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` : '';
 }
@@ -733,6 +739,35 @@ async function abrirRelatorio(turnoId, dadosProntos) {
   mostrar('vRelatorio');
 }
 
+// Primeiro o robô fecha o caixa no EVO, salva e imprime o fechamento; só depois abre o relatório do app.
+async function aguardarFechamentoEvo(comandoId, turnoId) {
+  mostrarSecao('cxAguardaEvo');
+  const msg = $('#evoMsg'), bt = $('#evoContinuar');
+  bt.classList.add('esconder');
+  msg.textContent = 'O robô está fechando o caixa no EVO e imprimindo o comprovante do fechamento. Aguarde…';
+  const inicio = Date.now();
+  const verificar = async () => {
+    const r = await apiCx('caixa_comando', { id: comandoId });
+    if (r.ok && r.status === 'OK') {
+      const rel = await apiCx('caixa_relatorio', { turnoId });
+      msg.textContent = 'Fechamento do EVO impresso. Abrindo o relatório do app…';
+      setTimeout(() => abrirRelatorio(null, rel.relatorio), 800);
+      return;
+    }
+    if (r.ok && r.status === 'ERRO') {
+      msg.textContent = 'O robô não conseguiu fechar o caixa no EVO: ' + (r.mensagem || 'erro') + '. Feche e imprima pelo EVO manualmente e depois continue.';
+      bt.classList.remove('esconder'); return;
+    }
+    if (Date.now() - inicio > 3 * 60 * 1000) {
+      msg.textContent = 'O robô está demorando para fechar o EVO. Confira se ele está ligado no DP002. Se preferir, feche e imprima pelo EVO e continue.';
+      bt.classList.remove('esconder'); return;
+    }
+    setTimeout(verificar, 3000);
+  };
+  bt.onclick = async () => { const rel = await apiCx('caixa_relatorio', { turnoId }); abrirRelatorio(null, rel.relatorio); };
+  verificar();
+}
+
 function iniciarCaixa() {
   $('#cxUser').value = guardar.get('banho_ultimo_usuario') || '';
   $('#cxEntrar').onclick = async () => {
@@ -838,11 +873,13 @@ function iniciarCaixa() {
   $('#dFecharCanc').onclick = () => $('#dFechar').close();
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
-    const r = await apiCx('caixa_fecharTurno', { turnoId: C.turno.id, fecharEvo: $('#dFecharEvo').checked });
+    const turnoId = C.turno.id;
+    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
-    abrirRelatorio(null, r.relatorio);
+    if (!r.comando) { abrirRelatorio(null, r.relatorio); return; }
+    aguardarFechamentoEvo(r.comando, turnoId);
   };
   $('#dResCanc').onclick = () => $('#dResolver').close();
   $('#relImprimir').onclick = () => { document.body.classList.add('imprimindo'); window.print(); document.body.classList.remove('imprimindo'); };
