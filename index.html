@@ -316,10 +316,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <p class="pequeno" id="cxAbrirMsg"></p>
       </div>
       <div class="cartao">
-        <h2>Relatórios de turnos anteriores</h2>
+        <h2>Meus turnos anteriores</h2>
         <div class="rolagem"><table><thead><tr><th>Caixa</th><th>Abertura</th><th>Fechamento</th><th>Resgates</th><th></th></tr></thead>
         <tbody id="cxTurnos"><tr><td colspan="5" class="vazio">Carregando…</td></tr></tbody></table></div>
       </div>
+    </section>
+
+    <section class="cartao esconder" id="cxOutroTurno">
+      <h2>Turno de outro caixa</h2>
+      <p id="otTexto" style="font-size:18px;margin:6px 0 0"></p>
     </section>
 
     <section class="cartao esconder" id="cxUsuarios">
@@ -686,14 +691,19 @@ async function entrarCaixa() {
   $('#cxPosto').textContent = r.posto || '';
   sinalRobo(r.roboOnline);
   C.turno = r.turno;
-  if (C.turno) { mostrarSecao('cxComTurno'); atualizarPainel(); }
+  if (C.turno && C.turno.meu === false) {
+    mostrarSecao('cxOutroTurno');
+    $('#otTexto').textContent = 'Há um turno aberto por ' + C.turno.caixa + ' desde ' + C.turno.abertura.slice(0, 16) +
+      '. Só esse caixa ou o auditor podem ver os resgates e fechar o turno.';
+  }
+  else if (C.turno) { mostrarSecao('cxComTurno'); atualizarPainel(); }
   else { mostrarSecao('cxSemTurno'); carregarTurnos(); carregarOperadores(); }
   clearInterval(C.timer);
   C.timer = setInterval(() => { if (location.hash.startsWith('#caixa') && C.turno) atualizarPainel(true); }, 6000);
 }
 
 function mostrarSecao(id) {
-  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo', 'cxUsuarios'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
+  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo', 'cxUsuarios', 'cxOutroTurno'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
   $('#cxFechar').style.display = id === 'cxComTurno' ? '' : 'none';
   $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` : '';
 }
@@ -724,7 +734,7 @@ async function atualizarPainel(silencioso) {
   const r = await apiCx('caixa_painel', { turnoId: C.turno.id });
   if (!r.ok) { if (!silencioso) alertas([{ t: r.erro, erro: true }]); return; }
   sinalRobo(r.roboOnline);
-  if (!r.turno) { C.turno = null; entrarCaixa(); return; }
+  if (!r.turno || r.turno.meu === false) { C.turno = null; entrarCaixa(); return; }
   C.lista = r.resgates.slice().reverse(); C.lotes = r.lotes;
   desenharLista(); desenharLotes();
   const av = [];
