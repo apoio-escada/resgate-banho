@@ -441,6 +441,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p class="pequeno">Para sair sem a janela de impressão, abra o Chrome com a opção --kiosk-printing (o LEIA-ME explica).</p>
   </div>
   <div class="secao">
+    <h4>Agentes de impressão</h4>
+    <p style="margin-bottom:8px">Programa instalado no computador do caixa que imprime sozinho, na impressora escolhida para cada tipo. Se usar o agente, desmarque as opções acima para não imprimir duas vezes.</p>
+    <div id="cfgAgentes" class="pequeno"></div>
+  </div>
+  <div class="secao">
     <h4>Fechamentos</h4>
     <p style="margin-bottom:10px">Reimprima o relatório do app ou o fechamento do EVO de turnos anteriores.</p>
     <button class="btn sec" id="cfgFechamentos">Fechamentos anteriores</button>
@@ -784,7 +789,7 @@ async function entrarCaixa() {
   C.verLista = false;
   if (r.sessaoInvalida) return;
   if (!r.ok) { mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = r.erro; return; }
-  C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin; C.perfil = r.perfil;
+  C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin; C.perfil = r.perfil; C.agentes = r.agentes || [];
   $('#cfgSecAuditor').classList.toggle('esconder', r.perfil !== 'AUDITOR');
   $('#cxUsuario').textContent = r.nome; $('#cxEngrenagem').classList.remove('esconder');
   $('#cxNome').value = r.admin ? (guardar.get('banho_ultimo_caixa') || '') : r.nome;
@@ -1239,6 +1244,13 @@ function iniciarCaixa() {
   $('#cfgSenha').onclick = () => { $('#dConfig').close(); abrirPedido('senha'); };
   $('#cfgFechamentos').onclick = () => { $('#dConfig').close(); abrirFechamentos(); };
   $('#cfgImpSenhaAqui').checked = IMP.senha(); $('#cfgImpFechAqui').checked = IMP.fech();
+  $('#cxEngrenagem').addEventListener('click', () => {
+    const ags = C.agentes || [];
+    $('#cfgAgentes').innerHTML = !ags.length ? 'Nenhum agente instalado ainda.' : ags.map(a =>
+      `<div style="margin-bottom:6px"><b>${esc(a.nome)}</b> · ${a.ligado ? '<span style="color:var(--ok)">ligado</span>' : '<span style="color:var(--erro)">desligado</span>'}<br>
+       Senha: ${esc(a.impressoras.senha || 'padrão')} · Fechamento: ${esc(a.impressoras.fechamento || 'padrão')} · Relatório: ${esc(a.impressoras.relatorio || 'padrão')}<br>
+       Caixas: ${a.operadores && a.operadores.length ? esc(a.operadores.join(', ')) : 'todos'}</div>`).join('');
+  });
   $('#cfgImpSenhaAqui').onchange = () => {
     guardar.set('banho_imp_senha', $('#cfgImpSenhaAqui').checked ? '1' : '0');
     if ($('#cfgImpSenhaAqui').checked) C.lista.forEach(x => IMP.marcar(x.id));   // só as próximas senhas
