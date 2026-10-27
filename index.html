@@ -29,7 +29,7 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 /* ---------------- TOTEM ---------------- */
 #vTotem{min-height:100%}
 #totem{min-height:100vh;display:grid;grid-template-columns:minmax(300px,38%) 1fr}
-.faixa{background:var(--azul);color:#fff;padding:48px 44px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.faixa{background:var(--azul);color:#fff;padding:72px 44px 48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
 .faixa::after{content:"";position:absolute;right:-1px;top:0;bottom:0;width:22px;
   background:repeating-linear-gradient(180deg,var(--fundo) 0 14px,transparent 14px 28px)}
 .marca{font-family:var(--cond);font-size:22px;letter-spacing:.02em;opacity:.9}
@@ -54,6 +54,13 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
   padding:18px;box-shadow:inset 0 -6px 0 var(--laranja-esc)}
 .vale:disabled{background:#B9C3D2;box-shadow:none;cursor:not-allowed}
 .vale:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 -3px 0 var(--laranja-esc)}
+.rotulo-caixa{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(12px + env(safe-area-inset-top,0px));z-index:20;
+  background:var(--azul-esc);color:#fff;font-family:var(--cond);font-weight:700;font-size:22px;letter-spacing:.03em;padding:6px 14px;border-radius:8px;
+  border:2px solid rgba(255,255,255,.35);cursor:pointer}
+.rotulo-caixa::after{content:" ▾";font-size:16px;opacity:.8}
+.escolha{display:flex;flex-direction:column;gap:10px;max-width:420px;margin:0 auto}
+.escolha button{font:inherit;font-size:24px;font-family:var(--cond);font-weight:700;padding:14px;border-radius:12px;border:2px solid var(--azul);background:#fff;color:var(--azul)}
+.escolha button.auto{border-color:var(--laranja);color:var(--laranja-esc)}
 .cantinho{position:fixed;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--suave);text-decoration:none;opacity:.6}
 
 /* telas cheias do totem */
@@ -209,7 +216,10 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     </main>
   </section>
   <a class="cantinho" href="#caixa">Área do caixa</a>
+  <a class="cantinho" href="#" id="trocarCaixa" style="right:calc(130px + env(safe-area-inset-right,0px))">Configurar totem</a>
 </div>
+
+<button class="rotulo-caixa esconder" id="rotuloCaixa" aria-label="Escolher o caixa deste totem"></button>
 
 <div id="vProcesso" class="tela esconder">
   <div class="caixa">
@@ -262,6 +272,16 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   </div>
 </div>
 
+<div id="vEscolherCaixa" class="tela esconder">
+  <div class="caixa">
+    <h2>Em qual caixa registrar os resgates?</h2>
+    <p>Os resgates deste totem entram no turno e no EVO do caixa escolhido.</p>
+    <div class="escolha" id="ecLista"></div>
+    <p class="pequeno" id="ecMsg" style="margin-top:14px"></p>
+    <button class="btn sec" id="ecVoltar" style="margin-top:10px">Voltar</button>
+  </div>
+</div>
+
 <!-- ====================== CAIXA ====================== -->
 <div id="vCaixa" class="esconder">
   <header class="topo">
@@ -305,6 +325,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     </section>
 
     <section id="cxSemTurno" class="esconder">
+      <div class="cartao esconder" id="cxAbertos">
+        <h2>Caixas abertos agora</h2>
+        <p class="pequeno" style="margin:-6px 0 10px">Cada caixa tem o seu EVO. Para trabalhar com dois caixas ao mesmo tempo, abra cada um numa aba do navegador.</p>
+        <div class="rolagem"><table><thead><tr><th>Caixa</th><th>Abertura</th><th></th></tr></thead><tbody id="cxAbertosLista"></tbody></table></div>
+      </div>
       <div class="cartao">
         <h2>Abrir turno</h2>
         <p class="pequeno" style="margin-top:-6px">Enquanto não houver turno aberto, a tela do cliente fica bloqueada.</p>
@@ -352,6 +377,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <div id="abaCodigos">
         <div class="barra">
           <span class="info" id="cxResumo"></span>
+          <button class="btn peq sec esconder" id="cxListaTurnos">Meus caixas / abrir outro</button>
           <button class="btn peq sec" id="cxSelPend">Selecionar os sem lote</button>
           <button class="btn peq sec" id="cxCopiar">Copiar selecionados</button>
           <button class="btn peq lar" id="cxLote">Fechar lote com OPNF</button>
@@ -408,6 +434,13 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   <p class="pequeno" id="cfgImpInfo"></p>
   <div class="acoes" style="justify-content:flex-start"><button class="btn" id="cfgImpSalvar">Salvar impressoras</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
   <div class="secao">
+    <h4>Imprimir neste computador</h4>
+    <p style="margin-bottom:8px">Para quando a impressora fica perto do caixa e longe do robô. Vale só para este navegador.</p>
+    <label class="chk"><input type="checkbox" id="cfgImpSenhaAqui"> Senhas do cliente dos meus caixas</label>
+    <label class="chk"><input type="checkbox" id="cfgImpFechAqui"> Fechamento do EVO e relatório do turno</label>
+    <p class="pequeno">Para sair sem a janela de impressão, abra o Chrome com a opção --kiosk-printing (o LEIA-ME explica).</p>
+  </div>
+  <div class="secao">
     <h4>Fechamentos</h4>
     <p style="margin-bottom:10px">Reimprima o relatório do app ou o fechamento do EVO de turnos anteriores.</p>
     <button class="btn sec" id="cfgFechamentos">Fechamentos anteriores</button>
@@ -457,6 +490,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <label>Login do portal ClubPetro<input id="dpClubLogin" autocapitalize="none" spellcheck="false" autocomplete="off"></label>
     <label>Senha do portal ClubPetro <span class="pequeno" id="dpClubInfo"></span><input id="dpClubSenha" type="password" autocomplete="new-password" placeholder="deixe em branco para manter"></label>
     <label>E-mail que aprova pedidos de senha<input id="dpEmail" type="email" autocomplete="off"></label>
+    <label class="chk" style="flex-direction:row;font-weight:500"><input type="checkbox" id="dpImpRobo"> Imprimir também na impressora do computador do robô</label>
   </div>
   <p class="pequeno" id="dpMsg" style="color:var(--erro);margin-top:10px"></p>
   <div class="acoes"><button class="btn sec" id="dpCanc">Cancelar</button><button class="btn lar" id="dpSalvar">Salvar</button></div>
@@ -507,13 +541,42 @@ async function api(acao, dados) {
   } catch (e) { return { ok: false, erro: 'Sem conexão com o servidor.', rede: true }; }
 }
 
-const VISTAS = ['vTotem', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vCaixa', 'vRelatorio'];
-function mostrar(id) { VISTAS.forEach(v => document.getElementById(v).classList.toggle('esconder', v !== id)); document.body.classList.toggle('modo-caixa', id === 'vCaixa'); }
+const VISTAS = ['vTotem', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vEscolherCaixa', 'vCaixa', 'vRelatorio'];
+function mostrar(id) {
+  VISTAS.forEach(v => document.getElementById(v).classList.toggle('esconder', v !== id));
+  document.body.classList.toggle('modo-caixa', id === 'vCaixa');
+  // nome do caixa ao qual este totem pertence, no canto superior esquerdo das telas do cliente
+  const rot = document.getElementById('rotuloCaixa');
+  const telaCliente = ['vTotem', 'vProcesso', 'vSenha', 'vAviso'].includes(id);
+  rot.textContent = T && T.auto ? 'Caixas: automático' : T && T.operadorNome ? 'Caixa ' + T.operadorNome : '';
+  rot.classList.toggle('esconder', !telaCliente || !rot.textContent);
+}
 
 /* =====================================================================
    TOTEM
    ===================================================================== */
-const T = { pin: guardar.get('banho_pin_posto'), sessao: guardar.get('banho_sessao_totem'), campo: 'cpf', pedido: null, timer: null, estado: null };
+var T = { pin: guardar.get('banho_pin_posto'), sessao: guardar.get('banho_sessao_totem'),
+  operador: guardar.get('banho_totem_operador') || '', operadorNome: guardar.get('banho_totem_operador_nome') || '',
+  auto: guardar.get('banho_totem_auto') === '1',
+  campo: 'cpf', pedido: null, timer: null, estado: null };
+// Escolha do caixa do totem: só os caixas com turno aberto, ou "automático" (alterna entre eles a cada resgate).
+async function escolherCaixa() {
+  mostrar('vEscolherCaixa'); $('#ecMsg').textContent = 'Carregando caixas abertos…'; $('#ecLista').innerHTML = '';
+  const r = await api('totem_estado', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, auto: T.auto });
+  if (r.pinErrado) { mostrar('vConfigurar'); return; }
+  if (!r.ok) { $('#ecMsg').textContent = r.erro; return; }
+  const abertos = r.abertos || [];
+  if (!abertos.length) { $('#ecMsg').textContent = 'Nenhum caixa aberto agora. Abra um turno no painel do caixa.'; }
+  $('#ecLista').innerHTML = abertos.map(t => `<button data-op="${esc(t.operador)}" data-nome="${esc(t.caixa)}">${esc(t.caixa)}</button>`).join('') +
+    (abertos.length > 1 ? '<button class="auto" data-auto="1">Automático: alternar entre os caixas abertos</button>' : '');
+  if (abertos.length) $('#ecMsg').textContent = '';
+  $('#ecLista').querySelectorAll('button').forEach(b => b.onclick = () => {
+    T.auto = !!b.dataset.auto; guardar.set('banho_totem_auto', T.auto ? '1' : '0');
+    if (!T.auto) { T.operador = b.dataset.op; T.operadorNome = b.dataset.nome;
+      guardar.set('banho_totem_operador', T.operador); guardar.set('banho_totem_operador_nome', T.operadorNome); }
+    irTotem(); verificarEstado();
+  });
+}
 
 function mascaraCpfOk(d) { d = d.slice(0, 11); let s = d.slice(0, 3); if (d.length > 3) s += '.' + d.slice(3, 6); if (d.length > 6) s += '.' + d.slice(6, 9); if (d.length > 9) s += '-' + d.slice(9); return s; }
 function mascaraData(d) { d = d.slice(0, 8); let s = d.slice(0, 2); if (d.length > 2) s += '/' + d.slice(2, 4); if (d.length > 4) s += '/' + d.slice(4); return s; }
@@ -573,16 +636,23 @@ function avisoTotem(titulo, texto, botao, acao) {
 async function verificarEstado() {
   if (location.hash.startsWith('#caixa')) return;
   if (!T.pin && !T.sessao) { mostrar('vConfigurar'); return; }
+  if (!document.getElementById('vEscolherCaixa').classList.contains('esconder')) return;
   if (T.pedido || !document.getElementById('vProcesso').classList.contains('esconder')) return;
-  const r = await api('totem_estado', { pin: T.pin, sessao: T.sessao });
+  const r = await api('totem_estado', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto });
   // a resposta pode chegar depois que o cliente já tocou em Vale banho: aí não mexe na tela
   if (T.pedido || T.enviando || !document.getElementById('vProcesso').classList.contains('esconder')) return;
   if (r.pinErrado) { T.pin = null; T.sessao = null; guardar.del('banho_pin_posto'); guardar.del('banho_sessao_totem'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O acesso deste totem expirou. Entre de novo.'; return; }
   T.estado = r;
   if (r.posto) $('#tPosto').textContent = r.posto;
+  // o caixa deste totem fechou e há outro aberto: passa a registrar nele
+  if (!T.auto && r.turno && (r.trocou || !T.operador)) {
+    T.operador = r.turno.operador; T.operadorNome = r.turno.caixa;
+    guardar.set('banho_totem_operador', T.operador); guardar.set('banho_totem_operador_nome', T.operadorNome);
+  }
+  mostrar(document.querySelector('#vTotem:not(.esconder), #vAviso:not(.esconder), #vSenha:not(.esconder)') ? document.querySelector('#vTotem:not(.esconder), #vAviso:not(.esconder), #vSenha:not(.esconder)').id : 'vTotem');
   const visivel = id => !document.getElementById(id).classList.contains('esconder');
   if (!r.ok) { if (!visivel('vTotem')) avisoTotem('Sem conexão', 'Não foi possível falar com o servidor. Procure o caixa.', null); return; }
-  if (!r.turno) { avisoTotem('Resgate fechado no momento', 'Procure o caixa para resgatar seu banho.', null); return; }
+  if (!r.turno) { avisoTotem('Caixa fechado', 'Dirija-se ao caixa para resgatar seu banho.', null); return; }
   if (!r.roboOnline) { avisoTotem('Resgate indisponível no momento', 'Procure o caixa para resgatar seu banho.', null); return; }
   if (visivel('vAviso') && $('#aBotao').classList.contains('esconder')) irTotem();
   else if (!visivel('vTotem') && !visivel('vAviso') && !visivel('vSenha')) irTotem();
@@ -596,10 +666,11 @@ async function pedirBanho() {
   T.enviando = true;
   marcarPassos('fila');
   mostrar('vProcesso');
-  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
+  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
   limparTotem();                                   // não deixa o CPF na tela
   if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
   T.pedido = r.id; T.enviando = false;
+  if (r.caixa) { const rot = $('#rotuloCaixa'); rot.textContent = 'Caixa ' + r.caixa; rot.classList.remove('esconder'); }
   acompanhar(Date.now());
 }
 
@@ -614,7 +685,7 @@ function marcarPassos(etapaAtual) {
 const ETAPA_PASSO = { RECEBIDO: 'fila', CLUBPETRO: 'club', CLUBPETRO_FINALIZANDO: 'club', CLUBPETRO_OK: 'evo', EVO_EMITINDO: 'evo', EVO_OK: 'imp' };
 
 async function acompanhar(inicio) {
-  const r = await api('totem_consultar', { pin: T.pin, sessao: T.sessao, id: T.pedido });
+  const r = await api('totem_consultar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: T.pedido });
   if (r.ok) {
     if (r.status === 'CONCLUIDO' || (r.status === 'SENHA_GERADA' && r.ticket)) {
       if (r.status === 'CONCLUIDO') { mostrarSenha(r); return; }
@@ -680,13 +751,21 @@ function iniciarTotem() {
     if (!r.ok) { $('#cfgMsg').textContent = r.erro; return; }
     T.pin = pin; guardar.set('banho_pin_posto', pin); $('#cfgPin').value = ''; irTotem(); verificarEstado();
   });
+  $('#rotuloCaixa').addEventListener('click', () => { if (!T.pedido) escolherCaixa(); });
+  $('#ecVoltar').addEventListener('click', () => { irTotem(); verificarEstado(); });
+  // trocar o caixa do totem exige entrar de novo com o usuário do totem
+  $('#trocarCaixa').addEventListener('click', e => {
+    e.preventDefault();
+    T.pin = null; T.sessao = null; guardar.del('banho_pin_posto'); guardar.del('banho_sessao_totem');
+    $('#cfgMsg').textContent = 'Entre de novo para escolher o caixa deste totem.'; mostrar('vConfigurar');
+  });
   setInterval(verificarEstado, 15000);
 }
 
 /* =====================================================================
    CAIXA
    ===================================================================== */
-const C = { sessao: sessionStorage.getItem('banho_sessao'), usuario: null, nome: '', admin: false, turno: null, lista: [], lotes: [], sel: new Set(), timer: null, aba: 'codigos', pedido: null };
+const C = { turnoSel: null, sessao: sessionStorage.getItem('banho_sessao'), usuario: null, nome: '', admin: false, turno: null, lista: [], lotes: [], sel: new Set(), timer: null, aba: 'codigos', pedido: null };
 async function apiCx(acao, dados) {
   const r = await api(acao, Object.assign({ sessao: C.sessao }, dados || {}));
   if (r && r.sessaoInvalida) { sairCaixa(r.erro && !/expirada/i.test(r.erro) ? r.erro : 'Sua sessão terminou. Entre de novo.'); }
@@ -701,7 +780,8 @@ function sairCaixa(msg) {
 async function entrarCaixa() {
   mostrar('vCaixa');
   if (!C.sessao) { mostrarSecao(C.pedido ? 'cxPedido' : 'cxLogin'); return; }
-  const r = await apiCx('caixa_estado');
+  const r = await apiCx('caixa_estado', { turnoId: C.turnoSel, lista: C.verLista });
+  C.verLista = false;
   if (r.sessaoInvalida) return;
   if (!r.ok) { mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = r.erro; return; }
   C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin; C.perfil = r.perfil;
@@ -718,7 +798,8 @@ async function entrarCaixa() {
       '. Só esse caixa ou o auditor podem ver os resgates e fechar o turno.';
   }
   else if (C.turno) { mostrarSecao('cxComTurno'); atualizarPainel(); }
-  else { mostrarSecao('cxSemTurno'); carregarTurnos(); carregarOperadores(); }
+  else { C.turnoSel = null; mostrarSecao('cxSemTurno'); carregarTurnos(); carregarOperadores(); desenharAbertos(r.abertos || []); }
+  $('#cxListaTurnos').classList.toggle('esconder', !C.turno);
   clearInterval(C.timer);
   C.timer = setInterval(() => { if (location.hash.startsWith('#caixa') && C.turno) atualizarPainel(true); }, 6000);
 }
@@ -730,6 +811,46 @@ function mostrarSecao(id) {
 }
 function sinalRobo(on) { const s = $('#cxRobo'); s.className = 'sinal ' + (on ? 'on' : 'off'); s.textContent = on ? 'Robô ligado' : 'Robô desligado'; }
 
+// auditor: lista dos turnos abertos agora (um por caixa)
+function desenharAbertos(lista) {
+  $('#cxAbertos').classList.toggle('esconder', !lista.length);
+  $('#cxAbertosLista').innerHTML = lista.map(t => `<tr><td>${esc(t.caixa)}</td><td>${esc(t.abertura.slice(0, 16))}</td>
+    <td style="white-space:nowrap"><button class="btn peq" data-verturno="${esc(t.id)}">Abrir este caixa</button>
+      <a class="btn peq sec" style="text-decoration:none" target="_blank" href="#caixa-${esc(t.id)}">Em nova aba</a></td></tr>`).join('');
+  $('#cxAbertosLista').querySelectorAll('[data-verturno]').forEach(b => b.onclick = () => { C.turnoSel = b.dataset.verturno; entrarCaixa(); });
+}
+
+// ---------- impressão das imagens (senha, fechamento do EVO, relatório) na impressora deste navegador
+const IMP = {
+  senha: () => guardar.get('banho_imp_senha') === '1',
+  fech: () => guardar.get('banho_imp_fech') === '1',
+  feitos: () => { try { return JSON.parse(guardar.get('banho_impressos') || '{}'); } catch (_) { return {}; } },
+  marcar(id) { const f = IMP.feitos(); f[id] = Date.now(); const ks = Object.keys(f); if (ks.length > 400) ks.slice(0, 100).forEach(k => delete f[k]); guardar.set('banho_impressos', JSON.stringify(f)); },
+  fila: Promise.resolve()
+};
+function imprimirImagem(png) {
+  IMP.fila = IMP.fila.then(() => new Promise(ok => {
+    const f = document.createElement('iframe');
+    f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+    document.body.appendChild(f);
+    const d = f.contentWindow.document;
+    d.open(); d.write('<html><head><style>@page{size:80mm auto;margin:0}html,body{margin:0}img{width:80mm;display:block}</style></head><body><img id="i" src="data:image/png;base64,' + png + '"></body></html>'); d.close();
+    const im = d.getElementById('i');
+    const vai = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (_) {} setTimeout(() => { f.remove(); ok(); }, 1500); };
+    if (im.complete) vai(); else im.onload = vai;
+  }));
+  return IMP.fila;
+}
+async function buscarEImprimir(tipo, ref, tentativas) {
+  for (let i = 0; i < (tentativas || 1); i++) {
+    const r = await apiCx('caixa_imagem', { tipo, ref });
+    if (r.ok && r.pronta) { await imprimirImagem(r.png); return true; }
+    if (!r.ok) return false;
+    await new Promise(ok => setTimeout(ok, 3000));
+  }
+  return false;
+}
+
 async function carregarOperadores() {
   const r = await apiCx('caixa_operadores');
   const sel = $('#cxOperador');
@@ -737,7 +858,7 @@ async function carregarOperadores() {
   $('#cxOperadorL').classList.toggle('esconder', !ops.length);
   $('#cxNomeL').classList.toggle('esconder', !!ops.length);
   sel.innerHTML = '<option value="">Escolha o caixa…</option>' + ops.map(o =>
-    `<option value="${esc(o.usuario)}">${esc(o.nome)}${o.temEvo ? '' : ' (sem login do EVO)'}</option>`).join('');
+    `<option value="${esc(o.usuario)}" ${o.aberto ? 'disabled' : ''}>${esc(o.nome)}${o.aberto ? ' (turno já aberto)' : o.temEvo ? '' : ' (sem login do EVO)'}</option>`).join('');
   if (ops.some(o => o.usuario === C.usuario)) sel.value = C.usuario;
 }
 
@@ -755,8 +876,17 @@ async function atualizarPainel(silencioso) {
   const r = await apiCx('caixa_painel', { turnoId: C.turno.id });
   if (!r.ok) { if (!silencioso) alertas([{ t: r.erro, erro: true }]); return; }
   sinalRobo(r.roboOnline);
-  if (!r.turno || r.turno.meu === false) { C.turno = null; entrarCaixa(); return; }
+  if (!r.turno || r.turno.meu === false) { C.turno = null; C.turnoSel = null; entrarCaixa(); return; }
   C.lista = r.resgates.slice().reverse(); C.lotes = r.lotes;
+  if (IMP.senha()) {
+    const feitos = IMP.feitos();
+    for (const x of C.lista) {
+      if (x.status === 'CONCLUIDO' && x.ticket && !feitos[x.id]) {
+        IMP.marcar(x.id);
+        buscarEImprimir('senha', x.id, 5);
+      }
+    }
+  }
   desenharLista(); desenharLotes();
   const av = [];
   if (!r.roboOnline) av.push({ t: 'O robô do DP002 está sem sinal. A tela do cliente está bloqueada. Confira se o INICIAR.bat está aberto.', erro: true });
@@ -785,7 +915,8 @@ function desenharLista() {
       <td>${x.lote ? `${esc(x.lote.slice(-6))}<div class="pequeno">${x.opnf ? 'OPNF ' + esc(x.opnf) : 'sem OPNF'}</div>` : ''}</td>
       <td>${x.status === 'CONCLUIDO' ? `<input type="checkbox" data-ok="${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
       <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
-          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir</button>` : ''}
+          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir no robô</button>
+          <button class="btn peq sec" data-impaqui="${esc(x.id)}">Imprimir aqui</button>` : ''}
           ${(x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}</td>
     </tr>`;
   }).join('');
@@ -799,6 +930,10 @@ function desenharLista() {
     b.disabled = true; b.textContent = 'Enviado'; await apiCx('caixa_reimprimir', { id: b.dataset.reimp });
   });
   tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
+  tb.querySelectorAll('[data-impaqui]').forEach(b => b.onclick = async () => {
+    b.disabled = true; const ok = await buscarEImprimir('senha', b.dataset.impaqui, 3);
+    b.disabled = false; if (!ok) alert('A imagem dessa senha ainda não chegou do robô. Tente em alguns segundos.');
+  });
   tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
 }
 
@@ -837,8 +972,19 @@ async function abrirFechamentos() {
   $('#dfLista').innerHTML = lista.slice(0, 15).map(t => `<tr><td>${esc(t.caixa)}</td><td>${esc(t.abertura.slice(0, 16))}</td><td>${esc(t.fechamento.slice(0, 16))}</td>
     <td class="pequeno">${esc(t.caixaEvo || '—')}</td>
     <td style="white-space:nowrap"><button class="btn peq" data-rapp="${esc(t.id)}">Relatório do app</button>
-    <button class="btn peq sec" data-revo="${esc(t.id)}">Fechamento EVO</button></td></tr>`).join('');
+    <button class="btn peq sec" data-revo="${esc(t.id)}">Fechamento EVO (robô)</button>
+    <button class="btn peq sec" data-aquievo="${esc(t.id)}">EVO aqui</button>
+    <button class="btn peq sec" data-aquirel="${esc(t.id)}">Relatório aqui</button></td></tr>`).join('');
   $('#dfLista').querySelectorAll('[data-rapp]').forEach(b => b.onclick = () => { d.close(); abrirRelatorio(b.dataset.rapp); });
+  $('#dfLista').querySelectorAll('[data-aquievo]').forEach(b => b.onclick = async () => {
+    const ok = await buscarEImprimir('fechamento', b.dataset.aquievo, 1);
+    $('#dfMsg').textContent = ok ? 'Enviado para a impressora deste computador.' : 'Imagem do fechamento do EVO não encontrada (turnos fechados antes desta versão não têm).';
+  });
+  $('#dfLista').querySelectorAll('[data-aquirel]').forEach(b => b.onclick = async () => {
+    let ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 1);
+    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
+    $('#dfMsg').textContent = ok ? 'Enviado para a impressora deste computador.' : 'O robô não gerou a imagem do relatório. Confira se ele está ligado.';
+  });
   $('#dfLista').querySelectorAll('[data-revo]').forEach(b => b.onclick = async () => {
     b.disabled = true; $('#dfMsg').textContent = 'Pedido enviado ao robô. O fechamento do EVO sai na impressora em alguns segundos.';
     const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo });
@@ -860,13 +1006,13 @@ async function abrirConfigPosto() {
   if (!r.ok) { $('#dpMsg').textContent = r.erro; return; }
   $('#dpPosto').value = r.posto || ''; $('#dpEvoUrl').value = r.evoUrl || ''; $('#dpEvoBotao').value = r.evoBotao || '';
   $('#dpProduto').value = r.produto || 'Banho'; $('#dpClubLogin').value = r.clubLogin || ''; $('#dpClubSenha').value = '';
-  $('#dpEmail').value = r.emailAprovacao || '';
+  $('#dpEmail').value = r.emailAprovacao || ''; $('#dpImpRobo').checked = r.imprimirNoRobo !== false;
   $('#dpClubInfo').textContent = r.temSenhaClub ? '(já cadastrada)' : '(não cadastrada)';
   $('#dpMsg').textContent = '';
   $('#dpSalvar').onclick = async () => {
     $('#dpSalvar').disabled = true; $('#dpMsg').textContent = '';
     const s = await apiCx('caixa_salvarConfigPosto', { posto: $('#dpPosto').value, evoUrl: $('#dpEvoUrl').value, evoBotao: $('#dpEvoBotao').value,
-      produto: $('#dpProduto').value, clubLogin: $('#dpClubLogin').value, clubSenha: $('#dpClubSenha').value, emailAprovacao: $('#dpEmail').value });
+      produto: $('#dpProduto').value, clubLogin: $('#dpClubLogin').value, clubSenha: $('#dpClubSenha').value, emailAprovacao: $('#dpEmail').value, imprimirNoRobo: $('#dpImpRobo').checked });
     $('#dpSalvar').disabled = false;
     if (!s.ok) { $('#dpMsg').textContent = s.erro; return; }
     $('#dpClubSenha').value = ''; d.close(); entrarCaixa();
@@ -998,6 +1144,11 @@ async function aguardarFechamentoEvo(comandoId, turnoId) {
     if (r.ok && r.status === 'OK') {
       const rel = await apiCx('caixa_relatorio', { turnoId });
       msg.textContent = 'Fechamento do EVO impresso. O relatório do turno sai em seguida na mesma impressora…';
+      if (IMP.fech()) {
+        msg.textContent = 'Imprimindo aqui o fechamento do EVO e depois o relatório do turno…';
+        await buscarEImprimir('fechamento', turnoId, 10);
+        await buscarEImprimir('relatorio', turnoId, 15);
+      }
       setTimeout(() => abrirRelatorio(turnoId, rel.relatorio), 800);
       return;
     }
@@ -1087,6 +1238,12 @@ function iniciarCaixa() {
   };
   $('#cfgSenha').onclick = () => { $('#dConfig').close(); abrirPedido('senha'); };
   $('#cfgFechamentos').onclick = () => { $('#dConfig').close(); abrirFechamentos(); };
+  $('#cfgImpSenhaAqui').checked = IMP.senha(); $('#cfgImpFechAqui').checked = IMP.fech();
+  $('#cfgImpSenhaAqui').onchange = () => {
+    guardar.set('banho_imp_senha', $('#cfgImpSenhaAqui').checked ? '1' : '0');
+    if ($('#cfgImpSenhaAqui').checked) C.lista.forEach(x => IMP.marcar(x.id));   // só as próximas senhas
+  };
+  $('#cfgImpFechAqui').onchange = () => guardar.set('banho_imp_fech', $('#cfgImpFechAqui').checked ? '1' : '0');
   $('#dfFechar').onclick = () => $('#dFechamentos').close();
   $('#cfgUsuarios').onclick = () => { $('#dConfig').close(); abrirUsuarios(); };
   $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
@@ -1107,6 +1264,7 @@ function iniciarCaixa() {
     const r = await apiCx('caixa_abrirTurno', { nome, operador });
     if (!r.ok) { $('#cxAbrirMsg').textContent = r.erro; return; }
     if (C.admin) guardar.set('banho_ultimo_caixa', nome); $('#cxAbrirMsg').textContent = '';
+    C.turnoSel = r.turno ? r.turno.id : null;
     entrarCaixa();
   };
   document.querySelectorAll('.abas button').forEach(b => b.onclick = () => {
@@ -1114,6 +1272,7 @@ function iniciarCaixa() {
     $('#abaCodigos').classList.toggle('esconder', b.dataset.aba !== 'codigos');
     $('#abaLotes').classList.toggle('esconder', b.dataset.aba !== 'lotes');
   });
+  $('#cxListaTurnos').onclick = () => { C.turnoSel = null; C.turno = null; C.verLista = true; entrarCaixa(); };
   $('#cxSelPend').onclick = () => { C.lista.filter(x => x.status === 'CONCLUIDO' && x.codigo && !x.lote).forEach(x => C.sel.add(x.id)); desenharLista(); };
   $('#cxCopiar').onclick = () => {
     const s = selecionados(); if (!s.length) { alert('Selecione os códigos primeiro.'); return; }
@@ -1142,7 +1301,11 @@ function iniciarCaixa() {
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
-    if (!$('#dFecharEvo').checked) { abrirRelatorio(turnoId, r.relatorio); $('#relMsg').textContent = 'O relatório do turno está saindo na impressora do fechamento.'; return; }
+    if (!$('#dFecharEvo').checked) {
+      abrirRelatorio(turnoId, r.relatorio); $('#relMsg').textContent = 'O relatório do turno está saindo na impressora do fechamento.';
+      if (IMP.fech()) buscarEImprimir('relatorio', turnoId, 15);
+      return;
+    }
     aguardarFechamentoEvo(r.comando, turnoId);
   };
   $('#dResCanc').onclick = () => $('#dResolver').close();
@@ -1162,6 +1325,8 @@ function iniciarCaixa() {
    ROTAS
    ===================================================================== */
 function rota() {
+  const m = /^#caixa-(T\d+)$/.exec(location.hash);
+  if (m) { C.turnoSel = m[1]; history.replaceState(null, '', '#caixa'); }
   if (location.hash.startsWith('#caixa')) entrarCaixa();
   else { clearInterval(C.timer); if (!T.pin && !T.sessao) mostrar('vConfigurar'); else { irTotem(); verificarEstado(); } }
 }
