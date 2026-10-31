@@ -54,6 +54,13 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
   padding:18px;box-shadow:inset 0 -6px 0 var(--laranja-esc)}
 .vale:disabled{background:#B9C3D2;box-shadow:none;cursor:not-allowed}
 .vale:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 -3px 0 var(--laranja-esc)}
+.qtd-fichas{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 12px;font-family:var(--cond);font-size:22px;font-weight:700}
+.qtd-fichas button{width:56px;height:56px;border-radius:12px;border:2px solid var(--azul);background:#fff;color:var(--azul);font-size:30px;font-weight:700}
+.qtd-fichas b{font-size:34px;min-width:40px;text-align:center}
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.filtros label{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;border:2px solid var(--linha);border-radius:999px;padding:5px 12px;cursor:pointer;background:#fff}
+.filtros label:has(input:checked){border-color:var(--azul);background:var(--azul-claro);color:var(--azul)}
+.filtros input{accent-color:var(--azul)}
 .rotulo-caixa{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(12px + env(safe-area-inset-top,0px));z-index:20;
   background:var(--azul-esc);color:#fff;font-family:var(--cond);font-weight:700;font-size:22px;letter-spacing:.03em;padding:6px 14px;border-radius:8px;
   border:2px solid rgba(255,255,255,.35);cursor:pointer}
@@ -212,6 +219,12 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <div class="msg" id="mNasc"></div>
       </div>
       <div class="teclado" id="teclado"></div>
+      <div class="qtd-fichas esconder" id="qtdFichas">
+        <span>Fichas de banho</span>
+        <button type="button" id="qMenos" aria-label="Menos uma ficha">−</button>
+        <b id="qNum">1</b>
+        <button type="button" id="qMais" aria-label="Mais uma ficha">+</button>
+      </div>
       <button class="vale" id="bVale" disabled>Vale banho</button>
     </main>
   </section>
@@ -277,6 +290,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <h2>Em qual caixa registrar os resgates?</h2>
     <p>Os resgates deste totem entram no turno e no EVO do caixa escolhido.</p>
     <div class="escolha" id="ecLista"></div>
+    <div style="margin:22px auto 0;max-width:420px;text-align:left">
+      <label style="display:block;font-weight:600;margin-bottom:6px">Impressora deste totem (agente de impressão)</label>
+      <select id="ecAgente" style="width:100%;font:inherit;font-size:20px;padding:10px;border:2px solid var(--linha);border-radius:10px;background:#fff"></select>
+      <p class="pequeno" style="margin-top:6px">A senha do cliente sai na impressora do agente escolhido.</p>
+    </div>
     <p class="pequeno" id="ecMsg" style="margin-top:14px"></p>
     <button class="btn sec" id="ecVoltar" style="margin-top:10px">Voltar</button>
   </div>
@@ -352,6 +370,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <p id="otTexto" style="font-size:18px;margin:6px 0 0"></p>
     </section>
 
+    <section class="cartao esconder" id="cxErros">
+      <div class="barra"><h2 style="margin:0;margin-right:auto">Erros e sugestões</h2>
+        <button class="btn peq sec" id="erVoltar">Voltar ao painel</button></div>
+      <p class="pequeno" style="margin:-4px 0 12px">Cada erro técnico do robô vem com o diagnóstico e uma sugestão. Quando existe correção automática, escolha <b>Sim, aplicar</b> ou <b>Não</b>. Tudo fica registrado na aba Erros da planilha.</p>
+      <div class="rolagem"><table>
+        <thead><tr><th>Quando</th><th>Onde</th><th>Diagnóstico e sugestão</th><th>Situação</th><th></th></tr></thead>
+        <tbody id="erLista"></tbody></table></div>
+    </section>
+
     <section class="cartao esconder" id="cxUsuarios">
       <div class="barra"><h2 style="margin:0;margin-right:auto">Usuários</h2>
         <button class="btn peq lar" id="usNovo">Novo usuário</button><button class="btn peq sec" id="usVoltar">Voltar ao painel</button></div>
@@ -380,18 +407,26 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
           <button class="btn peq sec esconder" id="cxListaTurnos">Meus caixas / abrir outro</button>
           <button class="btn peq sec" id="cxSelPend">Selecionar os sem lote</button>
           <button class="btn peq sec" id="cxCopiar">Copiar selecionados</button>
-          <button class="btn peq lar" id="cxLote">Fechar lote com OPNF</button>
+          <button class="btn peq lar" id="cxLote">Gerar OPNF</button>
         </div>
         <p class="pequeno" style="margin:-4px 0 10px">Toque no código para copiar e colar na descrição do item 15 · Ficha de banho Pichilau+ no B2Click.</p>
+        <div class="filtros" id="cxFiltros" role="group" aria-label="Mostrar">
+          <label><input type="radio" name="filtro" value="tudo"> Exibir tudo</label>
+          <label><input type="radio" name="filtro" value="semlote" checked> Sem lote</label>
+          <label><input type="radio" name="filtro" value="comlote"> Com lote</label>
+          <label><input type="radio" name="filtro" value="resolver"> Resolver</label>
+          <label><input type="radio" name="filtro" value="erros"> Erros</label>
+          <label><input type="radio" name="filtro" value="cancelados"> Cancelados</label>
+        </div>
         <div class="rolagem"><table>
-          <thead><tr><th></th><th>Hora</th><th>Código do resgate</th><th>Senha</th><th>Situação</th><th>Lote / OPNF</th><th>OK</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Hora</th><th>Código do resgate</th><th>Qtd</th><th>Senha</th><th>Situação</th><th>Lote / OPNF</th><th>OK</th><th></th></tr></thead>
           <tbody id="cxLista"></tbody>
         </table></div>
       </div>
 
       <div id="abaLotes" class="esconder">
         <div class="rolagem"><table>
-          <thead><tr><th>Lote</th><th>Criado em</th><th>Qtd</th><th>Códigos</th><th>OPNF</th><th></th></tr></thead>
+          <thead><tr><th>Lote (OPNF)</th><th>Criado em</th><th>Qtd</th><th>Códigos</th><th></th></tr></thead>
           <tbody id="cxLotes"></tbody>
         </table></div>
       </div>
@@ -412,10 +447,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 
 <!-- diálogos -->
 <dialog id="dLote">
-  <h3>Fechar lote</h3>
+  <h3>Gerar OPNF</h3>
   <p id="dLoteTxt"></p>
-  <input type="text" id="dLoteOpnf" inputmode="numeric" placeholder="Número da OPNF (pode preencher depois)">
-  <div class="acoes"><button class="btn sec" value="cancelar" id="dLoteCanc">Cancelar</button><button class="btn lar" id="dLoteOk">Fechar lote</button></div>
+  <input type="text" id="dLoteOpnf" inputmode="numeric" placeholder="Número da OPNF (será o número do lote)">
+  <p class="pequeno" id="dLoteMsg" style="color:var(--erro)"></p>
+  <div class="acoes"><button class="btn sec" value="cancelar" id="dLoteCanc">Cancelar</button><button class="btn lar" id="dLoteOk">Gerar OPNF</button></div>
 </dialog>
 <dialog id="dFechar">
   <h3>Fechar turno</h3>
@@ -444,6 +480,8 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <h4>Agentes de impressão</h4>
     <p style="margin-bottom:8px">Programa instalado no computador do caixa que imprime sozinho, na impressora escolhida para cada tipo. Se usar o agente, desmarque as opções acima para não imprimir duas vezes.</p>
     <div id="cfgAgentes" class="pequeno"></div>
+    <label style="display:block;font-weight:600;font-size:15px;margin:10px 0 4px">Fechamentos que eu fizer neste computador saem no agente</label>
+    <select id="cfgAgentePc" aria-label="Agente deste computador"></select>
   </div>
   <div class="secao">
     <h4>Fechamentos</h4>
@@ -455,6 +493,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p style="margin-bottom:10px">Cadastre caixas, totem e auditores (com o login do EVO de cada caixa) e configure o posto: site do EVO e login do ClubPetro.</p>
     <button class="btn sec" id="cfgUsuarios">Usuários</button>
     <button class="btn sec" id="cfgPosto">Configurações do posto</button>
+    <button class="btn sec" id="cfgErros">Erros e sugestões <span id="cfgErrosN"></span></button>
   </div>
   <div class="secao">
     <h4>Minha senha</h4>
@@ -496,6 +535,9 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <label>Senha do portal ClubPetro <span class="pequeno" id="dpClubInfo"></span><input id="dpClubSenha" type="password" autocomplete="new-password" placeholder="deixe em branco para manter"></label>
     <label>E-mail que aprova pedidos de senha<input id="dpEmail" type="email" autocomplete="off"></label>
     <label class="chk" style="flex-direction:row;font-weight:500"><input type="checkbox" id="dpImpRobo"> Imprimir também na impressora do computador do robô</label>
+    <label>Máximo de fichas de banho por resgate no totem<input id="dpMaxFichas" type="number" min="1" max="10" step="1"></label>
+    <label>E-mail que recebe os avisos de erro<input id="dpEmailErros" type="email" autocomplete="off" placeholder="vazio = o e-mail de aprovação"></label>
+    <label>Webhook do Teams para avisos de erro (opcional)<input id="dpTeams" autocomplete="off" spellcheck="false" placeholder="https://… (fluxo “Postar em um chat/canal quando um webhook é recebido”)"></label>
   </div>
   <p class="pequeno" id="dpMsg" style="color:var(--erro);margin-top:10px"></p>
   <div class="acoes"><button class="btn sec" id="dpCanc">Cancelar</button><button class="btn lar" id="dpSalvar">Salvar</button></div>
@@ -562,7 +604,7 @@ function mostrar(id) {
    ===================================================================== */
 var T = { pin: guardar.get('banho_pin_posto'), sessao: guardar.get('banho_sessao_totem'),
   operador: guardar.get('banho_totem_operador') || '', operadorNome: guardar.get('banho_totem_operador_nome') || '',
-  auto: guardar.get('banho_totem_auto') === '1',
+  auto: guardar.get('banho_totem_auto') === '1', agente: guardar.get('banho_totem_agente') || '', qtd: 1, maxFichas: 1,
   campo: 'cpf', pedido: null, timer: null, estado: null };
 // Escolha do caixa do totem: só os caixas com turno aberto, ou "automático" (alterna entre eles a cada resgate).
 async function escolherCaixa() {
@@ -575,6 +617,12 @@ async function escolherCaixa() {
   $('#ecLista').innerHTML = abertos.map(t => `<button data-op="${esc(t.operador)}" data-nome="${esc(t.caixa)}">${esc(t.caixa)}</button>`).join('') +
     (abertos.length > 1 ? '<button class="auto" data-auto="1">Automático: alternar entre os caixas abertos</button>' : '');
   if (abertos.length) $('#ecMsg').textContent = '';
+  const ag = await api('totem_agentes', { pin: T.pin, sessao: T.sessao });
+  const lista = (ag.ok && ag.agentes) || [];
+  $('#ecAgente').innerHTML = '<option value="">Nenhum (impressora do robô)</option>' +
+    lista.map(a => `<option value="${esc(a.nome)}">${esc(a.nome)}${a.ligado ? '' : ' (desligado)'}</option>`).join('');
+  $('#ecAgente').value = T.agente;
+  $('#ecAgente').onchange = () => { T.agente = $('#ecAgente').value; guardar.set('banho_totem_agente', T.agente); };
   $('#ecLista').querySelectorAll('button').forEach(b => b.onclick = () => {
     T.auto = !!b.dataset.auto; guardar.set('banho_totem_auto', T.auto ? '1' : '0');
     if (!T.auto) { T.operador = b.dataset.op; T.operadorNome = b.dataset.nome;
@@ -649,6 +697,9 @@ async function verificarEstado() {
   if (r.pinErrado) { T.pin = null; T.sessao = null; guardar.del('banho_pin_posto'); guardar.del('banho_sessao_totem'); mostrar('vConfigurar'); $('#cfgMsg').textContent = 'O acesso deste totem expirou. Entre de novo.'; return; }
   T.estado = r;
   if (r.posto) $('#tPosto').textContent = r.posto;
+  T.maxFichas = Math.max(1, Number(r.maxFichas || 1));
+  $('#qtdFichas').classList.toggle('esconder', T.maxFichas < 2);
+  if (T.qtd > T.maxFichas) { T.qtd = T.maxFichas; $('#qNum').textContent = T.qtd; }
   // o caixa deste totem fechou e há outro aberto: passa a registrar nele
   if (!T.auto && r.turno && (r.trocou || !T.operador)) {
     T.operador = r.turno.operador; T.operadorNome = r.turno.caixa;
@@ -671,8 +722,9 @@ async function pedirBanho() {
   T.enviando = true;
   marcarPassos('fila');
   mostrar('vProcesso');
-  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
+  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente, qtd: T.qtd, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
   limparTotem();                                   // não deixa o CPF na tela
+  T.qtd = 1; $('#qNum').textContent = '1';
   if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
   T.pedido = r.id; T.enviando = false;
   if (r.caixa) { const rot = $('#rotuloCaixa'); rot.textContent = 'Caixa ' + r.caixa; rot.classList.remove('esconder'); }
@@ -757,6 +809,8 @@ function iniciarTotem() {
     T.pin = pin; guardar.set('banho_pin_posto', pin); $('#cfgPin').value = ''; irTotem(); verificarEstado();
   });
   $('#rotuloCaixa').addEventListener('click', () => { if (!T.pedido) escolherCaixa(); });
+  $('#qMais').addEventListener('click', () => { if (T.qtd < T.maxFichas) { T.qtd++; $('#qNum').textContent = T.qtd; } });
+  $('#qMenos').addEventListener('click', () => { if (T.qtd > 1) { T.qtd--; $('#qNum').textContent = T.qtd; } });
   $('#ecVoltar').addEventListener('click', () => { irTotem(); verificarEstado(); });
   // trocar o caixa do totem exige entrar de novo com o usuário do totem
   $('#trocarCaixa').addEventListener('click', e => {
@@ -790,6 +844,7 @@ async function entrarCaixa() {
   if (r.sessaoInvalida) return;
   if (!r.ok) { mostrarSecao('cxLogin'); $('#cxLoginMsg').textContent = r.erro; return; }
   C.usuario = r.usuario; C.nome = r.nome; C.admin = r.admin; C.perfil = r.perfil; C.agentes = r.agentes || [];
+  $('#cfgErrosN').textContent = r.errosPendentes ? '(' + r.errosPendentes + ' pendente' + (r.errosPendentes > 1 ? 's' : '') + ')' : '';
   $('#cfgSecAuditor').classList.toggle('esconder', r.perfil !== 'AUDITOR');
   $('#cxUsuario').textContent = r.nome; $('#cxEngrenagem').classList.remove('esconder');
   $('#cxNome').value = r.admin ? (guardar.get('banho_ultimo_caixa') || '') : r.nome;
@@ -810,9 +865,11 @@ async function entrarCaixa() {
 }
 
 function mostrarSecao(id) {
-  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo', 'cxUsuarios', 'cxOutroTurno'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
-  $('#cxFechar').style.display = id === 'cxComTurno' ? '' : 'none';
-  $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` : '';
+  ['cxLogin', 'cxPedido', 'cxSemTurno', 'cxComTurno', 'cxAguardaEvo', 'cxUsuarios', 'cxOutroTurno', 'cxErros'].forEach(s => $('#' + s).classList.toggle('esconder', s !== id));
+  $('#cxFechar').style.display = id === 'cxComTurno' && !(C.turno && C.turno.fechado) ? '' : 'none';
+  $('#cxTurnoInfo').textContent = id === 'cxComTurno' && C.turno ? `${C.turno.caixa} · aberto ${C.turno.abertura.slice(0, 16)}` +
+    (C.turno.fechado ? ` · FECHADO ${String(C.turno.fechamento || '').slice(0, 16)} (consulta)` : '') : '';
+  if (id === 'cxComTurno') $('#cxListaTurnos').classList.remove('esconder');
 }
 function sinalRobo(on) { const s = $('#cxRobo'); s.className = 'sinal ' + (on ? 'on' : 'off'); s.textContent = on ? 'Robô ligado' : 'Robô desligado'; }
 
@@ -872,8 +929,15 @@ async function carregarTurnos() {
   const tb = $('#cxTurnos');
   if (!r.ok || !r.turnos.length) { tb.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum turno registrado ainda.</td></tr>'; return; }
   tb.innerHTML = r.turnos.map(t => `<tr><td>${esc(t.caixa)}</td><td>${esc(t.abertura)}</td><td>${esc(t.fechamento || 'aberto')}</td><td>${esc(t.qtd)}</td>
-    <td><button class="btn peq sec" data-rel="${esc(t.id)}">Relatório</button></td></tr>`).join('');
+    <td style="white-space:nowrap">${C.perfil === 'AUDITOR' && t.status === 'FECHADO' ? `<button class="btn peq" data-abrirfech="${esc(t.id)}">Abrir</button> ` : ''}<button class="btn peq sec" data-rel="${esc(t.id)}">Relatório</button></td></tr>`).join('');
   tb.querySelectorAll('[data-rel]').forEach(b => b.onclick = () => abrirRelatorio(b.dataset.rel));
+  tb.querySelectorAll('[data-abrirfech]').forEach(b => b.onclick = () => abrirTurnoFechado(r.turnos.find(t => t.id === b.dataset.abrirfech)));
+}
+
+// auditor: abre a tela do caixa de um turno já fechado (lançamentos, lotes e OPNF)
+function abrirTurnoFechado(t) {
+  C.turno = { id: t.id, caixa: t.caixa, abertura: t.abertura, fechamento: t.fechamento, fechado: true };
+  C.sel.clear(); C.loteAberto = null; mostrarSecao('cxComTurno'); irAba('codigos'); atualizarPainel();
 }
 
 async function atualizarPainel(silencioso) {
@@ -881,7 +945,7 @@ async function atualizarPainel(silencioso) {
   const r = await apiCx('caixa_painel', { turnoId: C.turno.id });
   if (!r.ok) { if (!silencioso) alertas([{ t: r.erro, erro: true }]); return; }
   sinalRobo(r.roboOnline);
-  if (!r.turno || r.turno.meu === false) { C.turno = null; C.turnoSel = null; entrarCaixa(); return; }
+  if (!C.turno.fechado && (!r.turno || r.turno.meu === false)) { C.turno = null; C.turnoSel = null; entrarCaixa(); return; }
   C.lista = r.resgates.slice().reverse(); C.lotes = r.lotes;
   if (IMP.senha()) {
     const feitos = IMP.feitos();
@@ -907,17 +971,28 @@ function desenharLista() {
   const tb = $('#cxLista');
   const conc = C.lista.filter(x => x.status === 'CONCLUIDO');
   $('#cxResumo').textContent = `${conc.length} resgatado(s) · ${conc.filter(x => x.ok).length} conferido(s) · ${conc.filter(x => !x.lote).length} sem lote`;
-  if (!C.lista.length) { tb.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum resgate neste turno ainda.</td></tr>'; return; }
+  const f = (document.querySelector('#cxFiltros input:checked') || {}).value || 'semlote';
+  const FILTROS = {
+    tudo: () => true,
+    semlote: x => !x.lote && x.status !== 'CANCELADO' && x.status !== 'ERRO',
+    comlote: x => !!x.lote,
+    resolver: x => x.status === 'VERIFICAR',
+    erros: x => x.status === 'ERRO',
+    cancelados: x => x.status === 'CANCELADO'
+  };
+  const visiveis = C.lista.filter(FILTROS[f] || FILTROS.semlote);
+  if (!visiveis.length) { tb.innerHTML = `<tr><td colspan="9" class="vazio">${C.lista.length ? 'Nenhum resgate neste filtro.' : 'Nenhum resgate neste turno ainda.'}</td></tr>`; return; }
   const nomes = { CONCLUIDO: 'Concluído', ERRO: 'Recusado', VERIFICAR: 'Verificar', AGUARDANDO: 'Na fila', PROCESSANDO: 'Processando', SENHA_GERADA: 'Imprimindo', CANCELADO: 'Cancelado' };
-  tb.innerHTML = C.lista.map(x => {
+  tb.innerHTML = visiveis.map(x => {
     const podeSel = x.status === 'CONCLUIDO' && x.codigo && !x.lote;
     return `<tr class="${x.status === 'CANCELADO' ? 'cancelada' : x.ok ? 'marcada' : ''}">
       <td>${podeSel ? `<input type="checkbox" data-sel="${esc(x.id)}" ${C.sel.has(x.id) ? 'checked' : ''} aria-label="Selecionar">` : ''}</td>
       <td>${esc(x.hora.slice(11, 16))}</td>
       <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}</td>
+      <td style="text-align:center"><b>${esc(x.qtd || 1)}</b></td>
       <td>${esc(x.ticket)}</td>
       <td><span class="chip ${esc(x.status)}">${nomes[x.status] || esc(x.status)}</span>${x.mensagem ? `<div class="pequeno">${esc(x.mensagem)}</div>` : ''}</td>
-      <td>${x.lote ? `${esc(x.lote.slice(-6))}<div class="pequeno">${x.opnf ? 'OPNF ' + esc(x.opnf) : 'sem OPNF'}</div>` : ''}</td>
+      <td>${x.lote ? `OPNF ${esc(x.lote)}` : ''}</td>
       <td>${x.status === 'CONCLUIDO' ? `<input type="checkbox" data-ok="${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
       <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
           ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir no robô</button>
@@ -942,19 +1017,33 @@ function desenharLista() {
   tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
 }
 
+function irAba(aba) {
+  document.querySelectorAll('.abas button').forEach(x => x.setAttribute('aria-selected', x.dataset.aba === aba));
+  $('#abaCodigos').classList.toggle('esconder', aba !== 'codigos');
+  $('#abaLotes').classList.toggle('esconder', aba !== 'lotes');
+}
 function desenharLotes() {
   const tb = $('#cxLotes');
-  if (!C.lotes.length) { tb.innerHTML = '<tr><td colspan="6" class="vazio">Nenhum lote fechado neste turno.</td></tr>'; return; }
-  tb.innerHTML = C.lotes.slice().reverse().map(l => `<tr>
-    <td>${esc(l.lote.slice(-6))}</td><td>${esc(l.criado.slice(11, 16))}</td><td>${esc(l.qtd)}</td>
+  if (!C.lotes.length) { tb.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum lote neste turno.</td></tr>'; return; }
+  tb.innerHTML = C.lotes.slice().reverse().map(l => `<tr data-verlote="${esc(l.lote)}" style="cursor:pointer" title="Ver os resgates deste lote">
+    <td><b>${C.loteAberto === l.lote ? '▾' : '▸'} ${esc(l.opnf || l.lote)}</b></td><td>${esc(l.criado.slice(11, 16))}</td><td>${esc(l.qtd)}</td>
     <td class="pequeno">${esc(l.codigos)}</td>
-    <td><input data-opnf="${esc(l.lote)}" value="${esc(l.opnf)}" inputmode="numeric" placeholder="OPNF" style="font:inherit;width:120px;padding:6px 8px;border:2px solid var(--linha);border-radius:6px"></td>
-    <td><button class="btn peq" data-salvaopnf="${esc(l.lote)}">Salvar</button></td></tr>`).join('');
-  tb.querySelectorAll('[data-salvaopnf]').forEach(b => b.onclick = async () => {
-    const v = tb.querySelector(`[data-opnf="${b.dataset.salvaopnf}"]`).value.trim();
-    b.disabled = true; b.textContent = 'Salvando…';
-    const r = await apiCx('caixa_salvarOpnf', { lote: b.dataset.salvaopnf, opnf: v });
-    b.textContent = r.ok ? 'Salvo' : 'Erro'; setTimeout(() => { b.disabled = false; b.textContent = 'Salvar'; }, 1500);
+    <td><button class="btn peq sec" data-corrige="${esc(l.lote)}">Corrigir OPNF</button></td></tr>` +
+    (C.loteAberto === l.lote ? `<tr><td colspan="5" style="background:var(--azul-claro)"><table style="width:100%">
+      <thead><tr><th>Hora</th><th>Código do resgate</th><th>Qtd</th><th>Senha</th><th>Situação</th></tr></thead><tbody>` +
+      (C.lista.filter(x => x.lote === l.lote).map(x => `<tr><td>${esc((x.hora || '').slice(11, 16))}</td><td><b>${esc(x.codigo)}</b></td><td>${esc(x.qtd || 1)}</td>
+        <td>${esc(x.ticket)}</td><td>${x.ok ? 'OK ✓' : esc(x.status === 'CONCLUIDO' ? 'Concluído' : x.status)}</td></tr>`).join('') || '<tr><td colspan="4" class="vazio">—</td></tr>') +
+      '</tbody></table></td></tr>' : '')).join('');
+  tb.querySelectorAll('[data-verlote]').forEach(tr => tr.onclick = e => {
+    if (e.target.closest('input,button')) return;
+    C.loteAberto = C.loteAberto === tr.dataset.verlote ? null : tr.dataset.verlote; desenharLotes();
+  });
+  tb.querySelectorAll('[data-corrige]').forEach(b => b.onclick = async () => {
+    const nova = prompt('Número correto da OPNF do lote ' + b.dataset.corrige + ':', b.dataset.corrige);
+    if (!nova || nova.trim() === b.dataset.corrige) return;
+    const r = await apiCx('caixa_salvarOpnf', { lote: b.dataset.corrige, opnf: nova.trim() });
+    if (!r.ok) { alert(r.erro); return; }
+    if (C.loteAberto === b.dataset.corrige) C.loteAberto = r.lote;
     atualizarPainel(true);
   });
 }
@@ -987,12 +1076,12 @@ async function abrirFechamentos() {
   });
   $('#dfLista').querySelectorAll('[data-aquirel]').forEach(b => b.onclick = async () => {
     let ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 1);
-    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
+    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel, agente: guardar.get('banho_agente_pc') || '' }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
     $('#dfMsg').textContent = ok ? 'Enviado para a impressora deste computador.' : 'O robô não gerou a imagem do relatório. Confira se ele está ligado.';
   });
   $('#dfLista').querySelectorAll('[data-revo]').forEach(b => b.onclick = async () => {
     b.disabled = true; $('#dfMsg').textContent = 'Pedido enviado ao robô. O fechamento do EVO sai na impressora em alguns segundos.';
-    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo });
+    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo, agente: guardar.get('banho_agente_pc') || '' });
     if (!r2.ok) { $('#dfMsg').textContent = r2.erro; b.disabled = false; return; }
     for (let i = 0; i < 20; i++) {
       await new Promise(ok => setTimeout(ok, 3000));
@@ -1004,6 +1093,31 @@ async function abrirFechamentos() {
   });
 }
 
+// ---------- erros e sugestões (só auditor)
+async function abrirErros() {
+  clearInterval(C.timer); mostrarSecao('cxErros');
+  $('#erLista').innerHTML = '<tr><td colspan="5" class="vazio">Carregando…</td></tr>';
+  const r = await apiCx('caixa_erros');
+  if (!r.ok) { $('#erLista').innerHTML = `<tr><td colspan="5" class="vazio">${esc(r.erro)}</td></tr>`; return; }
+  if (!r.erros.length) { $('#erLista').innerHTML = '<tr><td colspan="5" class="vazio">Nenhum erro registrado. 👍</td></tr>'; return; }
+  $('#erLista').innerHTML = r.erros.map(e => `<tr>
+    <td class="pequeno" style="white-space:nowrap">${esc(e.data.slice(0, 16))}</td>
+    <td class="pequeno">${esc(e.origem)}${e.caixa ? '<br>' + esc(e.caixa) : ''}<br>${esc(e.etapa)}</td>
+    <td><b>${esc(e.causa)}</b><br><span class="pequeno">${esc(e.sugestao)}</span>
+      <details class="pequeno"><summary>mensagem do robô</summary>${esc(e.mensagem)}</details>
+      ${e.resultado ? `<div class="pequeno" style="color:var(--ok)">${esc(e.resultado)}</div>` : ''}</td>
+    <td><span class="chip ${e.situacao === 'PENDENTE' ? 'VERIFICAR' : e.situacao === 'APLICADA' ? 'CONCLUIDO' : 'CANCELADO'}">${esc(e.situacao)}</span></td>
+    <td style="white-space:nowrap">${e.situacao !== 'PENDENTE' ? '' : e.correcao
+      ? `<button class="btn peq lar" data-erro="${esc(e.id)}" data-aplicar="1">Sim, aplicar (${esc(e.correcao)})</button> <button class="btn peq sec" data-erro="${esc(e.id)}" data-aplicar="0">Não</button>`
+      : `<button class="btn peq" data-erro="${esc(e.id)}" data-aplicar="1">Resolvido</button> <button class="btn peq sec" data-erro="${esc(e.id)}" data-aplicar="0">Ignorar</button>`}</td></tr>`).join('');
+  $('#erLista').querySelectorAll('[data-erro]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    const x = await apiCx('caixa_decidirErro', { id: b.dataset.erro, aplicar: b.dataset.aplicar === '1' });
+    if (!x.ok) { alert(x.erro); b.disabled = false; return; }
+    abrirErros();
+  });
+}
+
 // ---------- configurações do posto (só auditor)
 async function abrirConfigPosto() {
   const d = $('#dPosto'); $('#dpMsg').textContent = 'Carregando…'; d.showModal();
@@ -1012,12 +1126,14 @@ async function abrirConfigPosto() {
   $('#dpPosto').value = r.posto || ''; $('#dpEvoUrl').value = r.evoUrl || ''; $('#dpEvoBotao').value = r.evoBotao || '';
   $('#dpProduto').value = r.produto || 'Banho'; $('#dpClubLogin').value = r.clubLogin || ''; $('#dpClubSenha').value = '';
   $('#dpEmail').value = r.emailAprovacao || ''; $('#dpImpRobo').checked = r.imprimirNoRobo !== false;
+  $('#dpEmailErros').value = r.emailErros || ''; $('#dpTeams').value = r.teamsWebhook || ''; $('#dpMaxFichas').value = r.maxFichas || 1;
   $('#dpClubInfo').textContent = r.temSenhaClub ? '(já cadastrada)' : '(não cadastrada)';
   $('#dpMsg').textContent = '';
   $('#dpSalvar').onclick = async () => {
     $('#dpSalvar').disabled = true; $('#dpMsg').textContent = '';
     const s = await apiCx('caixa_salvarConfigPosto', { posto: $('#dpPosto').value, evoUrl: $('#dpEvoUrl').value, evoBotao: $('#dpEvoBotao').value,
-      produto: $('#dpProduto').value, clubLogin: $('#dpClubLogin').value, clubSenha: $('#dpClubSenha').value, emailAprovacao: $('#dpEmail').value, imprimirNoRobo: $('#dpImpRobo').checked });
+      produto: $('#dpProduto').value, clubLogin: $('#dpClubLogin').value, clubSenha: $('#dpClubSenha').value, emailAprovacao: $('#dpEmail').value, imprimirNoRobo: $('#dpImpRobo').checked,
+      emailErros: $('#dpEmailErros').value, teamsWebhook: $('#dpTeams').value, maxFichas: $('#dpMaxFichas').value });
     $('#dpSalvar').disabled = false;
     if (!s.ok) { $('#dpMsg').textContent = s.erro; return; }
     $('#dpClubSenha').value = ''; d.close(); entrarCaixa();
@@ -1114,7 +1230,7 @@ async function abrirRelatorio(turnoId, dadosProntos) {
   if (!r.ok || !r.relatorio) { alert(r.erro || 'Relatório não encontrado.'); return; }
   const R = r.relatorio;
   const linhas = R.resgates.map((x, i) => `<tr class="${x.status === 'CANCELADO' ? 'cancelado' : x.ok ? 'ok' : ''}"><td>${i + 1}</td><td>${esc(x.hora.slice(11, 16))}</td><td><b>${esc(x.codigo || '—')}</b></td>
-    <td>${esc(x.ticket)}</td><td>${esc(x.opnf)}</td><td>${x.ok ? 'OK ✓' : ''}</td><td>${x.status === 'VERIFICAR' ? 'Verificar' : x.status === 'CANCELADO' ? 'Cancelado' : ''}</td></tr>`
+    <td>${esc(x.ticket)}${(x.qtd || 1) > 1 ? ' (' + x.qtd + ' fichas)' : ''}</td><td>${esc(x.opnf)}</td><td>${x.ok ? 'OK ✓' : ''}</td><td>${x.status === 'VERIFICAR' ? 'Verificar' : x.status === 'CANCELADO' ? 'Cancelado' : ''}</td></tr>`
     + (x.status === 'CANCELADO' ? `<tr><td></td><td colspan="6" style="font-size:12px;color:#444">${esc(x.mensagem)}</td></tr>` : '')).join('')
     || '<tr><td colspan="7">Nenhum resgate no turno.</td></tr>';
   $('#relatorio').innerHTML = `
@@ -1126,13 +1242,16 @@ async function abrirRelatorio(turnoId, dadosProntos) {
       <dt>Início</dt><dd>${esc(R.abertura.slice(11, 16))}</dd>
       <dt>Fim</dt><dd>${esc(R.fechamento ? R.fechamento.slice(11, 16) : 'em aberto')}</dd>
       <dt>Banhos resgatados</dt><dd>${esc(R.qtd)}</dd>
+      <dt>Registro robô (fichas)</dt><dd>${esc(R.qtdRobo != null ? R.qtdRobo : R.qtd)}</dd>
+      <dt>Total EVO (${esc('B.PICHILAUMAIS')})</dt><dd>${esc(R.qtdEvo == null ? 'não lido' : R.qtdEvo)}</dd>
+      <dt>Registro externo</dt><dd>${esc(R.qtdExterno == null ? '—' : R.qtdExterno)}</dd>
       <dt>Conferidos (OK)</dt><dd>${esc(R.qtdOk)} de ${esc(R.qtd)}</dd>
       <dt>Caixa EVO</dt><dd>${esc(R.caixaEvo === 'PENDENTE' ? 'fechamento enviado' : (R.caixaEvo || 'não fechado pelo app'))}</dd>
       <dt>Gerado em</dt><dd>${esc(R.geradoEm)}</dd>
     </dl>
     <table><thead><tr><th>#</th><th>Hora</th><th>Código do resgate</th><th>Senha EVO</th><th>OPNF</th><th>Conferido</th><th></th></tr></thead>
     <tbody>${linhas}</tbody></table>
-    <p style="font-size:13px;margin-top:10px">Linhas destacadas foram marcadas como OK pelo caixa.</p>
+    <p style="font-size:13px;margin-top:10px">Linhas destacadas foram marcadas como OK pelo caixa. Registro externo = total do EVO menos o registro do robô (fichas emitidas fora do app).</p>
     <div class="assin"><div>${esc(R.caixa)}<br>Caixa</div><div>Conferente</div></div>`;
   mostrar('vRelatorio');
 }
@@ -1246,6 +1365,9 @@ function iniciarCaixa() {
   $('#cfgImpSenhaAqui').checked = IMP.senha(); $('#cfgImpFechAqui').checked = IMP.fech();
   $('#cxEngrenagem').addEventListener('click', () => {
     const ags = C.agentes || [];
+    $('#cfgAgentePc').innerHTML = '<option value="">Nenhum (impressora do robô)</option>' + ags.map(a => `<option value="${esc(a.nome)}">${esc(a.nome)}</option>`).join('');
+    $('#cfgAgentePc').value = guardar.get('banho_agente_pc') || '';
+    $('#cfgAgentePc').onchange = () => guardar.set('banho_agente_pc', $('#cfgAgentePc').value);
     $('#cfgAgentes').innerHTML = !ags.length ? 'Nenhum agente instalado ainda.' : ags.map(a =>
       `<div style="margin-bottom:6px"><b>${esc(a.nome)}</b> · ${a.ligado ? '<span style="color:var(--ok)">ligado</span>' : '<span style="color:var(--erro)">desligado</span>'}<br>
        Senha: ${esc(a.impressoras.senha || 'padrão')} · Fechamento: ${esc(a.impressoras.fechamento || 'padrão')} · Relatório: ${esc(a.impressoras.relatorio || 'padrão')}<br>
@@ -1259,6 +1381,8 @@ function iniciarCaixa() {
   $('#dfFechar').onclick = () => $('#dFechamentos').close();
   $('#cfgUsuarios').onclick = () => { $('#dConfig').close(); abrirUsuarios(); };
   $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
+  $('#cfgErros').onclick = () => { $('#dConfig').close(); abrirErros(); };
+  $('#erVoltar').onclick = () => entrarCaixa();
   $('#dpCanc').onclick = () => $('#dPosto').close();
   $('#usVoltar').onclick = () => entrarCaixa();
   $('#usNovo').onclick = () => editarUsuario(null);
@@ -1279,11 +1403,8 @@ function iniciarCaixa() {
     C.turnoSel = r.turno ? r.turno.id : null;
     entrarCaixa();
   };
-  document.querySelectorAll('.abas button').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.abas button').forEach(x => x.setAttribute('aria-selected', x === b));
-    $('#abaCodigos').classList.toggle('esconder', b.dataset.aba !== 'codigos');
-    $('#abaLotes').classList.toggle('esconder', b.dataset.aba !== 'lotes');
-  });
+  document.querySelectorAll('.abas button').forEach(b => b.onclick = () => irAba(b.dataset.aba));
+ document.querySelectorAll('#cxFiltros input').forEach(i => i.onchange = () => desenharLista());
   $('#cxListaTurnos').onclick = () => { C.turnoSel = null; C.turno = null; C.verLista = true; entrarCaixa(); };
   $('#cxSelPend').onclick = () => { C.lista.filter(x => x.status === 'CONCLUIDO' && x.codigo && !x.lote).forEach(x => C.sel.add(x.id)); desenharLista(); };
   $('#cxCopiar').onclick = () => {
@@ -1292,24 +1413,27 @@ function iniciarCaixa() {
   };
   $('#cxLote').onclick = () => {
     const s = selecionados(); if (!s.length) { alert('Selecione os códigos que entraram no lote.'); return; }
-    $('#dLoteTxt').textContent = `${s.length} código(s): ${s.map(x => x.codigo).join(', ')}. Depois de registrar no B2Click, informe o número da OPNF.`;
-    $('#dLoteOpnf').value = ''; $('#dLote').showModal();
+    $('#dLoteTxt').textContent = `${s.length} resgate(s): ${s.map(x => x.codigo).join(', ')}. Depois de registrar no B2Click, informe o número da OPNF. Ele vira o número do lote.`;
+    $('#dLoteOpnf').value = ''; $('#dLoteMsg').textContent = ''; $('#dLote').showModal();
   };
   $('#dLoteCanc').onclick = () => $('#dLote').close();
   $('#dLoteOk').onclick = async () => {
     const s = selecionados();
+    if (!$('#dLoteOpnf').value.trim()) { $('#dLoteMsg').textContent = 'Informe o número da OPNF.'; return; }
     $('#dLoteOk').disabled = true;
     const r = await apiCx('caixa_criarLote', { turnoId: C.turno.id, ids: s.map(x => x.id), opnf: $('#dLoteOpnf').value.trim(), caixa: C.turno.caixa });
     $('#dLoteOk').disabled = false;
-    if (!r.ok) { alert(r.erro); return; }
-    C.sel.clear(); $('#dLote').close(); atualizarPainel();
+    if (!r.ok) { $('#dLoteMsg').textContent = r.erro; return; }
+    C.sel.clear(); $('#dLote').close(); C.loteAberto = r.lote || null;
+    await atualizarPainel();
+    alertas([{ t: `${r.qtd} resgate(s) foram para o lote OPNF ${r.lote}. Veja na aba Lotes e OPNF.` }]);
   };
   $('#cxFechar').onclick = () => $('#dFechar').showModal();
   $('#dFecharCanc').onclick = () => $('#dFechar').close();
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
     const turnoId = C.turno.id;
-    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked });
+    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: guardar.get('banho_agente_pc') || '' });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
@@ -1325,7 +1449,7 @@ function iniciarCaixa() {
   $('#relImprimirRobo').onclick = async () => {
     if (!C.relTurno) return;
     $('#relImprimirRobo').disabled = true; $('#relMsg').textContent = 'Enviando ao robô…';
-    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno });
+    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno, agente: guardar.get('banho_agente_pc') || '' });
     $('#relImprimirRobo').disabled = false;
     $('#relMsg').textContent = r.ok ? 'O relatório do turno está saindo na impressora do fechamento (formato bobina).' : r.erro;
   };
