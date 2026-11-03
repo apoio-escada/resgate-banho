@@ -1022,7 +1022,8 @@ function desenharLista() {
       <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
           ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir no robô</button>
           <button class="btn peq sec" data-impaqui="${esc(x.id)}">Imprimir aqui</button>` : ''}
-          ${(x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}</td>
+          ${(x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}
+          ${['AGUARDANDO', 'PROCESSANDO', 'SENHA_GERADA'].includes(x.status) && minutosDesde(x.hora) >= 3 ? `<button class="btn peq lar" data-destravar="${esc(x.id)}" title="Resgate parado há mais de 3 minutos">Destravar</button>` : ''}</td>
     </tr>`;
   }).join('');
   tb.querySelectorAll('[data-copia]').forEach(b => b.onclick = () => copiar(b.dataset.copia, b));
@@ -1040,8 +1041,21 @@ function desenharLista() {
     b.disabled = false; if (!ok) alert('A imagem dessa senha ainda não chegou do robô. Tente em alguns segundos.');
   });
   tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
+  tb.querySelectorAll('[data-destravar]').forEach(b => b.onclick = async () => {
+    if (!confirm('Destravar este resgate? Ele vira "Verificar": confira no ClubPetro/EVO e depois use Resolver ou Cancelar.')) return;
+    b.disabled = true;
+    const r = await apiCx('caixa_destravar', { id: b.dataset.destravar });
+    if (!r.ok) { alert(r.erro); b.disabled = false; return; }
+    atualizarPainel(true);
+  });
 }
 
+// minutos desde "dd/MM/aaaa HH:mm:ss"
+function minutosDesde(txt) {
+  const m = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})(?::(\d{2}))?/.exec(txt || '');
+  if (!m) return 0;
+  return (Date.now() - new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +(m[6] || 0)).getTime()) / 60000;
+}
 function irAba(aba) {
   document.querySelectorAll('.abas button').forEach(x => x.setAttribute('aria-selected', x.dataset.aba === aba));
   $('#abaCodigos').classList.toggle('esconder', aba !== 'codigos');
