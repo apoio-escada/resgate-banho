@@ -770,8 +770,8 @@ async function acompanhar(inicio) {
     T.ultimoSaldo = textoSaldo(r) || T.ultimoSaldo || '';
     $('#pSaldo').innerHTML = T.ultimoSaldo; $('#pSaldo').classList.toggle('esconder', !T.ultimoSaldo);
     if (r.status === 'CONCLUIDO' || (r.status === 'SENHA_GERADA' && r.ticket)) {
-      if (r.status === 'CONCLUIDO') { mostrarSenha(r); return; }
-      marcarPassos('imp');
+      // a senha aparece assim que o EVO gera; a impressão segue em paralelo
+      mostrarSenha(r.status === 'CONCLUIDO' ? r : Object.assign({}, r, { mensagem: 'Seu comprovante está sendo impresso. Retire na impressora.' })); return;
     } else if (r.status === 'ERRO') {
       T.pedido = null;
       const salTxt = (T.ultimoSaldo || '').replace(/<br>/g, ' · ').replace(/<[^>]+>/g, '');
@@ -785,7 +785,7 @@ async function acompanhar(inicio) {
     T.pedido = null;
     avisoTotem('Está demorando mais que o normal', 'Procure o caixa. Seu pedido continua sendo processado.', 'Concluir'); return;
   }
-  setTimeout(() => acompanhar(inicio), 1800);
+  setTimeout(() => acompanhar(inicio), 1200);
 }
 
 function mostrarSenha(r) {
