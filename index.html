@@ -54,6 +54,9 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
   padding:18px;box-shadow:inset 0 -6px 0 var(--laranja-esc)}
 .vale:disabled{background:#B9C3D2;box-shadow:none;cursor:not-allowed}
 .vale:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 -3px 0 var(--laranja-esc)}
+.saldo{margin:18px auto 0;max-width:460px;background:var(--azul-claro);border-radius:12px;padding:12px 16px;font-size:20px;line-height:1.5;text-align:left}
+.saldo b{font-family:var(--cond);font-size:24px}
+.saldo .ruim{color:var(--erro)}
 .qtd-fichas{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 12px;font-family:var(--cond);font-size:22px;font-weight:700}
 .qtd-fichas button{width:56px;height:56px;border-radius:12px;border:2px solid var(--azul);background:#fff;color:var(--azul);font-size:30px;font-weight:700}
 .qtd-fichas b{font-size:34px;min-width:40px;text-align:center}
@@ -244,6 +247,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <li data-p="evo"><i></i>Gerando a senha do banho</li>
       <li data-p="imp"><i></i>Imprimindo o comprovante</li>
     </ul>
+    <div class="saldo esconder" id="pSaldo"></div>
   </div>
 </div>
 
@@ -253,6 +257,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <div class="rotulo">Senha do seu banho</div>
       <div class="senha" id="sNum">—</div>
       <div class="rodape" id="sRodape">Retire seu comprovante na impressora.</div>
+      <div class="saldo esconder" id="sSaldo"></div>
     </div>
     <p class="contagem" id="sConta"></p>
     <button class="btn sec" id="bNovo">Concluir</button>
@@ -725,6 +730,7 @@ async function pedirBanho() {
   const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente, qtd: T.qtd, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
   limparTotem();                                   // não deixa o CPF na tela
   T.qtd = 1; $('#qNum').textContent = '1';
+  T.ultimoSaldo = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');
   if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
   T.pedido = r.id; T.enviando = false;
   if (r.caixa) { const rot = $('#rotuloCaixa'); rot.textContent = 'Caixa ' + r.caixa; rot.classList.remove('esconder'); }
@@ -741,15 +747,32 @@ function marcarPassos(etapaAtual) {
 }
 const ETAPA_PASSO = { RECEBIDO: 'fila', CLUBPETRO: 'club', CLUBPETRO_FINALIZANDO: 'club', CLUBPETRO_OK: 'evo', EVO_EMITINDO: 'evo', EVO_OK: 'imp' };
 
+// saldo de pontos do cliente: antes, deste resgate e depois
+function textoSaldo(r) {
+  if (r.pontos === undefined || r.pontos === null || isNaN(r.pontos)) return '';
+  const fmt = n => Number(n).toLocaleString('pt-BR');
+  let h = `Seu saldo: <b>${fmt(r.pontos)}</b> pontos`;
+  if (r.custo) {
+    const depois = r.pontos - r.custo;
+    h += `<br>Este resgate: <b>${fmt(r.custo)}</b> pontos<br>` + (depois >= 0
+      ? `Saldo depois do resgate: <b>${fmt(depois)}</b> pontos`
+      : `<span class="ruim">Faltam <b>${fmt(-depois)}</b> pontos para este resgate</span>`);
+  }
+  return h;
+}
+
 async function acompanhar(inicio) {
   const r = await api('totem_consultar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: T.pedido });
   if (r.ok) {
+    T.ultimoSaldo = textoSaldo(r) || T.ultimoSaldo || '';
+    $('#pSaldo').innerHTML = T.ultimoSaldo; $('#pSaldo').classList.toggle('esconder', !T.ultimoSaldo);
     if (r.status === 'CONCLUIDO' || (r.status === 'SENHA_GERADA' && r.ticket)) {
       if (r.status === 'CONCLUIDO') { mostrarSenha(r); return; }
       marcarPassos('imp');
     } else if (r.status === 'ERRO') {
       T.pedido = null;
-      avisoTotem('Não foi possível resgatar', r.mensagem || 'Procure o caixa.'); return;
+      const salTxt = (T.ultimoSaldo || '').replace(/<br>/g, ' · ').replace(/<[^>]+>/g, '');
+      avisoTotem('Não foi possível resgatar', (r.mensagem || 'Procure o caixa.') + (salTxt ? '  (' + salTxt + ')' : '')); return;
     } else if (r.status === 'VERIFICAR') {
       T.pedido = null;
       avisoTotem('Procure o caixa', r.mensagem || 'Seu resgate precisa de uma conferência.', 'Concluir'); return;
@@ -764,6 +787,8 @@ async function acompanhar(inicio) {
 
 function mostrarSenha(r) {
   T.pedido = null;
+  const sal = textoSaldo(r) || T.ultimoSaldo || '';
+  $('#sSaldo').innerHTML = sal; $('#sSaldo').classList.toggle('esconder', !sal);
   $('#sNum').textContent = r.ticket || '—';
   $('#sRodape').textContent = r.mensagem || 'Retire seu comprovante na impressora.';
   mostrar('vSenha');
