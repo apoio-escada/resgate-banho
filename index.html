@@ -462,6 +462,9 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   <h3>Fechar turno</h3>
   <p>A tela do cliente será bloqueada. Primeiro o robô fecha o caixa no EVO e imprime o fechamento; depois abre o relatório do app para impressão.</p>
   <label class="chk"><input type="checkbox" id="dFecharEvo" checked> Fechar também o caixa no EVO</label>
+  <label style="display:block;font-weight:600;margin-top:10px">Quantidade de B.PICHILAUMAIS no fechamento do EVO <span class="pequeno">(do papel do EVO; opcional)</span>
+    <input type="number" id="dFecharTotalEvo" min="0" step="1" inputmode="numeric" placeholder="ex.: 16" style="display:block;margin-top:4px;width:160px"></label>
+  <p class="pequeno">Se informado, vale mais que a leitura automática do robô. A diferença para os resgates do app vira "Registro externo".</p>
   <div class="acoes"><button class="btn sec" id="dFecharCanc">Cancelar</button><button class="btn lar" id="dFecharOk">Fechar turno</button></div>
 </dialog>
 <dialog id="dConfig">
@@ -921,7 +924,7 @@ function imprimirImagem(png) {
     f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
     document.body.appendChild(f);
     const d = f.contentWindow.document;
-    d.open(); d.write('<html><head><style>@page{size:80mm auto;margin:0}html,body{margin:0}img{width:80mm;display:block}</style></head><body><img id="i" src="data:image/png;base64,' + png + '"></body></html>'); d.close();
+    d.open(); d.write('<html><head><style>@page{size:80mm auto;margin:0}html,body{margin:0}img{width:72mm;display:block;margin:0 auto}</style></head><body><img id="i" src="data:image/png;base64,' + png + '"></body></html>'); d.close();
     const im = d.getElementById('i');
     const vai = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (_) {} setTimeout(() => { f.remove(); ok(); }, 1500); };
     if (im.complete) vai(); else im.onload = vai;
@@ -1262,6 +1265,13 @@ function abrirResolver(id) {
   d.showModal();
 }
 
+async function informarTotalEvo() {
+  const v = prompt('Quantidade de B.PICHILAUMAIS no fechamento do EVO (do papel do EVO):');
+  if (v === null || String(v).trim() === '') return;
+  const r = await apiCx('caixa_informarTotalEvo', { turnoId: C.relTurno, total: v.trim() });
+  if (!r.ok) { alert(r.erro); return; }
+  abrirRelatorio(C.relTurno, r.relatorio);
+}
 async function abrirRelatorio(turnoId, dadosProntos) {
   C.relTurno = turnoId; $('#relMsg').textContent = '';
   $('#relImprimirRobo').classList.toggle('esconder', !turnoId);
@@ -1282,7 +1292,8 @@ async function abrirRelatorio(turnoId, dadosProntos) {
       <dt>Fim</dt><dd>${esc(R.fechamento ? R.fechamento.slice(11, 16) : 'em aberto')}</dd>
       <dt>Banhos resgatados</dt><dd>${esc(R.qtd)}</dd>
       <dt>Registro robô (fichas)</dt><dd>${esc(R.qtdRobo != null ? R.qtdRobo : R.qtd)}</dd>
-      <dt>Total EVO (${esc('B.PICHILAUMAIS')})</dt><dd>${esc(R.qtdEvo == null ? 'não lido' : R.qtdEvo)}</dd>
+      <dt>Total EVO (${esc('B.PICHILAUMAIS')})</dt><dd>${esc(R.qtdEvo == null ? 'não lido' : R.qtdEvo)}${R.qtdEvoManual ? ' <span style="font-weight:400;font-size:12px">(informado)</span>' : ''}
+        ${C.relTurno ? '<button class="btn peq sec nao-imprime" id="relTotalEvo" style="margin-left:8px">Informar</button>' : ''}</dd>
       <dt>Registro externo</dt><dd>${esc(R.qtdExterno == null ? '—' : R.qtdExterno)}</dd>
       <dt>Conferidos (OK)</dt><dd>${esc(R.qtdOk)} de ${esc(R.qtd)}</dd>
       <dt>Caixa EVO</dt><dd>${esc(R.caixaEvo === 'PENDENTE' ? 'fechamento enviado' : (R.caixaEvo || 'não fechado pelo app'))}</dd>
@@ -1292,6 +1303,7 @@ async function abrirRelatorio(turnoId, dadosProntos) {
     <tbody>${linhas}</tbody></table>
     <p style="font-size:13px;margin-top:10px">Linhas destacadas foram marcadas como OK pelo caixa. Registro externo = total do EVO menos o registro do robô (fichas emitidas fora do app).</p>
     <div class="assin"><div>${esc(R.caixa)}<br>Caixa</div><div>Conferente</div></div>`;
+  if ($('#relTotalEvo')) $('#relTotalEvo').onclick = informarTotalEvo;
   mostrar('vRelatorio');
 }
 
@@ -1472,7 +1484,7 @@ function iniciarCaixa() {
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
     const turnoId = C.turno.id;
-    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: guardar.get('banho_agente_pc') || '' });
+    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: guardar.get('banho_agente_pc') || '', totalEvo: $('#dFecharTotalEvo').value });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
