@@ -57,6 +57,47 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 .saldo{margin:18px auto 0;max-width:460px;background:var(--azul-claro);border-radius:12px;padding:12px 16px;font-size:20px;line-height:1.5;text-align:left}
 .saldo b{font-family:var(--cond);font-size:24px}
 .saldo .ruim{color:var(--erro)}
+.qtd-campo{display:flex;align-items:center;gap:16px;padding:8px 14px;border:2px solid var(--linha);border-radius:10px;background:var(--papel);outline:none}
+.qtd-campo.ativo{border-color:var(--azul);box-shadow:0 0 0 4px var(--azul-claro)}
+.qtd-campo button{width:56px;height:56px;border-radius:12px;border:2px solid var(--azul);background:#fff;color:var(--azul);font-size:30px;font-weight:700}
+.qtd-campo b{font-family:var(--cond);font-size:44px;min-width:48px;text-align:center}
+.qtd-campo .dica{font-size:15px;color:var(--suave)}
+.dica-teclas{margin-top:12px;font-size:15px;color:var(--suave);text-align:center}
+#vSenha .caixa{max-width:none}
+.palco{padding-bottom:64px}
+.topo-totem{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+.topo-totem:empty{display:none}
+.wc{display:flex;align-items:center;gap:14px;align-self:flex-start;background:#fff;border:3px solid var(--azul);border-radius:14px;padding:8px 18px 8px 12px}
+.wc svg{height:64px;width:auto;display:block}
+.wc .wc-txt{font-family:var(--cond);font-weight:700;line-height:1}
+.wc .wc-txt b{display:block;font-size:40px;color:var(--tinta)}
+.wc .wc-txt span{font-size:24px;letter-spacing:.04em}
+.wc.m{border-color:#0D47A1}.wc.m .wc-txt span{color:#0D47A1}
+.wc.f{border-color:#C2185B}.wc.f .wc-txt span{color:#C2185B}
+.wc.mf{border-color:var(--tinta)}
+.aviso-totem{background:#FFF1DC;border:3px solid #E08A00;border-radius:12px;padding:12px 16px;font-family:var(--cond);font-weight:700;font-size:28px;line-height:1.15;color:#5A3500;display:flex;gap:12px;align-items:center}
+.aviso-totem i{font-style:normal;font-size:34px}
+.seta-senha{display:block;margin:0 auto;max-width:100%}
+.seta-senha.h{height:calc(var(--tam-senha,180px) * 1.15)}
+.seta-senha.v{height:calc(var(--tam-senha,180px) * 2)}
+.seta-senha text{font-family:var(--cond);font-weight:700;fill:#fff}
+.seta-anim{animation:empurra 1.2s ease-in-out infinite}
+@keyframes empurra{50%{transform:translate(var(--dx,0),var(--dy,0))}}
+@media (prefers-reduced-motion:reduce){.seta-anim{animation:none}}
+.senha-peq{font-size:26px;color:var(--suave);margin-top:8px}.senha-peq b{font-family:var(--cond);font-size:44px;color:var(--azul)}
+.barra-teste{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:50;background:var(--tinta);color:#fff;border-radius:999px;padding:8px 10px 8px 18px;display:flex;gap:12px;align-items:center;font-size:16px}
+.aj-previa-totem{background:var(--fundo);border:2px dashed var(--linha);border-radius:12px;padding:14px}
+#vAjustes textarea,#vAjustes select{font:inherit;font-size:17px;padding:8px;border:2px solid var(--linha);border-radius:10px}
+#vAjustes .pequeno{text-align:left;max-width:none;margin-left:0}
+.aj-previa .ticket{max-width:none}
+.qtd-campo kbd,.dica-teclas kbd{font-family:var(--cond);font-size:17px;border:1px solid var(--linha);border-bottom-width:3px;border-radius:6px;padding:0 7px;background:#fff;color:var(--tinta)}
+#vAjustes .caixa{max-width:760px;text-align:left}
+#vAjustes h3{margin:22px 0 8px;font-size:24px}
+.aj-previa{background:var(--fundo);border:2px dashed var(--linha);border-radius:12px;padding:14px;text-align:center;overflow:auto}
+.aj-teclas{width:100%;border-collapse:collapse;font-size:16px}
+.aj-teclas td{padding:7px 6px;border-bottom:1px solid var(--linha)}
+.aj-teclas td.k{font-family:var(--cond);font-size:20px;white-space:nowrap}
+.aj-teclas tr.ouvindo td{background:var(--aviso-claro)}
 .qtd-fichas{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 12px;font-family:var(--cond);font-size:22px;font-weight:700}
 .qtd-fichas button{width:56px;height:56px;border-radius:12px;border:2px solid var(--azul);background:#fff;color:var(--azul);font-size:30px;font-weight:700}
 .qtd-fichas b{font-size:34px;min-width:40px;text-align:center}
@@ -101,7 +142,7 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 .ticket::before,.ticket::after{content:"";position:absolute;top:96px;width:34px;height:34px;border-radius:50%;background:var(--fundo)}
 .ticket::before{left:-17px}.ticket::after{right:-17px}
 .ticket .rotulo{font-size:20px;color:var(--suave);padding-bottom:20px;border-bottom:3px dashed var(--linha);margin-bottom:6px}
-.ticket .senha{font-family:var(--cond);font-weight:700;font-size:clamp(96px,18vw,180px);white-space:nowrap;line-height:1;color:var(--azul);letter-spacing:.02em}
+.ticket .senha{font-family:var(--cond);font-weight:700;font-size:var(--tam-senha,clamp(96px,18vw,180px));white-space:nowrap;line-height:1;color:var(--azul);letter-spacing:.02em}
 .ticket .rodape{font-size:18px;color:var(--suave)}
 .contagem{font-size:16px;color:var(--suave)}
 
@@ -211,6 +252,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <p class="lgpd">Seu CPF e sua data de nascimento são usados só para este resgate no ClubPetro e não ficam guardados neste aparelho.</p>
     </aside>
     <main class="palco">
+      <div class="topo-totem" id="tTopo"></div>
       <div class="campo">
         <label for="iCpf">CPF</label>
         <input id="iCpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14">
@@ -221,19 +263,26 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <input id="iNasc" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa" maxlength="10">
         <div class="msg" id="mNasc"></div>
       </div>
-      <div class="teclado" id="teclado"></div>
-      <div class="qtd-fichas esconder" id="qtdFichas">
-        <span>Fichas de banho</span>
-        <button type="button" id="qMenos" aria-label="Menos uma ficha">−</button>
-        <b id="qNum">1</b>
-        <button type="button" id="qMais" aria-label="Mais uma ficha">+</button>
+      <div class="campo esconder" id="campoQtd">
+        <label for="iQtd">Quantidade de fichas</label>
+        <div class="qtd-campo" id="iQtd" tabindex="0" role="spinbutton" aria-valuemin="1" aria-valuenow="1">
+          <button type="button" id="qMenos" tabindex="-1" aria-label="Menos uma ficha">−</button>
+          <b id="qNum">1</b>
+          <button type="button" id="qMais" tabindex="-1" aria-label="Mais uma ficha">+</button>
+          <span class="dica" id="dicaQtd"></span>
+        </div>
       </div>
+      <div class="teclado" id="teclado"></div>
       <button class="vale" id="bVale" disabled>Vale banho</button>
+      <div class="dica-teclas" id="dicaTeclas"></div>
     </main>
   </section>
   <a class="cantinho" href="#caixa">Área do caixa</a>
   <a class="cantinho" href="#" id="trocarCaixa" style="right:calc(130px + env(safe-area-inset-right,0px))">Configurar totem</a>
+  <a class="cantinho" href="#" id="abrirAjustes" style="right:calc(270px + env(safe-area-inset-right,0px))">Ajustes do totem</a>
 </div>
+
+<div class="barra-teste esconder" id="barraTeste">Prévia do totem <button class="btn peq" id="btVoltarAj">Voltar aos ajustes</button></div>
 
 <button class="rotulo-caixa esconder" id="rotuloCaixa" aria-label="Escolher o caixa deste totem"></button>
 
@@ -254,8 +303,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <div id="vSenha" class="tela esconder">
   <div class="caixa">
     <div class="ticket">
-      <div class="rotulo">Senha do seu banho</div>
-      <div class="senha" id="sNum">—</div>
+      <div id="sCorpo"></div>
       <div class="rodape" id="sRodape">Retire seu comprovante na impressora.</div>
       <div class="saldo esconder" id="sSaldo"></div>
     </div>
@@ -287,6 +335,65 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <button class="btn" id="cfgSalvar">Salvar</button>
     </div>
     <p class="pequeno" id="cfgMsg" style="margin-top:14px"></p>
+  </div>
+</div>
+
+<div id="vAjustes" class="tela esconder">
+  <div class="caixa">
+    <h2>Ajustes do totem</h2>
+    <p class="pequeno">Ficam salvos neste aparelho.</p>
+    <div id="ajLogin">
+      <p>Entre com o usuário do totem ou com o PIN do posto.</p>
+      <div class="linha-form" style="margin-bottom:10px">
+        <input id="ajUser" placeholder="Usuário do totem" autocapitalize="none" spellcheck="false" style="font-size:20px;width:200px;padding:8px;border:2px solid var(--linha);border-radius:10px">
+        <input id="ajSenha" type="password" placeholder="Senha" style="font-size:20px;width:160px;padding:8px;border:2px solid var(--linha);border-radius:10px">
+        <span class="pequeno">ou</span>
+        <input id="ajPin" type="password" inputmode="numeric" placeholder="PIN do posto" style="font-size:20px;width:160px;padding:8px;border:2px solid var(--linha);border-radius:10px">
+        <button class="btn" id="ajEntrar">Entrar</button>
+      </div>
+      <p class="pequeno" id="ajMsg"></p>
+      <button class="btn sec" id="ajSair1">Voltar ao totem</button>
+    </div>
+    <div id="ajPainel" class="esconder">
+      <h3>Topo do totem</h3>
+      <label style="display:block;font-weight:600;margin-bottom:8px">Banheiro
+        <select id="ajWc" style="margin-left:8px">
+          <option value="masculino">WC Masculino</option><option value="feminino">WC Feminino</option><option value="ambos">WC Masculino e Feminino</option><option value="nenhum">Não mostrar</option>
+        </select></label>
+      <label style="display:block;font-weight:600">Aviso para o cliente <span class="pequeno">(vazio = sem aviso)</span>
+        <textarea id="ajAviso" rows="2" maxlength="140" style="display:block;width:100%;margin-top:4px"></textarea></label>
+      <p class="pequeno" style="margin:10px 0 4px">Prévia do topo do totem</p>
+      <div class="aj-previa-totem"><div class="topo-totem" id="ajPrevTopo" style="margin:0"></div></div>
+      <button class="btn" id="ajTesteTotem" style="margin-top:10px">Ver totem de teste</button>
+
+      <h3>Tela da senha</h3>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Mostrar na tela
+        <select id="ajModo" style="margin-left:8px">
+          <option value="numero">Número da senha</option><option value="direita">Seta ➡ para a direita</option><option value="esquerda">Seta ⬅ para a esquerda</option><option value="cima">Seta ⬆ para cima</option><option value="baixo">Seta ⬇ para baixo</option>
+        </select></label>
+      <label class="chk" id="ajNumJuntoL" style="display:block;margin-bottom:8px"><input type="checkbox" id="ajNumJunto"> Mostrar também o número da senha (menor, abaixo da seta)</label>
+      <p class="pequeno" style="margin:6px 0 4px">Tamanho</p>
+      <div class="linha-form" style="align-items:center;gap:12px">
+        <input type="range" id="ajTam" min="60" max="420" step="10" style="flex:1;min-width:220px">
+        <b id="ajTamTxt" style="min-width:90px"></b>
+        <button class="btn peq sec" id="ajTamAuto">Automático</button>
+      </div>
+      <p class="pequeno" style="margin:10px 0 4px">Prévia da tela da senha</p>
+      <div class="aj-previa"><div class="ticket" style="margin:0"><div id="ajPrevSenha"></div><div class="rodape">Retire seu comprovante na impressora.</div></div></div>
+      <button class="btn" id="ajTeste" style="margin-top:10px">Ver tela de teste</button>
+      <h3>Teclado</h3>
+      <label style="display:block;font-weight:600">Teclado numérico na tela
+        <select id="ajTecTela" style="font:inherit;font-size:17px;padding:6px;margin-left:8px">
+          <option value="auto">Automático (só em tela de toque)</option><option value="esconder">Esconder (totem com teclado)</option><option value="mostrar">Mostrar sempre</option>
+        </select></label>
+      <p class="pequeno">Funções das teclas: toque em Alterar e aperte a tecla nova no teclado do totem. Números não podem ser usados.</p>
+      <table class="aj-teclas"><tbody id="ajTeclas"></tbody></table>
+      <div class="acoes" style="justify-content:space-between;margin-top:16px">
+        <button class="btn sec" id="ajPadrao">Restaurar padrão</button>
+        <button class="btn lar" id="ajSair2">Voltar ao totem</button>
+      </div>
+      <p class="pequeno" id="ajMsg2"></p>
+    </div>
   </div>
 </div>
 
@@ -396,6 +503,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <section class="cartao esconder" id="cxAguardaEvo">
       <h2>Fechando o caixa no EVO</h2>
       <p id="evoMsg" style="font-size:18px;margin:6px 0 16px"></p>
+      <div id="evoTotalBox" class="esconder" style="margin:0 0 16px">
+        <label style="display:block;font-weight:600">Quantidade de B.PICHILAUMAIS no papel do EVO <span class="pequeno">(opcional)</span>
+          <input type="number" id="evoTotalInp" min="0" step="1" inputmode="numeric" placeholder="ex.: 21" style="display:block;margin-top:4px;width:160px"></label>
+        <p class="pequeno" id="evoTotalAviso"></p>
+        <div class="acoes" style="justify-content:flex-start">
+          <button class="btn lar" id="evoTotalSalvar">Salvar e imprimir relatório</button>
+          <button class="btn sec" id="evoTotalPular">Imprimir sem informar</button>
+        </div>
+      </div>
       <button class="btn" id="evoContinuar">Ver relatório do app</button>
     </section>
 
@@ -596,7 +712,7 @@ async function api(acao, dados) {
   } catch (e) { return { ok: false, erro: 'Sem conexão com o servidor.', rede: true }; }
 }
 
-const VISTAS = ['vTotem', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vEscolherCaixa', 'vCaixa', 'vRelatorio'];
+const VISTAS = ['vTotem', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vAjustes', 'vEscolherCaixa', 'vCaixa', 'vRelatorio'];
 function mostrar(id) {
   VISTAS.forEach(v => document.getElementById(v).classList.toggle('esconder', v !== id));
   document.body.classList.toggle('modo-caixa', id === 'vCaixa');
@@ -653,6 +769,67 @@ function dataValida(v) {
 }
 const digitos = el => el.value.replace(/\D/g, '');
 
+/* ---- ajustes do totem (por aparelho) ---- */
+const AVISO_PADRAO = 'BANHEIRO FEMININO NÃO PRECISA DE SENHA';
+const AJ_PADRAO = { tamSenha: 0, tecladoTela: 'auto', senhaModo: 'numero', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+  teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'] } };
+const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
+  mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo' };
+function carregarAjustes() {
+  try { const j = JSON.parse(guardar.get('banho_totem_ajustes') || '{}');
+    return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
+      senhaModo: j.senhaModo || 'numero', senhaNumJunto: j.senhaNumJunto !== false, wc: j.wc || 'masculino', aviso: j.aviso !== undefined ? String(j.aviso) : AVISO_PADRAO }; }
+  catch (_) { return JSON.parse(JSON.stringify(AJ_PADRAO)); }
+}
+let AJ = carregarAjustes();
+function nomeTecla(k) { return ({ ' ': 'Espaço', Enter: 'Enter', Backspace: '⌫ Backspace', Delete: 'Delete', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Escape: 'Esc', Tab: 'Tab' })[k] || k; }
+function nomesTeclas(acao) { return (AJ.teclas[acao] || []).map(nomeTecla).join(' ou ') || '—'; }
+function modoTecladoFisico() { return !(AJ.tecladoTela === 'mostrar' || (AJ.tecladoTela === 'auto' && matchMedia('(pointer: coarse)').matches)); }
+function aplicarAjustes() {
+  document.documentElement.style.setProperty('--tam-senha', AJ.tamSenha ? AJ.tamSenha + 'px' : 'clamp(96px,18vw,180px)');
+  $('#tTopo').innerHTML = htmlTopo();
+  const fisico = modoTecladoFisico();
+  $('#teclado').classList.toggle('esconder', fisico);
+  const k = a => `<kbd>${esc(nomesTeclas(a))}</kbd>`;
+  $('#dicaTeclas').innerHTML = fisico ? `${k('voltar')} volta · ${k('avancar')} avança · ${k('campo')} próximo campo · ${k('enviar')} envia` : '';
+  $('#dicaQtd').innerHTML = fisico ? `${k('mais')} mais · ${k('menos')} menos` : '';
+}
+/* ---- visual do totem: topo (WC + aviso) e tela da senha (número ou seta) ---- */
+const SVG_HOMEM = '<svg viewBox="0 0 60 124" aria-hidden="true"><circle cx="30" cy="12" r="11" fill="currentColor"/><path fill="currentColor" d="M16 28h28a8 8 0 0 1 8 8v36a4.5 4.5 0 0 1-9 0V44h-2v72a6 6 0 0 1-12 0V78h-2v38a6 6 0 0 1-12 0V44h-2v28a4.5 4.5 0 0 1-9 0V36a8 8 0 0 1 8-8z"/></svg>';
+const SVG_MULHER = '<svg viewBox="0 0 64 124" aria-hidden="true"><circle cx="32" cy="12" r="11" fill="currentColor"/><path fill="currentColor" d="M22 28h20a7 7 0 0 1 6.7 5l9.5 31a4.4 4.4 0 0 1-8.4 2.6L43 44l11 38H43v34a5.5 5.5 0 0 1-11 0V82h0v34a5.5 5.5 0 0 1-11 0V82H10l11-38-6.8 22.6a4.4 4.4 0 0 1-8.4-2.6l9.5-31A7 7 0 0 1 22 28z"/></svg>';
+function htmlWc(wc) {
+  if (wc === 'masculino') return `<div class="wc m"><span style="color:#0D47A1">${SVG_HOMEM}</span><div class="wc-txt"><b>WC</b><span>MASCULINO</span></div></div>`;
+  if (wc === 'feminino') return `<div class="wc f"><span style="color:#C2185B">${SVG_MULHER}</span><div class="wc-txt"><b>WC</b><span>FEMININO</span></div></div>`;
+  if (wc === 'ambos') return `<div class="wc mf"><span style="color:#0D47A1">${SVG_HOMEM}</span><span style="color:#C2185B">${SVG_MULHER}</span><div class="wc-txt"><b>WC</b><span><span style="color:#0D47A1">MASCULINO</span> E <span style="color:#C2185B">FEMININO</span></span></div></div>`;
+  return '';
+}
+function htmlTopo() {
+  return htmlWc(AJ.wc) + (String(AJ.aviso || '').trim() ? `<div class="aviso-totem"><i>⚠</i><span>${esc(AJ.aviso.trim())}</span></div>` : '');
+}
+function svgSeta(dir) {
+  const h = dir === 'direita' || dir === 'esquerda';
+  if (h) {
+    const pts = dir === 'direita' ? '0,110 640,110 640,0 1000,200 640,400 640,290 0,290' : '1000,110 360,110 360,0 0,200 360,400 360,290 1000,290';
+    const x = dir === 'direita' ? 320 : 680, dx = dir === 'direita' ? '14px' : '-14px';
+    return `<svg class="seta-senha h seta-anim" style="--dx:${dx}" viewBox="0 0 1000 400" role="img" aria-label="Pegue sua senha"><polygon points="${pts}" fill="var(--laranja)"/><text x="${x}" y="221" font-size="60" text-anchor="middle" textLength="560" lengthAdjust="spacingAndGlyphs">PEGUE SUA SENHA</text></svg>`;
+  }
+  const cima = dir === 'cima';
+  const pts = cima ? '110,800 110,360 0,360 250,0 500,360 390,360 390,800' : '110,0 110,440 0,440 250,800 500,440 390,440 390,0';
+  const y0 = cima ? 490 : 130;
+  return `<svg class="seta-senha v seta-anim" style="--dy:${cima ? '-14px' : '14px'}" viewBox="0 0 500 800" role="img" aria-label="Pegue sua senha"><polygon points="${pts}" fill="var(--laranja)"/>` +
+    ['PEGUE', 'SUA', 'SENHA'].map((t, i) => `<text x="250" y="${y0 + i * 92}" font-size="72" text-anchor="middle"${t.length > 3 ? ' textLength="236" lengthAdjust="spacingAndGlyphs"' : ''}>${t}</text>`).join('') + '</svg>';
+}
+function htmlCorpoSenha(numero) {
+  if (AJ.senhaModo === 'numero' || !AJ.senhaModo) return `<div class="rotulo">Senha do seu banho</div><div class="senha">${esc(numero)}</div>`;
+  return svgSeta(AJ.senhaModo) + (AJ.senhaNumJunto ? `<div class="senha-peq">Senha <b>${esc(numero)}</b></div>` : '');
+}
+function salvarAjustes() { guardar.set('banho_totem_ajustes', JSON.stringify(AJ)); aplicarAjustes(); }
+function acaoDaTecla(e) { for (const [a, ks] of Object.entries(AJ.teclas)) if ((ks || []).includes(e.key)) return a; return null; }
+
+/* ---- campos do totem: CPF › data › fichas, com cursor no dígito marcado ---- */
+const MAXDIG = { cpf: 11, nasc: 8 };
+function elCampo(c) { return c === 'cpf' ? $('#iCpf') : c === 'nasc' ? $('#iNasc') : $('#iQtd'); }
+function qtdVisivel() { return !$('#campoQtd').classList.contains('esconder'); }
 function montarTeclado() {
   const t = $('#teclado');
   ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Limpar', '0', 'Apagar'].forEach(k => {
@@ -662,20 +839,91 @@ function montarTeclado() {
     t.appendChild(b);
   });
 }
-function campoAtivo() { return T.campo === 'cpf' ? $('#iCpf') : $('#iNasc'); }
-function ativar(c) {
-  T.campo = c;
-  $('#iCpf').classList.toggle('ativo', c === 'cpf'); $('#iNasc').classList.toggle('ativo', c === 'nasc');
+function campoAtivo() { return T.campo === 'nasc' ? $('#iNasc') : $('#iCpf'); }
+function ativar(c, cur) {
+  if (c === 'qtd' && !qtdVisivel()) c = 'cpf';
+  T.campo = c; T.cur = T.cur || { cpf: 0, nasc: 0 };
+  if (c !== 'qtd') T.cur[c] = cur !== undefined ? cur : digitos(elCampo(c)).length;
+  $('#iCpf').classList.toggle('ativo', c === 'cpf'); $('#iNasc').classList.toggle('ativo', c === 'nasc'); $('#iQtd').classList.toggle('ativo', c === 'qtd');
+  if (modoTecladoFisico() && document.activeElement !== elCampo(c)) { T.focando = true; elCampo(c).focus(); T.focando = false; }
+  if (c !== 'qtd') marcar(c);
 }
-function tecla(k) {
-  const el = campoAtivo(); let d = digitos(el);
-  if (k === 'Limpar') d = ''; else if (k === 'Apagar') d = d.slice(0, -1); else d += k;
-  aplicar(el, d);
+function posDigito(m, i) { let n = -1; for (let k = 0; k < m.length; k++) if (/\d/.test(m[k]) && ++n === i) return k; return m.length; }
+function marcar(c) {
+  const el = elCampo(c), d = digitos(el), cur = Math.min(T.cur[c], d.length);
+  if (document.activeElement !== el) return;
+  try {
+    if (cur < d.length) { const p = posDigito(el.value, cur); el.setSelectionRange(p, p + 1); }
+    else el.setSelectionRange(el.value.length, el.value.length);
+  } catch (_) {}
 }
-function aplicar(el, d) {
-  if (el.id === 'iCpf') { el.value = mascaraCpfOk(d); if (d.length === 11 && cpfValido(d)) { ativar('nasc'); if (document.activeElement === el) $('#iNasc').focus(); } }
-  else el.value = mascaraData(d);
+function gravarCampo(c, d, cur) {
+  const el = elCampo(c);
+  el.value = c === 'cpf' ? mascaraCpfOk(d) : mascaraData(d);
+  T.cur[c] = Math.max(0, Math.min(cur, d.length));
   validarTotem(false);
+  // CPF válido desce para a data; data válida desce para as fichas
+  if (c === 'cpf' && d.length === 11 && cpfValido(d) && T.cur.cpf >= 11) { ativar('nasc'); return; }
+  if (c === 'nasc' && d.length === 8 && dataValida(el.value) && T.cur.nasc >= 8 && qtdVisivel()) { ativar('qtd'); return; }
+  marcar(c);
+}
+function digito(k) {
+  if (T.campo === 'qtd') { const n = Number(k); if (n >= 1 && n <= T.maxFichas) mudarQtd(n - T.qtd); return; }
+  const c = T.campo, el = elCampo(c); let d = digitos(el), cur = Math.min(T.cur[c], d.length);
+  if (cur < d.length) d = d.slice(0, cur) + k + d.slice(cur + 1);       // corrige o dígito marcado
+  else if (d.length < MAXDIG[c]) d += k; else return;
+  gravarCampo(c, d, cur + 1);
+}
+function mudarQtd(delta) {
+  const n = Math.min(T.maxFichas || 1, Math.max(1, (T.qtd || 1) + delta));
+  T.qtd = n; $('#qNum').textContent = n; $('#iQtd').setAttribute('aria-valuenow', n);
+}
+function proximoCampo() { ativar(T.campo === 'cpf' ? 'nasc' : T.campo === 'nasc' ? (qtdVisivel() ? 'qtd' : 'cpf') : 'cpf'); }
+function enviarOuApontar() {
+  if (validarTotem(true)) { pedirBanho(); return; }
+  ativar(cpfValido(digitos($('#iCpf'))) ? 'nasc' : 'cpf');
+}
+function executar(a) {
+  const c = T.campo;
+  if (a === 'campo') return proximoCampo();
+  if (a === 'mais') return mudarQtd(1);
+  if (a === 'menos') return mudarQtd(-1);
+  if (a === 'enviar') return enviarOuApontar();
+  if (c === 'qtd') {
+    if (a === 'voltar' || a === 'apagar') ativar('nasc', Math.max(0, digitos($('#iNasc')).length - 1));
+    return;
+  }
+  const el = elCampo(c); let d = digitos(el), cur = Math.min(T.cur[c], d.length);
+  if (a === 'voltar') {
+    if (cur > 0) { T.cur[c] = cur - 1; marcar(c); }
+    else if (c === 'nasc') ativar('cpf', Math.max(0, digitos($('#iCpf')).length - 1));
+  } else if (a === 'avancar') { T.cur[c] = Math.min(d.length, cur + 1); marcar(c); }
+  else if (a === 'apagar') { if (cur > 0) gravarCampo(c, d.slice(0, cur - 1) + d.slice(cur), cur - 1); }
+  else if (a === 'limpar') gravarCampo(c, '', 0);
+}
+function tecla(k) {               // teclado da tela (toque)
+  if (T.campo === 'qtd') ativar('nasc');
+  if (k === 'Limpar') executar('limpar'); else if (k === 'Apagar') executar('apagar'); else digito(k);
+}
+function aplicar(el, d) {         // texto colado ou digitado por fora do controle de teclas
+  const c = el.id === 'iCpf' ? 'cpf' : 'nasc';
+  d = d.slice(0, MAXDIG[c]); gravarCampo(c, d, d.length);
+}
+function teclaFisica(e) {
+  const vis = id => !document.getElementById(id).classList.contains('esconder');
+  if (vis('vSenha')) {
+    if (acaoDaTecla(e) === 'enviar') { e.preventDefault(); clearInterval(T.timer); if (T.teste) voltarAjustes(); else irTotem(); }
+    return;
+  }
+  if (!vis('vTotem') || e.ctrlKey || e.altKey || e.metaKey) return;
+  if (T.teste && e.key === 'Escape') { e.preventDefault(); voltarAjustes(); return; }
+  const a = acaoDaTecla(e);
+  if (a) { e.preventDefault(); executar(a); return; }
+  if (/^\d$/.test(e.key)) { e.preventDefault(); digito(e.key); return; }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); executar('voltar'); return; }
+  if (e.key === 'ArrowRight') { e.preventDefault(); executar('avancar'); return; }
+  if (e.key === 'Tab') { e.preventDefault(); proximoCampo(); return; }
+  if (e.key.length === 1) e.preventDefault();       // letras e símbolos não entram nos campos
 }
 function validarTotem(mostrarErros) {
   const cpf = digitos($('#iCpf')), nasc = $('#iNasc').value;
@@ -685,7 +933,7 @@ function validarTotem(mostrarErros) {
   $('#bVale').disabled = !(okCpf && okNasc);
   return okCpf && okNasc;
 }
-function limparTotem() { $('#iCpf').value = ''; $('#iNasc').value = ''; $('#mCpf').textContent = ''; $('#mNasc').textContent = ''; ativar('cpf'); validarTotem(false); }
+function limparTotem() { $('#iCpf').value = ''; $('#iNasc').value = ''; $('#mCpf').textContent = ''; $('#mNasc').textContent = ''; T.cur = { cpf: 0, nasc: 0 }; T.qtd = 1; $('#qNum').textContent = '1'; validarTotem(false); ativar('cpf'); }
 
 function avisoTotem(titulo, texto, botao, acao) {
   $('#aTitulo').textContent = titulo; $('#aTexto').textContent = texto;
@@ -698,6 +946,7 @@ async function verificarEstado() {
   if (location.hash.startsWith('#caixa')) return;
   if (!T.pin && !T.sessao) { mostrar('vConfigurar'); return; }
   if (!document.getElementById('vEscolherCaixa').classList.contains('esconder')) return;
+  if (!document.getElementById('vAjustes').classList.contains('esconder') || T.teste) return;
   if (T.pedido || !document.getElementById('vProcesso').classList.contains('esconder')) return;
   const r = await api('totem_estado', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto });
   // a resposta pode chegar depois que o cliente já tocou em Vale banho: aí não mexe na tela
@@ -706,7 +955,7 @@ async function verificarEstado() {
   T.estado = r;
   if (r.posto) $('#tPosto').textContent = r.posto;
   T.maxFichas = Math.max(1, Number(r.maxFichas || 1));
-  $('#qtdFichas').classList.toggle('esconder', T.maxFichas < 2);
+  $('#campoQtd').classList.toggle('esconder', T.maxFichas < 2);
   if (T.qtd > T.maxFichas) { T.qtd = T.maxFichas; $('#qNum').textContent = T.qtd; }
   // o caixa deste totem fechou e há outro aberto: passa a registrar nele
   if (!T.auto && r.turno && (r.trocou || !T.operador)) {
@@ -725,6 +974,7 @@ async function verificarEstado() {
 function irTotem() { limparTotem(); mostrar('vTotem'); }
 
 async function pedirBanho() {
+  if (T.teste) { $('#mNasc').textContent = 'Prévia: o pedido não é enviado.'; return; }
   if (!validarTotem(true)) return;
   $('#bVale').disabled = true;
   T.enviando = true;
@@ -792,7 +1042,7 @@ function mostrarSenha(r) {
   T.pedido = null;
   const sal = textoSaldo(r) || T.ultimoSaldo || '';
   $('#sSaldo').innerHTML = sal; $('#sSaldo').classList.toggle('esconder', !sal);
-  $('#sNum').textContent = r.ticket || '—';
+  $('#sCorpo').innerHTML = htmlCorpoSenha(r.ticket || '—');
   $('#sRodape').textContent = r.mensagem || 'Retire seu comprovante na impressora.';
   mostrar('vSenha');
   let s = Number(CFG.TEMPO_TELA_SENHA || 25);
@@ -801,23 +1051,97 @@ function mostrarSenha(r) {
   tick(); T.timer = setInterval(tick, 1000);
 }
 
+/* ---- tela Ajustes do totem ---- */
+function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTeste').classList.add('esconder'); limparTotem(); mostrar('vAjustes'); desenharAjustes(); }
+function desenharAjustes() {
+  $('#ajTam').value = AJ.tamSenha || 180;
+  $('#ajTamTxt').textContent = AJ.tamSenha ? AJ.tamSenha + ' px' : 'Automático';
+  $('#ajPrevSenha').innerHTML = htmlCorpoSenha('1234');
+  $('#ajPrevTopo').innerHTML = htmlTopo();
+  $('#ajWc').value = AJ.wc; $('#ajModo').value = AJ.senhaModo; $('#ajNumJunto').checked = AJ.senhaNumJunto;
+  $('#ajNumJuntoL').classList.toggle('esconder', AJ.senhaModo === 'numero');
+  if (document.activeElement !== $('#ajAviso')) $('#ajAviso').value = AJ.aviso;
+  $('#ajTecTela').value = AJ.tecladoTela;
+  $('#ajTeclas').innerHTML = Object.keys(AJ_PADRAO.teclas).map(a => `<tr data-a="${a}"><td>${esc(AJ_NOMES[a])}</td><td class="k">${esc(nomesTeclas(a))}</td>
+    <td style="text-align:right;white-space:nowrap"><button class="btn peq sec" data-alt="${a}">Alterar</button> <button class="btn peq sec" data-nada="${a}" title="Sem tecla">✕</button></td></tr>`).join('');
+  $('#ajTeclas').querySelectorAll('[data-alt]').forEach(b => b.onclick = () => ouvirTecla(b.dataset.alt));
+  $('#ajTeclas').querySelectorAll('[data-nada]').forEach(b => b.onclick = () => { AJ.teclas[b.dataset.nada] = []; salvarAjustes(); desenharAjustes(); });
+}
+function ouvirTecla(acao) {
+  const tr = $('#ajTeclas').querySelector(`tr[data-a="${acao}"]`); tr.classList.add('ouvindo');
+  tr.querySelector('.k').textContent = 'Aperte a tecla…'; $('#ajMsg2').textContent = 'Esc cancela.';
+  const h = e => {
+    e.preventDefault(); e.stopPropagation();
+    if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'NumLock'].includes(e.key)) return;
+    document.removeEventListener('keydown', h, true);
+    if (e.key === 'Escape') { $('#ajMsg2').textContent = ''; desenharAjustes(); return; }
+    if (/^\d$/.test(e.key)) { $('#ajMsg2').textContent = 'Números não podem ser tecla de função.'; desenharAjustes(); return; }
+    const outra = Object.keys(AJ.teclas).find(a => a !== acao && (AJ.teclas[a] || []).includes(e.key));
+    if (outra) AJ.teclas[outra] = AJ.teclas[outra].filter(k => k !== e.key);
+    AJ.teclas[acao] = [e.key];
+    $('#ajMsg2').textContent = outra ? `A tecla ${nomeTecla(e.key)} saiu de "${AJ_NOMES[outra]}".` : 'Salvo.';
+    salvarAjustes(); desenharAjustes();
+  };
+  document.addEventListener('keydown', h, true);
+}
+function abrirAjustes() {
+  $('#ajLogin').classList.remove('esconder'); $('#ajPainel').classList.add('esconder');
+  $('#ajMsg').textContent = ''; $('#ajUser').value = ''; $('#ajSenha').value = ''; $('#ajPin').value = '';
+  mostrar('vAjustes'); setTimeout(() => $('#ajUser').focus(), 50);
+}
+function iniciarAjustes() {
+  $('#abrirAjustes').addEventListener('click', e => { e.preventDefault(); abrirAjustes(); });
+  const entrar = async () => {
+    const usuario = $('#ajUser').value.trim(), senha = $('#ajSenha').value, pin = $('#ajPin').value.trim();
+    $('#ajMsg').textContent = 'Conferindo…';
+    let ok = false, erro = '';
+    if (pin) { const r = await api('totem_estado', { pin }); ok = !!(r.ok && !r.pinErrado); erro = r.pinErrado ? 'PIN incorreto.' : (r.erro || ''); }
+    else if (usuario && senha) { const r = await api('acesso_login', { usuario, senha, paraTotem: true }); ok = !!r.ok; erro = r.erro || ''; }
+    else erro = 'Informe usuário e senha do totem, ou o PIN do posto.';
+    $('#ajSenha').value = ''; $('#ajPin').value = '';
+    if (!ok) { $('#ajMsg').textContent = erro || 'Acesso negado.'; return; }
+    $('#ajMsg').textContent = ''; $('#ajLogin').classList.add('esconder'); $('#ajPainel').classList.remove('esconder'); desenharAjustes();
+  };
+  $('#ajEntrar').addEventListener('click', entrar);
+  ['#ajUser', '#ajSenha', '#ajPin'].forEach(x => $(x).addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); }));
+  $('#ajTam').addEventListener('input', () => { AJ.tamSenha = Number($('#ajTam').value); salvarAjustes(); desenharAjustes(); });
+  $('#ajTamAuto').addEventListener('click', () => { AJ.tamSenha = 0; salvarAjustes(); desenharAjustes(); });
+  $('#ajTecTela').addEventListener('change', () => { AJ.tecladoTela = $('#ajTecTela').value; salvarAjustes(); });
+  $('#ajWc').addEventListener('change', () => { AJ.wc = $('#ajWc').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajAviso').addEventListener('input', () => { AJ.aviso = $('#ajAviso').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajModo').addEventListener('change', () => { AJ.senhaModo = $('#ajModo').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajNumJunto').addEventListener('change', () => { AJ.senhaNumJunto = $('#ajNumJunto').checked; salvarAjustes(); desenharAjustes(); });
+  $('#ajTesteTotem').addEventListener('click', () => {
+    T.teste = true; limparTotem(); mostrar('vTotem'); $('#barraTeste').classList.remove('esconder');
+  });
+  $('#btVoltarAj').addEventListener('click', () => voltarAjustes());
+  $('#ajPadrao').addEventListener('click', () => { if (!confirm('Voltar o tamanho da senha e as teclas para o padrão?')) return; AJ = JSON.parse(JSON.stringify(AJ_PADRAO)); salvarAjustes(); desenharAjustes(); $('#ajMsg2').textContent = 'Padrão restaurado.'; });
+  $('#ajTeste').addEventListener('click', () => {
+    T.teste = true; $('#sSaldo').classList.add('esconder'); $('#sCorpo').innerHTML = htmlCorpoSenha('1234');
+    $('#sRodape').textContent = 'Tela de teste · senha ' + (AJ.tamSenha ? AJ.tamSenha + ' px' : 'automática');
+    mostrar('vSenha'); let s = 10; clearInterval(T.timer);
+    const tick = () => { $('#sConta').textContent = `Volta aos ajustes em ${s} s (ou ${nomesTeclas('enviar')}).`; if (s-- <= 0) voltarAjustes(); };
+    tick(); T.timer = setInterval(tick, 1000);
+  });
+  const sair = () => { irTotem(); verificarEstado(); };
+  $('#ajSair1').addEventListener('click', sair); $('#ajSair2').addEventListener('click', sair);
+}
+
 function iniciarTotem() {
   montarTeclado();
-  $('#iCpf').addEventListener('focus', () => ativar('cpf'));
-  $('#iNasc').addEventListener('focus', () => ativar('nasc'));
+  T.cur = { cpf: 0, nasc: 0 };
+  aplicarAjustes();
+  const focou = c => () => { if (!T.focando && T.campo !== c) ativar(c); };
+  $('#iCpf').addEventListener('focus', focou('cpf'));
+  $('#iNasc').addEventListener('focus', focou('nasc'));
+  $('#iQtd').addEventListener('focus', focou('qtd'));
   ['#iCpf', '#iNasc'].forEach(s => $(s).addEventListener('input', e => aplicar(e.target, digitos(e.target))));
-  $('#iNasc').addEventListener('keydown', e => { if (e.key === 'Enter') pedirBanho(); });
-  $('#iCpf').addEventListener('keydown', e => { if (e.key === 'Enter') ativar('nasc'), $('#iNasc').focus(); });
+  ['#iCpf', '#iNasc'].forEach(s => $(s).addEventListener('mouseup', () => setTimeout(() => marcar(T.campo), 0)));
   $('#bVale').addEventListener('click', pedirBanho);
-  // teclado físico também funciona quando o foco está no teclado da tela
-  document.addEventListener('keydown', e => {
-    if (document.getElementById('vTotem').classList.contains('esconder')) return;
-    if (e.target && e.target.tagName === 'INPUT') return;
-    if (/^\d$/.test(e.key)) { e.preventDefault(); tecla(e.key); }
-    else if (e.key === 'Backspace') { e.preventDefault(); tecla('Apagar'); }
-    else if (e.key === 'Enter' && !$('#bVale').disabled) { e.preventDefault(); pedirBanho(); }
-  });
-  $('#bNovo').addEventListener('click', () => { clearInterval(T.timer); irTotem(); });
+  // teclado físico (totem com teclado): as funções das teclas vêm dos Ajustes do totem
+  document.addEventListener('keydown', teclaFisica, true);
+  $('#bNovo').addEventListener('click', () => { clearInterval(T.timer); if (T.teste) voltarAjustes(); else irTotem(); });
+  iniciarAjustes();
   $('#cfgTEntrar').addEventListener('click', async () => {
     const usuario = $('#cfgTUser').value.trim(), senha = $('#cfgTSenha').value;
     if (!usuario || !senha) { $('#cfgMsg').textContent = 'Informe usuário e senha do totem.'; return; }
@@ -837,8 +1161,8 @@ function iniciarTotem() {
     T.pin = pin; guardar.set('banho_pin_posto', pin); $('#cfgPin').value = ''; irTotem(); verificarEstado();
   });
   $('#rotuloCaixa').addEventListener('click', () => { if (!T.pedido) escolherCaixa(); });
-  $('#qMais').addEventListener('click', () => { if (T.qtd < T.maxFichas) { T.qtd++; $('#qNum').textContent = T.qtd; } });
-  $('#qMenos').addEventListener('click', () => { if (T.qtd > 1) { T.qtd--; $('#qNum').textContent = T.qtd; } });
+  $('#qMais').addEventListener('click', () => mudarQtd(1));
+  $('#qMenos').addEventListener('click', () => mudarQtd(-1));
   $('#ecVoltar').addEventListener('click', () => { irTotem(); verificarEstado(); });
   // trocar o caixa do totem exige entrar de novo com o usuário do totem
   $('#trocarCaixa').addEventListener('click', e => {
@@ -1291,7 +1615,11 @@ async function abrirRelatorio(turnoId, dadosProntos) {
       <dt>Início</dt><dd>${esc(R.abertura.slice(11, 16))}</dd>
       <dt>Fim</dt><dd>${esc(R.fechamento ? R.fechamento.slice(11, 16) : 'em aberto')}</dd>
       <dt>Banhos resgatados</dt><dd>${esc(R.qtd)}</dd>
-      <dt>Registro robô (fichas)</dt><dd>${esc(R.qtdRobo != null ? R.qtdRobo : R.qtd)}</dd>
+      ${R.qtdTotalRobo != null ? `<dt>Erros sem senha</dt><dd>${esc(R.qtdErroSemSenha)}</dd>
+      <dt>Cancelados robô</dt><dd>${esc(R.qtdCancelados)}</dd>
+      <dt>Erro com senha</dt><dd>${esc(R.qtdErroComSenha)}</dd>
+      <dt>Concluídos robô</dt><dd>${esc(R.qtdConcluidos)}</dd>
+      <dt>TOTAL ROBÔ</dt><dd>${esc(R.qtdTotalRobo)}</dd>` : `<dt>Registro robô (fichas)</dt><dd>${esc(R.qtdRobo != null ? R.qtdRobo : R.qtd)}</dd>`}
       <dt>Total EVO (${esc('B.PICHILAUMAIS')})</dt><dd>${esc(R.qtdEvo == null ? 'não lido' : R.qtdEvo)}${R.qtdEvoManual ? ' <span style="font-weight:400;font-size:12px">(informado)</span>' : ''}
         ${C.relTurno ? '<button class="btn peq sec nao-imprime" id="relTotalEvo" style="margin-left:8px">Informar</button>' : ''}</dd>
       <dt>Registro externo</dt><dd>${esc(R.qtdExterno == null ? '—' : R.qtdExterno)}</dd>
@@ -1301,14 +1629,45 @@ async function abrirRelatorio(turnoId, dadosProntos) {
     </dl>
     <table><thead><tr><th>#</th><th>Hora</th><th>Código do resgate</th><th>Senha EVO</th><th>OPNF</th><th>Conferido</th><th></th></tr></thead>
     <tbody>${linhas}</tbody></table>
-    <p style="font-size:13px;margin-top:10px">Linhas destacadas foram marcadas como OK pelo caixa. Registro externo = total do EVO menos o registro do robô (fichas emitidas fora do app).</p>
+    <p style="font-size:13px;margin-top:10px">Linhas destacadas foram marcadas como OK pelo caixa. Registro externo = Total EVO menos o TOTAL ROBÔ (fichas emitidas fora do app).</p>
     <div class="assin"><div>${esc(R.caixa)}<br>Caixa</div><div>Conferente</div></div>`;
   if ($('#relTotalEvo')) $('#relTotalEvo').onclick = informarTotalEvo;
   mostrar('vRelatorio');
 }
 
 // Primeiro o robô fecha o caixa no EVO, salva e imprime o fechamento; só depois abre o relatório do app.
+// v2.6: o robô não leu o total do EVO (ou a impressão do EVO ainda não saiu). O caixa pode digitar
+// a quantidade do papel (opcional). O robô segura o relatório por alguns minutos esperando essa resposta;
+// se ninguém responder, imprime sozinho com "não lido".
+function pedirTotalEvoNoFechamento(turnoId) {
+  const box = $('#evoTotalBox'), inp = $('#evoTotalInp'), av = $('#evoTotalAviso');
+  $('#evoMsg').textContent = 'Caixa do EVO fechado, mas o robô não leu o total de B.PICHILAUMAIS. Quando o papel do EVO sair, digite a quantidade (opcional).';
+  av.textContent = 'Se ninguém responder em alguns minutos, o relatório sai sozinho com "Total EVO: não lido" (dá para informar depois em Relatório › Informar).';
+  inp.value = ''; box.classList.remove('esconder'); $('#evoContinuar').classList.add('esconder');
+  setTimeout(() => inp.focus(), 100);
+  const fim = async (comTotal) => {
+    $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = true;
+    let dados = null;
+    if (comTotal) {
+      const v = String(inp.value).trim();
+      if (v === '' || !/^\d{1,4}$/.test(v)) { av.textContent = 'Digite só números (ex.: 21) ou toque em "Imprimir sem informar".'; $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false; return; }
+      const x = await apiCx('caixa_informarTotalEvo', { turnoId, total: v });
+      if (!x.ok) { av.textContent = x.erro || 'Não consegui salvar o total.'; $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false; return; }
+      dados = x.relatorio || null;
+    }
+    await apiCx('caixa_imprimirRelatorio', { turnoId, agente: guardar.get('banho_agente_pc') || '' });
+    box.classList.add('esconder'); $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false;
+    $('#evoMsg').textContent = 'O relatório do turno está saindo na impressora do fechamento…';
+    if (IMP.fech()) await buscarEImprimir('relatorio', turnoId, 15);
+    if (!dados) { const rel = await apiCx('caixa_relatorio', { turnoId }); dados = rel.relatorio; }
+    setTimeout(() => abrirRelatorio(turnoId, dados), 800);
+  };
+  $('#evoTotalSalvar').onclick = () => fim(true);
+  $('#evoTotalPular').onclick = () => fim(false);
+  inp.onkeydown = e => { if (e.key === 'Enter') fim(true); };
+}
 async function aguardarFechamentoEvo(comandoId, turnoId) {
+  $('#evoTotalBox').classList.add('esconder');
   mostrarSecao('cxAguardaEvo');
   const msg = $('#evoMsg'), bt = $('#evoContinuar');
   bt.classList.add('esconder');
@@ -1318,6 +1677,7 @@ async function aguardarFechamentoEvo(comandoId, turnoId) {
     const r = await apiCx('caixa_comando', { id: comandoId });
     if (r.ok && r.status === 'OK') {
       const rel = await apiCx('caixa_relatorio', { turnoId });
+      if (rel.ok && rel.relatorio && rel.relatorio.qtdEvo == null) { pedirTotalEvoNoFechamento(turnoId); return; }
       msg.textContent = 'Fechamento do EVO impresso. O relatório do turno sai em seguida na mesma impressora…';
       if (IMP.fech()) {
         msg.textContent = 'Imprimindo aqui o fechamento do EVO e depois o relatório do turno…';
