@@ -84,6 +84,10 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 .seta-anim{animation:empurra 1.2s ease-in-out infinite}
 @keyframes empurra{50%{transform:translate(var(--dx,0),var(--dy,0))}}
 @media (prefers-reduced-motion:reduce){.seta-anim{animation:none}}
+.anote{font-family:var(--cond);font-weight:700;font-size:clamp(30px,4.2vw,56px);line-height:1.05;color:var(--tinta);max-width:20ch;margin:0 auto 14px;text-transform:uppercase}
+.anote kbd{font-family:var(--cond);border:2px solid var(--tinta);border-bottom-width:5px;border-radius:10px;padding:0 12px;background:#fff}
+.aj-previas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.aj-previas .cap{font-size:14px;font-weight:600;color:var(--suave);margin-bottom:6px}
 .senha-peq{font-size:26px;color:var(--suave);margin-top:8px}.senha-peq b{font-family:var(--cond);font-size:44px;color:var(--azul)}
 .barra-teste{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:50;background:var(--tinta);color:#fff;border-radius:999px;padding:8px 10px 8px 18px;display:flex;gap:12px;align-items:center;font-size:16px}
 .aj-previa-totem{background:var(--fundo);border:2px dashed var(--linha);border-radius:12px;padding:14px}
@@ -308,6 +312,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <div class="saldo esconder" id="sSaldo"></div>
     </div>
     <p class="contagem" id="sConta"></p>
+    <button class="btn lar esconder" id="bImprimir">Imprimir comprovante</button>
     <button class="btn sec" id="bNovo">Concluir</button>
   </div>
 </div>
@@ -367,9 +372,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <button class="btn" id="ajTesteTotem" style="margin-top:10px">Ver totem de teste</button>
 
       <h3>Tela da senha</h3>
-      <label style="display:block;font-weight:600;margin-bottom:6px">Mostrar na tela
-        <select id="ajModo" style="margin-left:8px">
-          <option value="numero">Número da senha</option><option value="direita">Seta ➡ para a direita</option><option value="esquerda">Seta ⬅ para a esquerda</option><option value="cima">Seta ⬆ para cima</option><option value="baixo">Seta ⬇ para baixo</option>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Impressão do comprovante
+        <select id="ajImp" style="margin-left:8px">
+          <option value="pedir">Só se o cliente teclar Enter (anote ou imprima)</option><option value="auto">Automática (sempre imprime)</option>
+        </select></label>
+      <label id="ajModoL" style="display:block;font-weight:600;margin-bottom:6px">Mostrar na tela
+        <select id="ajModo" style="margin-left:8px"><option value="numero">Número da senha</option><option value="seta">Seta “Pegue sua senha”</option></select></label>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Seta “Pegue sua senha”
+        <select id="ajSeta" style="margin-left:8px">
+          <option value="direita">➡ para a direita</option><option value="esquerda">⬅ para a esquerda</option><option value="cima">⬆ para cima</option><option value="baixo">⬇ para baixo</option>
         </select></label>
       <label class="chk" id="ajNumJuntoL" style="display:block;margin-bottom:8px"><input type="checkbox" id="ajNumJunto"> Mostrar também o número da senha (menor, abaixo da seta)</label>
       <p class="pequeno" style="margin:6px 0 4px">Tamanho</p>
@@ -379,7 +390,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <button class="btn peq sec" id="ajTamAuto">Automático</button>
       </div>
       <p class="pequeno" style="margin:10px 0 4px">Prévia da tela da senha</p>
-      <div class="aj-previa"><div class="ticket" style="margin:0"><div id="ajPrevSenha"></div><div class="rodape">Retire seu comprovante na impressora.</div></div></div>
+      <div class="aj-previas" id="ajPrevSenha"></div>
       <button class="btn" id="ajTeste" style="margin-top:10px">Ver tela de teste</button>
       <h3>Teclado</h3>
       <label style="display:block;font-weight:600">Teclado numérico na tela
@@ -771,14 +782,22 @@ const digitos = el => el.value.replace(/\D/g, '');
 
 /* ---- ajustes do totem (por aparelho) ---- */
 const AVISO_PADRAO = 'BANHEIRO FEMININO NÃO PRECISA DE SENHA';
-const AJ_PADRAO = { tamSenha: 0, tecladoTela: 'auto', senhaModo: 'numero', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
-  teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'] } };
+const DIRS = ['direita', 'esquerda', 'cima', 'baixo'];
+const AJ_PADRAO = { tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+  teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
-  mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo' };
+  mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
+  imprimir: 'Imprimir a senha (na tela da senha)' };
+// a tecla de imprimir só vale na tela da senha; as outras só na tela do CPF: podem repetir entre os dois grupos
+const GRUPO_SENHA = ['imprimir'];
+const grupoDe = a => GRUPO_SENHA.includes(a) ? 'senha' : 'totem';
 function carregarAjustes() {
   try { const j = JSON.parse(guardar.get('banho_totem_ajustes') || '{}');
     return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
-      senhaModo: j.senhaModo || 'numero', senhaNumJunto: j.senhaNumJunto !== false, wc: j.wc || 'masculino', aviso: j.aviso !== undefined ? String(j.aviso) : AVISO_PADRAO }; }
+      impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
+      senhaModo: j.senhaModo && j.senhaModo !== 'numero' ? 'seta' : 'numero',
+      setaDir: DIRS.includes(j.setaDir) ? j.setaDir : DIRS.includes(j.senhaModo) ? j.senhaModo : 'direita',
+      senhaNumJunto: j.senhaNumJunto !== false, wc: j.wc || 'masculino', aviso: j.aviso !== undefined ? String(j.aviso) : AVISO_PADRAO }; }
   catch (_) { return JSON.parse(JSON.stringify(AJ_PADRAO)); }
 }
 let AJ = carregarAjustes();
@@ -819,12 +838,18 @@ function svgSeta(dir) {
   return `<svg class="seta-senha v seta-anim" style="--dy:${cima ? '-14px' : '14px'}" viewBox="0 0 500 800" role="img" aria-label="Pegue sua senha"><polygon points="${pts}" fill="var(--laranja)"/>` +
     ['PEGUE', 'SUA', 'SENHA'].map((t, i) => `<text x="250" y="${y0 + i * 92}" font-size="72" text-anchor="middle"${t.length > 3 ? ' textLength="236" lengthAdjust="spacingAndGlyphs"' : ''}>${t}</text>`).join('') + '</svg>';
 }
-function htmlCorpoSenha(numero) {
-  if (AJ.senhaModo === 'numero' || !AJ.senhaModo) return `<div class="rotulo">Senha do seu banho</div><div class="senha">${esc(numero)}</div>`;
-  return svgSeta(AJ.senhaModo) + (AJ.senhaNumJunto ? `<div class="senha-peq">Senha <b>${esc(numero)}</b></div>` : '');
+function htmlSetaSenha(numero) {
+  return svgSeta(AJ.setaDir) + (AJ.senhaNumJunto ? `<div class="senha-peq">Senha <b>${esc(numero)}</b></div>` : '');
+}
+function htmlAnote(numero) {
+  return `<div class="anote">Anote sua senha ou tecle <kbd>${esc(nomesTeclas('imprimir'))}</kbd> para imprimir</div><div class="senha">${esc(numero)}</div>`;
+}
+function htmlCorpoSenha(numero) {        // impressão automática
+  if (AJ.senhaModo !== 'seta') return `<div class="rotulo">Senha do seu banho</div><div class="senha">${esc(numero)}</div>`;
+  return htmlSetaSenha(numero);
 }
 function salvarAjustes() { guardar.set('banho_totem_ajustes', JSON.stringify(AJ)); aplicarAjustes(); }
-function acaoDaTecla(e) { for (const [a, ks] of Object.entries(AJ.teclas)) if ((ks || []).includes(e.key)) return a; return null; }
+function acaoDaTecla(e, grupo) { for (const [a, ks] of Object.entries(AJ.teclas)) if (grupoDe(a) === (grupo || 'totem') && (ks || []).includes(e.key)) return a; return null; }
 
 /* ---- campos do totem: CPF › data › fichas, com cursor no dígito marcado ---- */
 const MAXDIG = { cpf: 11, nasc: 8 };
@@ -912,7 +937,7 @@ function aplicar(el, d) {         // texto colado ou digitado por fora do contro
 function teclaFisica(e) {
   const vis = id => !document.getElementById(id).classList.contains('esconder');
   if (vis('vSenha')) {
-    if (acaoDaTecla(e) === 'enviar') { e.preventDefault(); clearInterval(T.timer); if (T.teste) voltarAjustes(); else irTotem(); }
+    if (acaoDaTecla(e, 'senha') === 'imprimir') { e.preventDefault(); if (T.etapaSenha === 1) imprimirSenha(); else sairDaSenha(); }
     return;
   }
   if (!vis('vTotem') || e.ctrlKey || e.altKey || e.metaKey) return;
@@ -1038,17 +1063,46 @@ async function acompanhar(inicio) {
   setTimeout(() => acompanhar(inicio), 1200);
 }
 
+function contagemSenha(seg, fim, txt) {
+  let s = seg; clearInterval(T.timer);
+  const tick = () => { $('#sConta').textContent = txt(s); if (s-- <= 0) { clearInterval(T.timer); fim(); } };
+  tick(); T.timer = setInterval(tick, 1000);
+}
+function sairDaSenha() { clearInterval(T.timer); T.etapaSenha = 0; $('#bImprimir').classList.add('esconder'); if (T.teste) voltarAjustes(); else irTotem(); }
 function mostrarSenha(r) {
-  T.pedido = null;
+  const id = T.pedido; T.pedido = null;
   const sal = textoSaldo(r) || T.ultimoSaldo || '';
   $('#sSaldo').innerHTML = sal; $('#sSaldo').classList.toggle('esconder', !sal);
-  $('#sCorpo').innerHTML = htmlCorpoSenha(r.ticket || '—');
-  $('#sRodape').textContent = r.mensagem || 'Retire seu comprovante na impressora.';
-  mostrar('vSenha');
-  let s = Number(CFG.TEMPO_TELA_SENHA || 25);
-  clearInterval(T.timer);
-  const tick = () => { $('#sConta').textContent = `Esta tela volta ao início em ${s} s.`; if (s-- <= 0) { clearInterval(T.timer); irTotem(); } };
-  tick(); T.timer = setInterval(tick, 1000);
+  telaSenha({ id, ticket: r.ticket || '—', mensagem: r.mensagem });
+}
+// v2.7: etapa 1 = "anote ou tecle Enter" com a senha; etapa 2 (Enter) = imprime e mostra a seta
+function telaSenha(x) {
+  T.senhaAtual = x;
+  const fimTxt = s => T.teste ? `Volta aos ajustes em ${s} s.` : `Esta tela volta ao início em ${s} s.`;
+  if (AJ.impressao === 'auto') {
+    T.etapaSenha = 2; $('#bImprimir').classList.add('esconder');
+    $('#sCorpo').innerHTML = htmlCorpoSenha(x.ticket);
+    $('#sRodape').textContent = x.mensagem || 'Retire seu comprovante na impressora.';
+    mostrar('vSenha'); contagemSenha(T.teste ? 10 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
+    return;
+  }
+  T.etapaSenha = 1;
+  $('#sCorpo').innerHTML = htmlAnote(x.ticket);
+  $('#sRodape').textContent = '';
+  $('#bImprimir').classList.remove('esconder'); $('#bImprimir').disabled = false;
+  mostrar('vSenha'); contagemSenha(T.teste ? 15 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
+}
+async function imprimirSenha() {
+  if (T.etapaSenha !== 1 || !T.senhaAtual) return;
+  T.etapaSenha = 2; $('#bImprimir').disabled = true;
+  const x = T.senhaAtual;
+  $('#sCorpo').innerHTML = htmlSetaSenha(x.ticket);
+  $('#sRodape').textContent = 'Seu comprovante está sendo impresso.';
+  $('#bImprimir').classList.add('esconder');
+  contagemSenha(T.teste ? 10 : 15, sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
+  if (T.teste || !x.id) return;
+  const r = await api('totem_imprimir', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: x.id });
+  if (!r.ok) $('#sRodape').textContent = (r.erro || 'Não foi possível imprimir.') + ' Se precisar, procure o caixa.';
 }
 
 /* ---- tela Ajustes do totem ---- */
@@ -1056,10 +1110,15 @@ function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTes
 function desenharAjustes() {
   $('#ajTam').value = AJ.tamSenha || 180;
   $('#ajTamTxt').textContent = AJ.tamSenha ? AJ.tamSenha + ' px' : 'Automático';
-  $('#ajPrevSenha').innerHTML = htmlCorpoSenha('1234');
+  const tk = (cap, corpo, rod) => `<div><div class="cap">${cap}</div><div class="aj-previa"><div class="ticket" style="margin:0">${corpo}<div class="rodape">${rod}</div></div></div></div>`;
+  $('#ajPrevSenha').innerHTML = AJ.impressao === 'auto'
+    ? tk('Tela da senha (imprime sozinha)', htmlCorpoSenha('1234'), 'Retire seu comprovante na impressora.')
+    : tk('1. Senha na tela', htmlAnote('1234'), '') + tk(`2. Depois da tecla ${esc(nomesTeclas('imprimir'))}`, htmlSetaSenha('1234'), 'Seu comprovante está sendo impresso.');
+  $('#ajImp').value = AJ.impressao; $('#ajSeta').value = AJ.setaDir;
+  $('#ajModoL').classList.toggle('esconder', AJ.impressao !== 'auto');
   $('#ajPrevTopo').innerHTML = htmlTopo();
   $('#ajWc').value = AJ.wc; $('#ajModo').value = AJ.senhaModo; $('#ajNumJunto').checked = AJ.senhaNumJunto;
-  $('#ajNumJuntoL').classList.toggle('esconder', AJ.senhaModo === 'numero');
+  $('#ajNumJuntoL').classList.toggle('esconder', AJ.impressao === 'auto' && AJ.senhaModo === 'numero');
   if (document.activeElement !== $('#ajAviso')) $('#ajAviso').value = AJ.aviso;
   $('#ajTecTela').value = AJ.tecladoTela;
   $('#ajTeclas').innerHTML = Object.keys(AJ_PADRAO.teclas).map(a => `<tr data-a="${a}"><td>${esc(AJ_NOMES[a])}</td><td class="k">${esc(nomesTeclas(a))}</td>
@@ -1076,7 +1135,7 @@ function ouvirTecla(acao) {
     document.removeEventListener('keydown', h, true);
     if (e.key === 'Escape') { $('#ajMsg2').textContent = ''; desenharAjustes(); return; }
     if (/^\d$/.test(e.key)) { $('#ajMsg2').textContent = 'Números não podem ser tecla de função.'; desenharAjustes(); return; }
-    const outra = Object.keys(AJ.teclas).find(a => a !== acao && (AJ.teclas[a] || []).includes(e.key));
+    const outra = Object.keys(AJ.teclas).find(a => a !== acao && grupoDe(a) === grupoDe(acao) && (AJ.teclas[a] || []).includes(e.key));
     if (outra) AJ.teclas[outra] = AJ.teclas[outra].filter(k => k !== e.key);
     AJ.teclas[acao] = [e.key];
     $('#ajMsg2').textContent = outra ? `A tecla ${nomeTecla(e.key)} saiu de "${AJ_NOMES[outra]}".` : 'Salvo.';
@@ -1110,6 +1169,8 @@ function iniciarAjustes() {
   $('#ajWc').addEventListener('change', () => { AJ.wc = $('#ajWc').value; salvarAjustes(); desenharAjustes(); });
   $('#ajAviso').addEventListener('input', () => { AJ.aviso = $('#ajAviso').value; salvarAjustes(); desenharAjustes(); });
   $('#ajModo').addEventListener('change', () => { AJ.senhaModo = $('#ajModo').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajImp').addEventListener('change', () => { AJ.impressao = $('#ajImp').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajSeta').addEventListener('change', () => { AJ.setaDir = $('#ajSeta').value; salvarAjustes(); desenharAjustes(); });
   $('#ajNumJunto').addEventListener('change', () => { AJ.senhaNumJunto = $('#ajNumJunto').checked; salvarAjustes(); desenharAjustes(); });
   $('#ajTesteTotem').addEventListener('click', () => {
     T.teste = true; limparTotem(); mostrar('vTotem'); $('#barraTeste').classList.remove('esconder');
@@ -1117,11 +1178,8 @@ function iniciarAjustes() {
   $('#btVoltarAj').addEventListener('click', () => voltarAjustes());
   $('#ajPadrao').addEventListener('click', () => { if (!confirm('Voltar o tamanho da senha e as teclas para o padrão?')) return; AJ = JSON.parse(JSON.stringify(AJ_PADRAO)); salvarAjustes(); desenharAjustes(); $('#ajMsg2').textContent = 'Padrão restaurado.'; });
   $('#ajTeste').addEventListener('click', () => {
-    T.teste = true; $('#sSaldo').classList.add('esconder'); $('#sCorpo').innerHTML = htmlCorpoSenha('1234');
-    $('#sRodape').textContent = 'Tela de teste · senha ' + (AJ.tamSenha ? AJ.tamSenha + ' px' : 'automática');
-    mostrar('vSenha'); let s = 10; clearInterval(T.timer);
-    const tick = () => { $('#sConta').textContent = `Volta aos ajustes em ${s} s (ou ${nomesTeclas('enviar')}).`; if (s-- <= 0) voltarAjustes(); };
-    tick(); T.timer = setInterval(tick, 1000);
+    T.teste = true; $('#sSaldo').classList.add('esconder');
+    telaSenha({ id: null, ticket: '1234', mensagem: 'Tela de teste' });
   });
   const sair = () => { irTotem(); verificarEstado(); };
   $('#ajSair1').addEventListener('click', sair); $('#ajSair2').addEventListener('click', sair);
@@ -1140,7 +1198,8 @@ function iniciarTotem() {
   $('#bVale').addEventListener('click', pedirBanho);
   // teclado físico (totem com teclado): as funções das teclas vêm dos Ajustes do totem
   document.addEventListener('keydown', teclaFisica, true);
-  $('#bNovo').addEventListener('click', () => { clearInterval(T.timer); if (T.teste) voltarAjustes(); else irTotem(); });
+  $('#bNovo').addEventListener('click', sairDaSenha);
+  $('#bImprimir').addEventListener('click', imprimirSenha);
   iniciarAjustes();
   $('#cfgTEntrar').addEventListener('click', async () => {
     const usuario = $('#cfgTUser').value.trim(), senha = $('#cfgTSenha').value;
