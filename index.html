@@ -383,6 +383,14 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
           <option value="direita">➡ para a direita</option><option value="esquerda">⬅ para a esquerda</option><option value="cima">⬆ para cima</option><option value="baixo">⬇ para baixo</option>
         </select></label>
       <label class="chk" id="ajNumJuntoL" style="display:block;margin-bottom:8px"><input type="checkbox" id="ajNumJunto"> Mostrar também o número da senha (menor, abaixo da seta)</label>
+      <div style="margin:4px 0 12px;padding:10px 12px;border:1px solid var(--linha);border-radius:10px">
+        <b>Tempo da senha na tela</b> <span class="pequeno">(em segundos; vazio = padrão)</span>
+        <div class="linha-form" style="align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
+          <label>Para anotar/imprimir <input type="number" id="ajTempo" min="5" max="600" step="5" style="width:90px;font-size:18px;padding:4px 6px" placeholder="25"></label>
+          <label>Depois de imprimir <input type="number" id="ajTempoDepois" min="5" max="600" step="5" style="width:90px;font-size:18px;padding:4px 6px" placeholder="15"></label>
+        </div>
+        <p class="pequeno" id="ajTempoTxt" style="margin:6px 0 0"></p>
+      </div>
       <p class="pequeno" style="margin:6px 0 4px">Tamanho</p>
       <div class="linha-form" style="align-items:center;gap:12px">
         <input type="range" id="ajTam" min="60" max="420" step="10" style="flex:1;min-width:220px">
@@ -783,7 +791,7 @@ const digitos = el => el.value.replace(/\D/g, '');
 /* ---- ajustes do totem (por aparelho) ---- */
 const AVISO_PADRAO = 'BANHEIRO FEMININO NÃO PRECISA DE SENHA';
 const DIRS = ['direita', 'esquerda', 'cima', 'baixo'];
-const AJ_PADRAO = { tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+const AJ_PADRAO = { tamSenha: 0, tempoSenha: 0, tempoDepois: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
   teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
@@ -791,9 +799,13 @@ const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: '
 // a tecla de imprimir só vale na tela da senha; as outras só na tela do CPF: podem repetir entre os dois grupos
 const GRUPO_SENHA = ['imprimir'];
 const grupoDe = a => GRUPO_SENHA.includes(a) ? 'senha' : 'totem';
+// tempo (segundos) da tela da senha definido nos Ajustes do totem; 0 = padrão
+function segAjuste(v) { const n = Math.round(Number(v) || 0); return n > 0 ? Math.min(600, Math.max(5, n)) : 0; }
+function tempoTelaSenha() { return AJ.tempoSenha || Number(CFG.TEMPO_TELA_SENHA || 25); }
+function tempoDepoisImprimir() { return AJ.tempoDepois || 15; }
 function carregarAjustes() {
   try { const j = JSON.parse(guardar.get('banho_totem_ajustes') || '{}');
-    return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
+    return { tamSenha: Number(j.tamSenha) || 0, tempoSenha: segAjuste(j.tempoSenha), tempoDepois: segAjuste(j.tempoDepois), tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
       senhaModo: j.senhaModo && j.senhaModo !== 'numero' ? 'seta' : 'numero',
       setaDir: DIRS.includes(j.setaDir) ? j.setaDir : DIRS.includes(j.senhaModo) ? j.senhaModo : 'direita',
@@ -1083,14 +1095,14 @@ function telaSenha(x) {
     T.etapaSenha = 2; $('#bImprimir').classList.add('esconder');
     $('#sCorpo').innerHTML = htmlCorpoSenha(x.ticket);
     $('#sRodape').textContent = x.mensagem || 'Retire seu comprovante na impressora.';
-    mostrar('vSenha'); contagemSenha(T.teste ? 10 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
+    mostrar('vSenha'); contagemSenha(T.teste ? 10 : tempoTelaSenha(), sairDaSenha, fimTxt);
     return;
   }
   T.etapaSenha = 1;
   $('#sCorpo').innerHTML = htmlAnote(x.ticket);
   $('#sRodape').textContent = '';
   $('#bImprimir').classList.remove('esconder'); $('#bImprimir').disabled = false;
-  mostrar('vSenha'); contagemSenha(T.teste ? 15 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
+  mostrar('vSenha'); contagemSenha(T.teste ? 15 : tempoTelaSenha(), sairDaSenha, fimTxt);
 }
 async function imprimirSenha() {
   if (T.etapaSenha !== 1 || !T.senhaAtual) return;
@@ -1099,7 +1111,7 @@ async function imprimirSenha() {
   $('#sCorpo').innerHTML = htmlSetaSenha(x.ticket);
   $('#sRodape').textContent = 'Seu comprovante está sendo impresso.';
   $('#bImprimir').classList.add('esconder');
-  contagemSenha(T.teste ? 10 : 15, sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
+  contagemSenha(T.teste ? 10 : tempoDepoisImprimir(), sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
   if (T.teste || !x.id) return;
   const r = await api('totem_imprimir', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: x.id });
   if (!r.ok) $('#sRodape').textContent = (r.erro || 'Não foi possível imprimir.') + ' Se precisar, procure o caixa.';
@@ -1108,6 +1120,8 @@ async function imprimirSenha() {
 /* ---- tela Ajustes do totem ---- */
 function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTeste').classList.add('esconder'); limparTotem(); mostrar('vAjustes'); desenharAjustes(); }
 function desenharAjustes() {
+  $('#ajTempo').value = AJ.tempoSenha || ''; $('#ajTempoDepois').value = AJ.tempoDepois || '';
+  $('#ajTempoTxt').textContent = 'A senha fica ' + tempoTelaSenha() + ' s na tela' + (AJ.impressao === 'auto' ? '.' : ' e mais ' + tempoDepoisImprimir() + ' s depois de imprimir.') + ' Depois volta ao início.';
   $('#ajTam').value = AJ.tamSenha || 180;
   $('#ajTamTxt').textContent = AJ.tamSenha ? AJ.tamSenha + ' px' : 'Automático';
   const tk = (cap, corpo, rod) => `<div><div class="cap">${cap}</div><div class="aj-previa"><div class="ticket" style="margin:0">${corpo}<div class="rodape">${rod}</div></div></div></div>`;
@@ -1166,6 +1180,7 @@ function iniciarAjustes() {
   $('#ajTam').addEventListener('input', () => { AJ.tamSenha = Number($('#ajTam').value); salvarAjustes(); desenharAjustes(); });
   $('#ajTamAuto').addEventListener('click', () => { AJ.tamSenha = 0; salvarAjustes(); desenharAjustes(); });
   $('#ajTecTela').addEventListener('change', () => { AJ.tecladoTela = $('#ajTecTela').value; salvarAjustes(); });
+  ['#ajTempo', '#ajTempoDepois'].forEach(id => $(id).addEventListener('change', () => { AJ.tempoSenha = segAjuste($('#ajTempo').value); AJ.tempoDepois = segAjuste($('#ajTempoDepois').value); salvarAjustes(); desenharAjustes(); }));
   $('#ajWc').addEventListener('change', () => { AJ.wc = $('#ajWc').value; salvarAjustes(); desenharAjustes(); });
   $('#ajAviso').addEventListener('input', () => { AJ.aviso = $('#ajAviso').value; salvarAjustes(); desenharAjustes(); });
   $('#ajModo').addEventListener('change', () => { AJ.senhaModo = $('#ajModo').value; salvarAjustes(); desenharAjustes(); });
