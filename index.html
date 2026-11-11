@@ -63,7 +63,7 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 .qtd-campo b{font-family:var(--cond);font-size:44px;min-width:48px;text-align:center}
 .qtd-campo .dica{font-size:15px;color:var(--suave)}
 .dica-teclas{margin-top:12px;font-size:15px;color:var(--suave);text-align:center}
-#vSenha .caixa{max-width:none}
+#vSenha .caixa,#vEscolha .caixa{max-width:none}
 .palco{padding-bottom:64px}
 .topo-totem{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
 .topo-totem:empty{display:none}
@@ -75,7 +75,7 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 .wc.m{border-color:#0D47A1}.wc.m .wc-txt span{color:#0D47A1}
 .wc.f{border-color:#C2185B}.wc.f .wc-txt span{color:#C2185B}
 .wc.mf{border-color:var(--tinta)}
-.aviso-totem{background:#C62828;border:3px solid #7F0000;border-radius:12px;padding:12px 16px;font-family:var(--cond);font-weight:700;font-size:28px;line-height:1.15;color:#FFFFFF;display:flex;gap:12px;align-items:center;box-shadow:0 4px 14px rgba(198,40,40,.45)}
+.aviso-totem{background:#FFF1DC;border:3px solid #E08A00;border-radius:12px;padding:12px 16px;font-family:var(--cond);font-weight:700;font-size:28px;line-height:1.15;color:#5A3500;display:flex;gap:12px;align-items:center}
 .aviso-totem i{font-style:normal;font-size:34px}
 .seta-senha{display:block;margin:0 auto;max-width:100%}
 .seta-senha.h{height:calc(var(--tam-senha,180px) * 1.15)}
@@ -86,6 +86,20 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 @media (prefers-reduced-motion:reduce){.seta-anim{animation:none}}
 .anote{font-family:var(--cond);font-weight:700;font-size:clamp(30px,4.2vw,56px);line-height:1.05;color:var(--tinta);max-width:20ch;margin:0 auto 14px;text-transform:uppercase}
 .anote kbd{font-family:var(--cond);border:2px solid var(--tinta);border-bottom-width:5px;border-radius:10px;padding:0 12px;background:#fff}
+.escolha-res{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:22px;width:min(1100px,92vw);max-width:none;margin:18px auto}
+.escolha-res .opcao{border:4px solid var(--azul) !important;border-radius:22px;background:#fff;padding:22px 18px;text-align:center;font:inherit;cursor:pointer;color:var(--tinta)}
+.opcao .num{display:inline-block;font-family:var(--cond);font-weight:700;font-size:44px;line-height:1;border:3px solid currentColor;border-radius:12px;padding:4px 16px;margin-bottom:10px}
+.opcao .nome{display:block;font-family:var(--cond);font-weight:700;font-size:clamp(34px,4.6vw,56px);line-height:1.05;text-transform:uppercase}
+.opcao .pts{display:block;font-size:20px;margin-top:8px;color:var(--suave)}
+.opcao .st{display:block;font-size:20px;font-weight:700;margin-top:6px}
+.opcao.ok .st{color:#1B7F3B}.escolha-res .opcao.nao{border-color:var(--linha) !important;opacity:.55;cursor:not-allowed}.opcao.nao .st{color:#B3261E}
+.saldo-grande{font-size:clamp(26px,3vw,38px);text-align:center}.saldo-grande b{font-family:var(--cond);font-size:1.5em;color:var(--azul)}
+.aj-mods label{display:inline-flex;gap:8px;align-items:center;margin:4px 16px 4px 0;font-weight:600}
+.premios{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:8px 0}
+.premio{border:2px solid var(--linha);border-radius:10px;padding:10px;background:#fff;text-align:left;font:inherit;cursor:pointer}
+.premio.sel{border-color:var(--azul);box-shadow:0 0 0 3px var(--azul-claro)}
+.premio b{display:block;font-size:15px}.premio span{font-size:13px;color:var(--suave)}
+.mod-card{border:1px solid var(--linha);border-radius:10px;padding:12px;margin:10px 0}
 .aj-previas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
 .aj-previas .cap{font-size:14px;font-weight:600;color:var(--suave);margin-bottom:6px}
 .senha-peq{font-size:26px;color:var(--suave);margin-top:8px}.senha-peq b{font-family:var(--cond);font-size:44px;color:var(--azul)}
@@ -278,6 +292,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       </div>
       <div class="teclado" id="teclado"></div>
       <button class="vale" id="bVale" disabled>Vale banho</button>
+      <button class="btn sec esconder" id="bConsulta" style="margin-top:12px;font-size:20px;width:100%">Consultar meus pontos</button>
       <div class="dica-teclas" id="dicaTeclas"></div>
     </main>
   </section>
@@ -289,6 +304,16 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <div class="barra-teste esconder" id="barraTeste">Prévia do totem <button class="btn peq" id="btVoltarAj">Voltar aos ajustes</button></div>
 
 <button class="rotulo-caixa esconder" id="rotuloCaixa" aria-label="Escolher o caixa deste totem"></button>
+
+<div id="vEscolha" class="tela esconder">
+  <div class="caixa" style="max-width:none">
+    <div class="saldo-grande" id="eSaldo"></div>
+    <h2 style="margin:10px 0 0" id="eTitulo">Escolha o resgate</h2>
+    <div class="escolha-res" id="eOpcoes"></div>
+    <p class="contagem" id="eConta"></p>
+    <button class="btn sec" id="eSair">Concluir</button>
+  </div>
+</div>
 
 <div id="vProcesso" class="tela esconder">
   <div class="caixa">
@@ -371,6 +396,21 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <div class="aj-previa-totem"><div class="topo-totem" id="ajPrevTopo" style="margin:0"></div></div>
       <button class="btn" id="ajTesteTotem" style="margin-top:10px">Ver totem de teste</button>
 
+      <h3>Opções de resgate neste totem</h3>
+      <div class="aj-mods" id="ajMods"></div>
+      <p class="pequeno">Só banho mantém a tela atual. Com mais de uma, o cliente digita CPF e data, o robô consulta os pontos e o totem mostra os quadrados (Nº1, Nº2…) liberados só para quem tem pontos.</p>
+      <label class="chk" style="display:block;margin:8px 0"><input type="checkbox" id="ajConsulta"> Mostrar “Consultar meus pontos”</label>
+      <p class="pequeno" style="margin:10px 0 4px">Prévia da escolha</p>
+      <div class="aj-previa" id="ajPrevEscolha" style="text-align:left"></div>
+
+      <h3>Aviso depois de resgate sem EVO (refeição)</h3>
+      <label style="display:block;font-weight:600">Texto
+        <textarea id="ajAvisoSemEvo" rows="2" maxlength="120" style="display:block;width:100%;margin-top:4px"></textarea></label>
+      <label style="display:block;font-weight:600;margin:6px 0">Texto dentro da seta <input id="ajTextoSeta" maxlength="24" style="margin-left:8px;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:10px"></label>
+      <label style="display:block;font-weight:600;margin:6px 0">Seta
+        <select id="ajSetaSemEvo" style="margin-left:8px"><option value="direita">➡ para a direita</option><option value="esquerda">⬅ para a esquerda</option><option value="cima">⬆ para cima</option><option value="baixo">⬇ para baixo</option></select></label>
+      <div class="aj-previas" id="ajPrevSemEvo"></div>
+
       <h3>Tela da senha</h3>
       <label style="display:block;font-weight:600;margin-bottom:6px">Impressão do comprovante
         <select id="ajImp" style="margin-left:8px">
@@ -383,14 +423,6 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
           <option value="direita">➡ para a direita</option><option value="esquerda">⬅ para a esquerda</option><option value="cima">⬆ para cima</option><option value="baixo">⬇ para baixo</option>
         </select></label>
       <label class="chk" id="ajNumJuntoL" style="display:block;margin-bottom:8px"><input type="checkbox" id="ajNumJunto"> Mostrar também o número da senha (menor, abaixo da seta)</label>
-      <div style="margin:4px 0 12px;padding:10px 12px;border:1px solid var(--linha);border-radius:10px">
-        <b>Tempo da senha na tela</b> <span class="pequeno">(em segundos; vazio = padrão)</span>
-        <div class="linha-form" style="align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
-          <label>Para anotar/imprimir <input type="number" id="ajTempo" min="5" max="600" step="5" style="width:90px;font-size:18px;padding:4px 6px" placeholder="25"></label>
-          <label>Depois de imprimir <input type="number" id="ajTempoDepois" min="5" max="600" step="5" style="width:90px;font-size:18px;padding:4px 6px" placeholder="15"></label>
-        </div>
-        <p class="pequeno" id="ajTempoTxt" style="margin:6px 0 0"></p>
-      </div>
       <p class="pequeno" style="margin:6px 0 4px">Tamanho</p>
       <div class="linha-form" style="align-items:center;gap:12px">
         <input type="range" id="ajTam" min="60" max="420" step="10" style="flex:1;min-width:220px">
@@ -539,6 +571,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <nav class="abas" role="tablist">
         <button role="tab" aria-selected="true" data-aba="codigos">Códigos</button>
         <button role="tab" aria-selected="false" data-aba="lotes">Lotes e OPNF</button>
+        <button role="tab" aria-selected="false" data-aba="refeicao">Refeição</button>
       </nav>
 
       <div id="abaCodigos">
@@ -561,6 +594,20 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <div class="rolagem"><table>
           <thead><tr><th></th><th>Hora</th><th>Código do resgate</th><th>Qtd</th><th>Senha</th><th>Situação</th><th>Lote / OPNF</th><th>OK</th><th></th></tr></thead>
           <tbody id="cxLista"></tbody>
+        </table></div>
+      </div>
+
+      <div id="abaRefeicao" class="esconder">
+        <div class="barra">
+          <label class="pequeno">De <input type="date" id="rfDe"></label>
+          <label class="pequeno">Até <input type="date" id="rfAte"></label>
+          <button class="btn peq" id="rfAtualizar">Atualizar</button>
+          <span class="info" id="rfResumo"></span>
+        </div>
+        <p class="pequeno" style="margin:-4px 0 10px">Resgates de refeição e outras opções sem EVO. Só consulta: o cliente leva o comprovante ao caixa para carimbar.</p>
+        <div class="rolagem"><table>
+          <thead><tr><th>Data/hora</th><th>Opção</th><th>Código</th><th>Situação</th></tr></thead>
+          <tbody id="rfLista"><tr><td colspan="4" class="vazio">Toque em Atualizar.</td></tr></tbody>
         </table></div>
       </div>
 
@@ -636,6 +683,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p style="margin-bottom:10px">Cadastre caixas, totem e auditores (com o login do EVO de cada caixa) e configure o posto: site do EVO e login do ClubPetro.</p>
     <button class="btn sec" id="cfgUsuarios">Usuários</button>
     <button class="btn sec" id="cfgPosto">Configurações do posto</button>
+    <button class="btn sec" id="cfgModalidades">Opções de resgate</button>
     <button class="btn sec" id="cfgErros">Erros e sugestões <span id="cfgErrosN"></span></button>
   </div>
   <div class="secao">
@@ -648,6 +696,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
 </dialog>
+<dialog id="dModalidades" style="max-width:760px">
+  <h3>Opções de resgate (modalidades)</h3>
+  <p class="pequeno" id="dmPremiosInfo"></p>
+  <div id="dmLista"></div>
+  <button class="btn sec" id="dmNova">+ Nova opção de resgate</button>
+  <p class="pequeno" id="dmMsg"></p>
+  <div class="acoes"><button class="btn sec" id="dmCancelar">Fechar</button><button class="btn" id="dmSalvar">Salvar</button></div>
+</dialog>
+
 <dialog id="dUsuario">
   <h3 id="duTitulo">Usuário</h3>
   <div class="form-col" style="max-width:none">
@@ -731,7 +788,7 @@ async function api(acao, dados) {
   } catch (e) { return { ok: false, erro: 'Sem conexão com o servidor.', rede: true }; }
 }
 
-const VISTAS = ['vTotem', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vAjustes', 'vEscolherCaixa', 'vCaixa', 'vRelatorio'];
+const VISTAS = ['vTotem', 'vEscolha', 'vProcesso', 'vSenha', 'vAviso', 'vConfigurar', 'vAjustes', 'vEscolherCaixa', 'vCaixa', 'vRelatorio'];
 function mostrar(id) {
   VISTAS.forEach(v => document.getElementById(v).classList.toggle('esconder', v !== id));
   document.body.classList.toggle('modo-caixa', id === 'vCaixa');
@@ -791,22 +848,21 @@ const digitos = el => el.value.replace(/\D/g, '');
 /* ---- ajustes do totem (por aparelho) ---- */
 const AVISO_PADRAO = 'BANHEIRO FEMININO NÃO PRECISA DE SENHA';
 const DIRS = ['direita', 'esquerda', 'cima', 'baixo'];
-const AJ_PADRAO = { tamSenha: 0, tempoSenha: 0, tempoDepois: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
-  teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], imprimir: ['Enter'] } };
+const AVISO_SEM_EVO = 'PEGUE SEU COMPROVANTE COM O CAIXA PARA CARIMBAR';
+const AJ_PADRAO = { mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+  teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], consulta: [], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
-  imprimir: 'Imprimir a senha (na tela da senha)' };
+  consulta: 'Consultar meus pontos', imprimir: 'Imprimir a senha (na tela da senha)' };
 // a tecla de imprimir só vale na tela da senha; as outras só na tela do CPF: podem repetir entre os dois grupos
 const GRUPO_SENHA = ['imprimir'];
 const grupoDe = a => GRUPO_SENHA.includes(a) ? 'senha' : 'totem';
-// tempo (segundos) da tela da senha definido nos Ajustes do totem; 0 = padrão
-function segAjuste(v) { const n = Math.round(Number(v) || 0); return n > 0 ? Math.min(600, Math.max(5, n)) : 0; }
-function tempoTelaSenha() { return AJ.tempoSenha || Number(CFG.TEMPO_TELA_SENHA || 25); }
-function tempoDepoisImprimir() { return AJ.tempoDepois || 15; }
 function carregarAjustes() {
   try { const j = JSON.parse(guardar.get('banho_totem_ajustes') || '{}');
-    return { tamSenha: Number(j.tamSenha) || 0, tempoSenha: segAjuste(j.tempoSenha), tempoDepois: segAjuste(j.tempoDepois), tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
+    return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
+      mods: Array.isArray(j.mods) && j.mods.length ? j.mods : ['banho'], consulta: !!j.consulta,
+      avisoSemEvo: j.avisoSemEvo !== undefined ? String(j.avisoSemEvo) : AVISO_SEM_EVO, setaSemEvo: DIRS.includes(j.setaSemEvo) ? j.setaSemEvo : 'direita', textoSetaSemEvo: j.textoSetaSemEvo !== undefined ? String(j.textoSetaSemEvo) : 'PEGUE NO CAIXA',
       senhaModo: j.senhaModo && j.senhaModo !== 'numero' ? 'seta' : 'numero',
       setaDir: DIRS.includes(j.setaDir) ? j.setaDir : DIRS.includes(j.senhaModo) ? j.senhaModo : 'direita',
       senhaNumJunto: j.senhaNumJunto !== false, wc: j.wc || 'masculino', aviso: j.aviso !== undefined ? String(j.aviso) : AVISO_PADRAO }; }
@@ -824,6 +880,8 @@ function aplicarAjustes() {
   const k = a => `<kbd>${esc(nomesTeclas(a))}</kbd>`;
   $('#dicaTeclas').innerHTML = fisico ? `${k('voltar')} volta · ${k('avancar')} avança · ${k('campo')} próximo campo · ${k('enviar')} envia` : '';
   $('#dicaQtd').innerHTML = fisico ? `${k('mais')} mais · ${k('menos')} menos` : '';
+  if (fisico && AJ.consulta && (AJ.teclas.consulta || []).length) $('#dicaTeclas').innerHTML += ` · ${k('consulta')} consultar pontos`;
+  atualizarBotoesTotem();
 }
 /* ---- visual do totem: topo (WC + aviso) e tela da senha (número ou seta) ---- */
 const SVG_HOMEM = '<svg viewBox="0 0 60 124" aria-hidden="true"><circle cx="30" cy="12" r="11" fill="currentColor"/><path fill="currentColor" d="M16 28h28a8 8 0 0 1 8 8v36a4.5 4.5 0 0 1-9 0V44h-2v72a6 6 0 0 1-12 0V78h-2v38a6 6 0 0 1-12 0V44h-2v28a4.5 4.5 0 0 1-9 0V36a8 8 0 0 1 8-8z"/></svg>';
@@ -837,19 +895,90 @@ function htmlWc(wc) {
 function htmlTopo() {
   return htmlWc(AJ.wc) + (String(AJ.aviso || '').trim() ? `<div class="aviso-totem"><i>⚠</i><span>${esc(AJ.aviso.trim())}</span></div>` : '');
 }
-function svgSeta(dir) {
+function svgSeta(dir, texto) {
+  texto = String(texto || 'PEGUE SUA SENHA').toUpperCase();
   const h = dir === 'direita' || dir === 'esquerda';
   if (h) {
     const pts = dir === 'direita' ? '0,110 640,110 640,0 1000,200 640,400 640,290 0,290' : '1000,110 360,110 360,0 0,200 360,400 360,290 1000,290';
     const x = dir === 'direita' ? 320 : 680, dx = dir === 'direita' ? '14px' : '-14px';
-    return `<svg class="seta-senha h seta-anim" style="--dx:${dx}" viewBox="0 0 1000 400" role="img" aria-label="Pegue sua senha"><polygon points="${pts}" fill="var(--laranja)"/><text x="${x}" y="221" font-size="60" text-anchor="middle" textLength="560" lengthAdjust="spacingAndGlyphs">PEGUE SUA SENHA</text></svg>`;
+    return `<svg class="seta-senha h seta-anim" style="--dx:${dx}" viewBox="0 0 1000 400" role="img" aria-label="Pegue sua senha"><polygon points="${pts}" fill="var(--laranja)"/><text x="${x}" y="221" font-size="60" text-anchor="middle" textLength="560" lengthAdjust="spacingAndGlyphs">${esc(texto)}</text></svg>`;
   }
   const cima = dir === 'cima';
   const pts = cima ? '110,800 110,360 0,360 250,0 500,360 390,360 390,800' : '110,0 110,440 0,440 250,800 500,440 390,440 390,0';
   const y0 = cima ? 490 : 130;
   return `<svg class="seta-senha v seta-anim" style="--dy:${cima ? '-14px' : '14px'}" viewBox="0 0 500 800" role="img" aria-label="Pegue sua senha"><polygon points="${pts}" fill="var(--laranja)"/>` +
-    ['PEGUE', 'SUA', 'SENHA'].map((t, i) => `<text x="250" y="${y0 + i * 92}" font-size="72" text-anchor="middle"${t.length > 3 ? ' textLength="236" lengthAdjust="spacingAndGlyphs"' : ''}>${t}</text>`).join('') + '</svg>';
+    (() => { const w = texto.split(/\s+/); return w.length <= 3 ? w : [w.slice(0, Math.ceil(w.length / 3)).join(' '), w.slice(Math.ceil(w.length / 3), Math.ceil(2 * w.length / 3)).join(' '), w.slice(Math.ceil(2 * w.length / 3)).join(' ')]; })().map((t, i) => `<text x="250" y="${y0 + i * 92}" font-size="72" text-anchor="middle"${t.length > 3 ? ' textLength="236" lengthAdjust="spacingAndGlyphs"' : ''}>${esc(t)}</text>`).join('') + '</svg>';
 }
+/* ---- modalidades (banho, refeição...) ---- */
+function modsServidor() { return (T.estado && Array.isArray(T.estado.modalidades) && T.estado.modalidades.length) ? T.estado.modalidades : [{ id: 'banho', nome: 'Banho', usaEvo: true }, { id: 'refeicao', nome: 'Refeição', usaEvo: false }]; }
+function modInfo(id) { return modsServidor().find(m => m.id === id) || { id, nome: id, usaEvo: id === 'banho' }; }
+function modsAtivos() {
+  const srv = modsServidor().map(m => m.id);
+  const l = (AJ.mods || ['banho']).filter(id => srv.includes(id));
+  return l.length ? l : ['banho'];
+}
+function htmlOpcoes(saldo, custos, demo) {
+  return modsAtivos().map((id, i) => {
+    const m = modInfo(id);
+    const custo = custos && custos[id] !== undefined ? Number(custos[id]) * (id === 'banho' ? (T.qtd || 1) : 1) : null;
+    const ok = saldo === null || saldo === undefined || custo === null ? true : saldo >= custo;
+    const st = custo === null ? '' : ok ? '✓ Liberado' : `Faltam ${(custo - saldo).toLocaleString('pt-BR')} pontos`;
+    return `<button class="opcao ${ok ? 'ok' : 'nao'}" data-id="${esc(id)}" ${ok ? '' : 'disabled'}><span class="num">${i + 1}</span>
+      <span class="nome">${esc(m.nome)}</span>${custo !== null ? `<span class="pts">${custo.toLocaleString('pt-BR')} pontos</span>` : ''}<span class="st">${esc(st)}</span></button>`;
+  }).join('');
+}
+function htmlSaldo(p) { return p === null || p === undefined ? '' : `Seus pontos: <b>${Number(p).toLocaleString('pt-BR')}</b>`; }
+function atualizarBotoesTotem() {
+  const mods = modsAtivos();
+  $('#bVale').textContent = mods.length > 1 ? 'Continuar' : 'Vale ' + modInfo(mods[0]).nome.toLowerCase();
+  $('#bConsulta').classList.toggle('esconder', !AJ.consulta);
+  $('#campoQtd').classList.toggle('esconder', !mods.includes('banho') || (T.maxFichas || 1) < 2);
+}
+function htmlAvisoSemEvo(codigo) {
+  return `<div class="anote">${esc(AJ.avisoSemEvo || AVISO_SEM_EVO)}</div>` + svgSeta(AJ.setaSemEvo || 'direita', AJ.textoSetaSemEvo || 'PEGUE NO CAIXA') + `<div class="senha-peq">Código <b>${esc(codigo)}</b></div>`;
+}
+// CPF e data ficam só na memória enquanto o cliente escolhe (LGPD: somem ao sair)
+async function consultarEEscolher(soConsulta) {
+  if (T.teste) { mostrarEscolha({ pontos: 400, custos: { banho: 25, refeicao: 340 } }, soConsulta); return; }
+  if (!validarTotem(true)) return;
+  T.cli = { cpf: digitos($('#iCpf')), nasc: $('#iNasc').value };
+  limparTotem();
+  T.enviando = true;
+  $('#vProcesso h2').textContent = 'Consultando seus pontos'; $('#vProcesso p').textContent = 'Aguarde um instante…';
+  $('#passos').classList.add('esconder'); mostrar('vProcesso');
+  const r = await api('totem_consultarPontos', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, cpf: T.cli.cpf });
+  if (!r.ok) { T.enviando = false; T.cli = null; avisoTotem('Não foi possível consultar', r.erro || 'Procure o caixa.'); return; }
+  const fim = Date.now() + 70000;
+  while (Date.now() < fim) {
+    await new Promise(ok => setTimeout(ok, 1500));
+    const c = await api('totem_consultar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: r.id });
+    if (c.ok && c.status === 'ERRO') { T.enviando = false; T.cli = null; avisoTotem('Não foi possível consultar', c.mensagem || 'Procure o caixa.'); return; }
+    if (c.ok && c.status === 'CONCLUIDO') { T.enviando = false; mostrarEscolha(c, soConsulta); return; }
+  }
+  T.enviando = false; T.cli = null;
+  avisoTotem('Está demorando mais que o normal', 'Tente de novo em instantes ou procure o caixa.');
+}
+function mostrarEscolha(c, soConsulta) {
+  T.escolha = c;
+  $('#eSaldo').innerHTML = htmlSaldo(c.pontos);
+  $('#eTitulo').textContent = soConsulta ? 'Quer resgatar agora? Tecle o número' : 'Tecle o número do resgate';
+  $('#eOpcoes').innerHTML = htmlOpcoes(c.pontos, c.custos);
+  $('#eOpcoes').style.setProperty('--n', Math.min(3, modsAtivos().length));
+  $('#eOpcoes').querySelectorAll('.opcao').forEach(b => b.onclick = () => escolher(b.dataset.id));
+  mostrar('vEscolha');
+  let s = 30; clearInterval(T.timer);
+  const tick = () => { $('#eConta').textContent = `Esta tela volta ao início em ${s} s.`; if (s-- <= 0) sairEscolha(); };
+  tick(); T.timer = setInterval(tick, 1000);
+}
+function sairEscolha() { clearInterval(T.timer); T.cli = null; T.escolha = null; if (T.teste) voltarAjustes(); else irTotem(); }
+function escolher(id) {
+  const b = $('#eOpcoes').querySelector(`.opcao[data-id="${id}"]`);
+  if (!b || b.disabled) return;
+  clearInterval(T.timer);
+  if (T.teste) { sairEscolha(); return; }
+  pedirBanho(id);
+}
+
 function htmlSetaSenha(numero) {
   return svgSeta(AJ.setaDir) + (AJ.senhaNumJunto ? `<div class="senha-peq">Senha <b>${esc(numero)}</b></div>` : '');
 }
@@ -917,7 +1046,7 @@ function mudarQtd(delta) {
 }
 function proximoCampo() { ativar(T.campo === 'cpf' ? 'nasc' : T.campo === 'nasc' ? (qtdVisivel() ? 'qtd' : 'cpf') : 'cpf'); }
 function enviarOuApontar() {
-  if (validarTotem(true)) { pedirBanho(); return; }
+  if (validarTotem(true)) { if (modsAtivos().length > 1) consultarEEscolher(false); else pedirBanho(modsAtivos()[0]); return; }
   ativar(cpfValido(digitos($('#iCpf'))) ? 'nasc' : 'cpf');
 }
 function executar(a) {
@@ -926,6 +1055,7 @@ function executar(a) {
   if (a === 'mais') return mudarQtd(1);
   if (a === 'menos') return mudarQtd(-1);
   if (a === 'enviar') return enviarOuApontar();
+  if (a === 'consulta') { if (AJ.consulta) { if (validarTotem(true)) consultarEEscolher(true); else ativar(cpfValido(digitos($('#iCpf'))) ? 'nasc' : 'cpf'); } return; }
   if (c === 'qtd') {
     if (a === 'voltar' || a === 'apagar') ativar('nasc', Math.max(0, digitos($('#iNasc')).length - 1));
     return;
@@ -950,6 +1080,11 @@ function teclaFisica(e) {
   const vis = id => !document.getElementById(id).classList.contains('esconder');
   if (vis('vSenha')) {
     if (acaoDaTecla(e, 'senha') === 'imprimir') { e.preventDefault(); if (T.etapaSenha === 1) imprimirSenha(); else sairDaSenha(); }
+    return;
+  }
+  if (vis('vEscolha')) {
+    if (/^\d$/.test(e.key)) { e.preventDefault(); const id = modsAtivos()[Number(e.key) - 1]; if (id) escolher(id); }
+    else if (e.key === 'Escape') { e.preventDefault(); sairEscolha(); }
     return;
   }
   if (!vis('vTotem') || e.ctrlKey || e.altKey || e.metaKey) return;
@@ -984,6 +1119,7 @@ async function verificarEstado() {
   if (!T.pin && !T.sessao) { mostrar('vConfigurar'); return; }
   if (!document.getElementById('vEscolherCaixa').classList.contains('esconder')) return;
   if (!document.getElementById('vAjustes').classList.contains('esconder') || T.teste) return;
+  if (!document.getElementById('vEscolha').classList.contains('esconder') || T.cli) return;
   if (T.pedido || !document.getElementById('vProcesso').classList.contains('esconder')) return;
   const r = await api('totem_estado', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto });
   // a resposta pode chegar depois que o cliente já tocou em Vale banho: aí não mexe na tela
@@ -992,7 +1128,7 @@ async function verificarEstado() {
   T.estado = r;
   if (r.posto) $('#tPosto').textContent = r.posto;
   T.maxFichas = Math.max(1, Number(r.maxFichas || 1));
-  $('#campoQtd').classList.toggle('esconder', T.maxFichas < 2);
+  atualizarBotoesTotem();
   if (T.qtd > T.maxFichas) { T.qtd = T.maxFichas; $('#qNum').textContent = T.qtd; }
   // o caixa deste totem fechou e há outro aberto: passa a registrar nele
   if (!T.auto && r.turno && (r.trocou || !T.operador)) {
@@ -1010,18 +1146,30 @@ async function verificarEstado() {
 
 function irTotem() { limparTotem(); mostrar('vTotem'); }
 
-async function pedirBanho() {
+async function pedirBanho(tipo) {
   if (T.teste) { $('#mNasc').textContent = 'Prévia: o pedido não é enviado.'; return; }
-  if (!validarTotem(true)) return;
+  let cpf, nasc;
+  if (T.cli) { cpf = T.cli.cpf; nasc = T.cli.nasc; }
+  else { if (!validarTotem(true)) return; cpf = digitos($('#iCpf')); nasc = $('#iNasc').value; }
+  T.cli = null; T.escolha = null;
+  tipo = typeof tipo === 'string' ? tipo : modsAtivos()[0];
+  const mod = modInfo(tipo);
+  T.tipoAtual = tipo; T.semEvoAtual = mod.usaEvo === false;
   $('#bVale').disabled = true;
   T.enviando = true;
+  $('#vProcesso h2').textContent = T.semEvoAtual ? 'Fazendo seu resgate' : 'Gerando sua senha';
+  $('#vProcesso p').textContent = 'Aguarde aqui, leva menos de um minuto.';
+  $('#passos').classList.remove('esconder');
+  $('#passos [data-p="club"]').lastChild.textContent = 'Resgatando ' + (tipo === 'banho' ? 'o banho' : mod.nome.toLowerCase()) + ' no ClubPetro';
+  $('#passos [data-p="evo"]').classList.toggle('esconder', T.semEvoAtual);
   marcarPassos('fila');
   mostrar('vProcesso');
-  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente, qtd: T.qtd, cpf: digitos($('#iCpf')), nasc: $('#iNasc').value });
+  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente,
+    qtd: tipo === 'banho' ? T.qtd : 1, tipo, imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
   limparTotem();                                   // não deixa o CPF na tela
   T.qtd = 1; $('#qNum').textContent = '1';
   T.ultimoSaldo = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');
-  if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível pedir o banho', r.erro || 'Procure o caixa.'); return; }
+  if (!r.ok) { T.enviando = false; avisoTotem('Não foi possível fazer o resgate', r.erro || 'Procure o caixa.'); return; }
   T.pedido = r.id; T.enviando = false;
   if (r.caixa) { const rot = $('#rotuloCaixa'); rot.textContent = 'Caixa ' + r.caixa; rot.classList.remove('esconder'); }
   acompanhar(Date.now());
@@ -1085,24 +1233,32 @@ function mostrarSenha(r) {
   const id = T.pedido; T.pedido = null;
   const sal = textoSaldo(r) || T.ultimoSaldo || '';
   $('#sSaldo').innerHTML = sal; $('#sSaldo').classList.toggle('esconder', !sal);
-  telaSenha({ id, ticket: r.ticket || '—', mensagem: r.mensagem });
+  telaSenha({ id, ticket: r.ticket || '—', mensagem: r.mensagem, semEvo: !!T.semEvoAtual });
+  T.semEvoAtual = false;
 }
 // v2.7: etapa 1 = "anote ou tecle Enter" com a senha; etapa 2 (Enter) = imprime e mostra a seta
 function telaSenha(x) {
   T.senhaAtual = x;
   const fimTxt = s => T.teste ? `Volta aos ajustes em ${s} s.` : `Esta tela volta ao início em ${s} s.`;
+  if (x.semEvo) {
+    T.etapaSenha = 2; $('#bImprimir').classList.add('esconder');
+    $('#sCorpo').innerHTML = htmlAvisoSemEvo(x.ticket);
+    $('#sRodape').textContent = '';
+    mostrar('vSenha'); contagemSenha(T.teste ? 10 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
+    return;
+  }
   if (AJ.impressao === 'auto') {
     T.etapaSenha = 2; $('#bImprimir').classList.add('esconder');
     $('#sCorpo').innerHTML = htmlCorpoSenha(x.ticket);
     $('#sRodape').textContent = x.mensagem || 'Retire seu comprovante na impressora.';
-    mostrar('vSenha'); contagemSenha(T.teste ? 10 : tempoTelaSenha(), sairDaSenha, fimTxt);
+    mostrar('vSenha'); contagemSenha(T.teste ? 10 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
     return;
   }
   T.etapaSenha = 1;
   $('#sCorpo').innerHTML = htmlAnote(x.ticket);
   $('#sRodape').textContent = '';
   $('#bImprimir').classList.remove('esconder'); $('#bImprimir').disabled = false;
-  mostrar('vSenha'); contagemSenha(T.teste ? 15 : tempoTelaSenha(), sairDaSenha, fimTxt);
+  mostrar('vSenha'); contagemSenha(T.teste ? 15 : Number(CFG.TEMPO_TELA_SENHA || 25), sairDaSenha, fimTxt);
 }
 async function imprimirSenha() {
   if (T.etapaSenha !== 1 || !T.senhaAtual) return;
@@ -1111,7 +1267,7 @@ async function imprimirSenha() {
   $('#sCorpo').innerHTML = htmlSetaSenha(x.ticket);
   $('#sRodape').textContent = 'Seu comprovante está sendo impresso.';
   $('#bImprimir').classList.add('esconder');
-  contagemSenha(T.teste ? 10 : tempoDepoisImprimir(), sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
+  contagemSenha(T.teste ? 10 : 15, sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
   if (T.teste || !x.id) return;
   const r = await api('totem_imprimir', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: x.id });
   if (!r.ok) $('#sRodape').textContent = (r.erro || 'Não foi possível imprimir.') + ' Se precisar, procure o caixa.';
@@ -1120,8 +1276,6 @@ async function imprimirSenha() {
 /* ---- tela Ajustes do totem ---- */
 function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTeste').classList.add('esconder'); limparTotem(); mostrar('vAjustes'); desenharAjustes(); }
 function desenharAjustes() {
-  $('#ajTempo').value = AJ.tempoSenha || ''; $('#ajTempoDepois').value = AJ.tempoDepois || '';
-  $('#ajTempoTxt').textContent = 'A senha fica ' + tempoTelaSenha() + ' s na tela' + (AJ.impressao === 'auto' ? '.' : ' e mais ' + tempoDepoisImprimir() + ' s depois de imprimir.') + ' Depois volta ao início.';
   $('#ajTam').value = AJ.tamSenha || 180;
   $('#ajTamTxt').textContent = AJ.tamSenha ? AJ.tamSenha + ' px' : 'Automático';
   const tk = (cap, corpo, rod) => `<div><div class="cap">${cap}</div><div class="aj-previa"><div class="ticket" style="margin:0">${corpo}<div class="rodape">${rod}</div></div></div></div>`;
@@ -1129,6 +1283,19 @@ function desenharAjustes() {
     ? tk('Tela da senha (imprime sozinha)', htmlCorpoSenha('1234'), 'Retire seu comprovante na impressora.')
     : tk('1. Senha na tela', htmlAnote('1234'), '') + tk(`2. Depois da tecla ${esc(nomesTeclas('imprimir'))}`, htmlSetaSenha('1234'), 'Seu comprovante está sendo impresso.');
   $('#ajImp').value = AJ.impressao; $('#ajSeta').value = AJ.setaDir;
+  $('#ajMods').innerHTML = modsServidor().map(m => `<label><input type="checkbox" data-mod="${esc(m.id)}" ${(AJ.mods || []).includes(m.id) ? 'checked' : ''}> ${esc(m.nome)}${m.usaEvo === false ? ' <span class="pequeno">(sem EVO)</span>' : ''}</label>`).join('');
+  $('#ajMods').querySelectorAll('input').forEach(c => c.onchange = () => {
+    const ids = [...$('#ajMods').querySelectorAll('input:checked')].map(x => x.dataset.mod);
+    AJ.mods = ids.length ? ids : ['banho']; salvarAjustes(); desenharAjustes();
+  });
+  $('#ajConsulta').checked = !!AJ.consulta;
+  $('#ajPrevEscolha').innerHTML = modsAtivos().length > 1 || AJ.consulta
+    ? `<div class="saldo-grande">${htmlSaldo(400)}</div><div class="escolha-res" style="width:100%;--n:${Math.min(3, modsAtivos().length)}">${htmlOpcoes(400, { banho: 25, refeicao: 340 })}</div><p class="pequeno">Exemplo com 400 pontos.</p>`
+    : '<p class="pequeno">Só banho: o totem fica como hoje, sem a tela de escolha.</p>';
+  if (document.activeElement !== $('#ajAvisoSemEvo')) $('#ajAvisoSemEvo').value = AJ.avisoSemEvo;
+  $('#ajSetaSemEvo').value = AJ.setaSemEvo;
+  if (document.activeElement !== $('#ajTextoSeta')) $('#ajTextoSeta').value = AJ.textoSetaSemEvo;
+  $('#ajPrevSemEvo').innerHTML = `<div><div class="aj-previa"><div class="ticket" style="margin:0">${htmlAvisoSemEvo('9F57764D')}</div></div></div>`;
   $('#ajModoL').classList.toggle('esconder', AJ.impressao !== 'auto');
   $('#ajPrevTopo').innerHTML = htmlTopo();
   $('#ajWc').value = AJ.wc; $('#ajModo').value = AJ.senhaModo; $('#ajNumJunto').checked = AJ.senhaNumJunto;
@@ -1180,10 +1347,13 @@ function iniciarAjustes() {
   $('#ajTam').addEventListener('input', () => { AJ.tamSenha = Number($('#ajTam').value); salvarAjustes(); desenharAjustes(); });
   $('#ajTamAuto').addEventListener('click', () => { AJ.tamSenha = 0; salvarAjustes(); desenharAjustes(); });
   $('#ajTecTela').addEventListener('change', () => { AJ.tecladoTela = $('#ajTecTela').value; salvarAjustes(); });
-  ['#ajTempo', '#ajTempoDepois'].forEach(id => $(id).addEventListener('change', () => { AJ.tempoSenha = segAjuste($('#ajTempo').value); AJ.tempoDepois = segAjuste($('#ajTempoDepois').value); salvarAjustes(); desenharAjustes(); }));
   $('#ajWc').addEventListener('change', () => { AJ.wc = $('#ajWc').value; salvarAjustes(); desenharAjustes(); });
   $('#ajAviso').addEventListener('input', () => { AJ.aviso = $('#ajAviso').value; salvarAjustes(); desenharAjustes(); });
   $('#ajModo').addEventListener('change', () => { AJ.senhaModo = $('#ajModo').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajConsulta').addEventListener('change', () => { AJ.consulta = $('#ajConsulta').checked; salvarAjustes(); desenharAjustes(); });
+  $('#ajAvisoSemEvo').addEventListener('input', () => { AJ.avisoSemEvo = $('#ajAvisoSemEvo').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajTextoSeta').addEventListener('input', () => { AJ.textoSetaSemEvo = $('#ajTextoSeta').value; salvarAjustes(); desenharAjustes(); });
+  $('#ajSetaSemEvo').addEventListener('change', () => { AJ.setaSemEvo = $('#ajSetaSemEvo').value; salvarAjustes(); desenharAjustes(); });
   $('#ajImp').addEventListener('change', () => { AJ.impressao = $('#ajImp').value; salvarAjustes(); desenharAjustes(); });
   $('#ajSeta').addEventListener('change', () => { AJ.setaDir = $('#ajSeta').value; salvarAjustes(); desenharAjustes(); });
   $('#ajNumJunto').addEventListener('change', () => { AJ.senhaNumJunto = $('#ajNumJunto').checked; salvarAjustes(); desenharAjustes(); });
@@ -1210,7 +1380,9 @@ function iniciarTotem() {
   $('#iQtd').addEventListener('focus', focou('qtd'));
   ['#iCpf', '#iNasc'].forEach(s => $(s).addEventListener('input', e => aplicar(e.target, digitos(e.target))));
   ['#iCpf', '#iNasc'].forEach(s => $(s).addEventListener('mouseup', () => setTimeout(() => marcar(T.campo), 0)));
-  $('#bVale').addEventListener('click', pedirBanho);
+  $('#bVale').addEventListener('click', () => { if (modsAtivos().length > 1) consultarEEscolher(false); else pedirBanho(modsAtivos()[0]); });
+  $('#bConsulta').addEventListener('click', () => { if (validarTotem(true)) consultarEEscolher(true); });
+  $('#eSair').addEventListener('click', sairEscolha);
   // teclado físico (totem com teclado): as funções das teclas vêm dos Ajustes do totem
   document.addEventListener('keydown', teclaFisica, true);
   $('#bNovo').addEventListener('click', sairDaSenha);
@@ -1461,7 +1633,22 @@ function irAba(aba) {
   document.querySelectorAll('.abas button').forEach(x => x.setAttribute('aria-selected', x.dataset.aba === aba));
   $('#abaCodigos').classList.toggle('esconder', aba !== 'codigos');
   $('#abaLotes').classList.toggle('esconder', aba !== 'lotes');
+  $('#abaRefeicao').classList.toggle('esconder', aba !== 'refeicao');
+  if (aba === 'refeicao' && !C.rfCarregou) { C.rfCarregou = true; carregarRefeicoes(); }
 }
+async function carregarRefeicoes() {
+  const hoje = new Date(), z = n => String(n).padStart(2, '0'), iso = d => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+  if (!$('#rfDe').value) $('#rfDe').value = iso(hoje);
+  if (!$('#rfAte').value) $('#rfAte').value = iso(hoje);
+  $('#rfLista').innerHTML = '<tr><td colspan="4" class="vazio">Carregando…</td></tr>';
+  const r = await apiCx('caixa_refeicoes', { de: $('#rfDe').value, ate: $('#rfAte').value });
+  if (!r.ok) { $('#rfLista').innerHTML = `<tr><td colspan="4" class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</td></tr>`; return; }
+  const ok = r.lista.filter(x => x.status === 'CONCLUIDO').length;
+  $('#rfResumo').textContent = `${r.lista.length} pedido(s) · ${ok} concluído(s)`;
+  $('#rfLista').innerHTML = r.lista.length ? r.lista.map(x => `<tr><td>${esc(x.data)}</td><td>${esc(x.nome)}</td><td><b>${esc(x.codigo || '—')}</b></td><td>${esc(x.status === 'CONCLUIDO' ? 'Concluído' : x.status === 'ERRO' ? 'Recusado' : x.status)}${x.mensagem ? '<br><span class="pequeno">' + esc(x.mensagem) + '</span>' : ''}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="vazio">Nenhum resgate no período.</td></tr>';
+}
+
 function desenharLotes() {
   const tb = $('#cxLotes');
   if (!C.lotes.length) { tb.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum lote neste turno.</td></tr>'; return; }
@@ -1559,6 +1746,59 @@ async function abrirErros() {
 }
 
 // ---------- configurações do posto (só auditor)
+/* ---- opções de resgate (auditor): o prêmio de cada uma é escolhido na lista lida do ClubPetro ---- */
+const DM = { mods: [], premios: [] };
+async function abrirModalidades() {
+  const d = $('#dModalidades'); $('#dmMsg').textContent = 'Carregando…'; $('#dmLista').innerHTML = ''; d.showModal();
+  const r = await apiCx('caixa_modalidades');
+  if (!r.ok) { $('#dmMsg').textContent = r.erro || 'Não foi possível carregar.'; return; }
+  DM.mods = r.modalidades.map(m => Object.assign({}, m));
+  DM.premios = (r.premios && r.premios.lista) || [];
+  $('#dmPremiosInfo').textContent = DM.premios.length
+    ? `Prêmios do ClubPetro lidos pelo robô em ${r.premios.em}. Toque no prêmio de cada opção.`
+    : 'A lista de prêmios do ClubPetro aparece aqui depois do próximo resgate ou consulta de pontos feito pelo robô. Até lá, digite o nome do prêmio igual ao ClubPetro.';
+  $('#dmMsg').textContent = ''; desenharModalidades();
+}
+function desenharModalidades() {
+  $('#dmLista').innerHTML = DM.mods.map((m, i) => {
+    if (m.id === 'banho') return `<div class="mod-card"><b>Banho</b> <span class="pequeno">· prêmio “${esc(m.produto)}” · com EVO (${esc(m.botaoEvo)}) · configurado em Configurações do posto</span></div>`;
+    const cards = DM.premios.map(p => `<button type="button" class="premio ${p.nome.toLowerCase() === String(m.produto || '').toLowerCase() ? 'sel' : ''}" data-i="${i}" data-nome="${esc(p.nome)}" data-cat="${esc(p.categoria)}"><b>${esc(p.nome)}</b><span>${esc(p.categoria)} · ${Number(p.pontos).toLocaleString('pt-BR')} pontos</span></button>`).join('');
+    return `<div class="mod-card" data-i="${i}">
+      <div class="linha-form" style="gap:10px;align-items:center">
+        <label>Nome no totem <input data-f="nome" value="${esc(m.nome)}" maxlength="30"></label>
+        <label class="chk"><input type="checkbox" data-f="ativo" ${m.ativo !== false ? 'checked' : ''}> Ativa</label>
+        <label class="chk"><input type="checkbox" data-f="usaEvo" ${m.usaEvo ? 'checked' : ''}> Usa EVO</label>
+        <label class="${m.usaEvo ? '' : 'esconder'}">Botão do EVO <input data-f="botaoEvo" value="${esc(m.botaoEvo || '')}" maxlength="40"></label>
+      </div>
+      <label style="display:block;margin-top:6px">Prêmio no ClubPetro <input data-f="produto" value="${esc(m.produto || '')}" maxlength="80" style="width:100%"></label>
+      <label style="display:block">Categoria no ClubPetro <input data-f="categoria" value="${esc(m.categoria || 'Serviço')}" maxlength="40"></label>
+      ${cards ? `<div class="premios">${cards}</div>` : ''}
+    </div>`;
+  }).join('');
+  $('#dmLista').querySelectorAll('.mod-card[data-i] input').forEach(inp => inp.onchange = () => {
+    const m = DM.mods[Number(inp.closest('.mod-card').dataset.i)];
+    m[inp.dataset.f] = inp.type === 'checkbox' ? inp.checked : inp.value.trim();
+    if (inp.dataset.f === 'usaEvo') desenharModalidades();
+  });
+  $('#dmLista').querySelectorAll('.premio').forEach(b => b.onclick = () => {
+    const m = DM.mods[Number(b.dataset.i)]; m.produto = b.dataset.nome; m.categoria = b.dataset.cat || m.categoria; desenharModalidades();
+  });
+}
+function iniciarModalidades() {
+  $('#dmCancelar').onclick = () => $('#dModalidades').close();
+  $('#dmNova').onclick = () => {
+    const n = DM.mods.length;
+    DM.mods.push({ id: 'opcao' + Date.now().toString(36).slice(-5), nome: 'Nova opção ' + n, categoria: 'Serviço', produto: '', usaEvo: false, botaoEvo: '', ativo: true });
+    desenharModalidades();
+  };
+  $('#dmSalvar').onclick = async () => {
+    $('#dmMsg').textContent = 'Salvando…';
+    const r = await apiCx('caixa_salvarModalidades', { modalidades: DM.mods });
+    $('#dmMsg').textContent = r.ok ? 'Salvo. O robô e os totens passam a usar em até 10 minutos.' : (r.erro || 'Não foi possível salvar.');
+    if (r.ok) { DM.mods = r.modalidades; desenharModalidades(); }
+  };
+}
+
 async function abrirConfigPosto() {
   const d = $('#dPosto'); $('#dpMsg').textContent = 'Carregando…'; d.showModal();
   const r = await apiCx('caixa_configPosto');
@@ -1866,6 +2106,8 @@ function iniciarCaixa() {
   $('#dfFechar').onclick = () => $('#dFechamentos').close();
   $('#cfgUsuarios').onclick = () => { $('#dConfig').close(); abrirUsuarios(); };
   $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
+  $('#cfgModalidades').onclick = () => { $('#dConfig').close(); abrirModalidades(); };
+  iniciarModalidades();
   $('#cfgErros').onclick = () => { $('#dConfig').close(); abrirErros(); };
   $('#erVoltar').onclick = () => entrarCaixa();
   $('#dpCanc').onclick = () => $('#dPosto').close();
@@ -1889,6 +2131,7 @@ function iniciarCaixa() {
     entrarCaixa();
   };
   document.querySelectorAll('.abas button').forEach(b => b.onclick = () => irAba(b.dataset.aba));
+  $('#rfAtualizar').onclick = carregarRefeicoes;
  document.querySelectorAll('#cxFiltros input').forEach(i => i.onchange = () => desenharLista());
   $('#cxListaTurnos').onclick = () => { C.turnoSel = null; C.turno = null; C.verLista = true; entrarCaixa(); };
   $('#cxSelPend').onclick = () => { C.lista.filter(x => x.status === 'CONCLUIDO' && x.codigo && !x.lote).forEach(x => C.sel.add(x.id)); desenharLista(); };
