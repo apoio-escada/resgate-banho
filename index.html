@@ -128,6 +128,10 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 @media (prefers-reduced-motion:reduce){.desc-logo,.desc-enter{animation:none}}
 @media (max-width:820px){.desc-meio{flex-direction:column;gap:22px}.desc-logo{width:200px}}
 #cantinhos.esconder{display:none}
+.espera-app{display:flex;align-items:center;gap:22px;margin:26px auto 0;max-width:620px;background:#fff;border-radius:26px;padding:16px 22px;box-shadow:0 10px 28px rgba(10,30,70,.12);border:2px solid #EEF1F6;text-align:left}
+.espera-app.esconder{display:none}
+.espera-qr{flex:0 0 150px}.espera-qr svg{width:150px;height:auto;display:block;border-radius:10px}
+.tela .espera-app p,.espera-app p{margin:0;font-family:var(--cond);font-weight:700;font-size:clamp(24px,2.6vw,32px);line-height:1.15;color:var(--tinta)}
 body:has(#vDescanso:not(.esconder)) #cantinhos .cantinho{color:rgba(255,255,255,.75)}
 #vDescanso ~ #cantinhos .cantinho{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .aj-tempos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px 16px}
@@ -403,6 +407,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <li data-p="imp"><i></i>Imprimindo o comprovante</li>
     </ul>
     <div class="saldo esconder" id="pSaldo"></div>
+    <div class="espera-app" id="pApp"><div class="espera-qr" id="pQr"></div><p id="pAppTexto"></p></div>
   </div>
 </div>
 
@@ -479,6 +484,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <div class="linha-form" style="gap:10px;margin-top:6px"><label style="flex:1;font-weight:600">Texto acima do QR <input id="ajQrTitulo" maxlength="30" style="width:100%;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px"></label>
         <label style="flex:1;font-weight:600">Texto abaixo do QR <input id="ajQrTexto" maxlength="40" style="width:100%;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px"></label></div>
       <button class="btn" id="ajTesteDescanso" style="margin-top:10px">Ver tela de descanso</button>
+
+      <h3>Tela de espera (enquanto o robô trabalha)</h3>
+      <label class="chk" style="display:block;margin:6px 0"><input type="checkbox" id="ajAppEspera"> Mostrar o QR Code do app abaixo de “Aguarde”</label>
+      <label style="display:block;font-weight:600">Orientação ao lado do QR <input id="ajTextoAppEspera" maxlength="120" style="width:100%;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px"></label>
+      <div class="aj-previa" style="margin-top:8px"><div class="espera-app" id="ajPrevEspera" style="margin:0 auto"></div></div>
 
       <h3>Tempos das telas (segundos)</h3>
       <div class="aj-tempos" id="ajTempos"></div>
@@ -885,6 +895,7 @@ function mostrar(id) {
   // nome do caixa ao qual este totem pertence, no canto superior esquerdo das telas do cliente
   const rot = document.getElementById('rotuloCaixa');
   const telaCliente = ['vInicio', 'vTotem', 'vProcesso', 'vSenha', 'vAviso'].includes(id);
+  if (id === 'vProcesso' && typeof AJ !== 'undefined') prepararAppEspera();
   // links de configuração: no totem, no descanso e com caixa fechado/aviso (dá para configurar mesmo sem caixa aberto)
   const cant = document.getElementById('cantinhos'); if (cant) cant.classList.toggle('esconder', !['vTotem', 'vAviso', 'vDescanso', 'vInicio'].includes(id));
   if (id !== 'vTotem' && typeof T !== 'undefined' && T) clearTimeout(T.ocioso);
@@ -962,7 +973,8 @@ const corDe = id => id === 'banho' ? '#0A3A8C' : '#E07400';
 const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha: 40 };
 const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade' };
 function tempo(k) { const v = Number((AJ.tempos || {})[k]); return v >= 5 && v <= 900 ? v : TEMPOS_PADRAO[k]; }
-const AJ_PADRAO = { descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+const TEXTO_APP_ESPERA = 'Pelo aplicativo você também consegue trocar pontos por ficha de banho';
+const AJ_PADRAO = { appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
   teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], consulta: [], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
@@ -975,6 +987,7 @@ function carregarAjustes() {
     return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
       mods: Array.isArray(j.mods) && j.mods.length ? j.mods : ['banho'], consulta: !!j.consulta, telas: j.telas && typeof j.telas === 'object' ? j.telas : {},
+      appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
       descanso: j.descanso !== false, descTitulo: j.descTitulo !== undefined && j.descTitulo !== 'Resgate com seus pontos ClubPetro' ? String(j.descTitulo) : '',
       qrTitulo: j.qrTitulo !== undefined ? String(j.qrTitulo) : 'Baixe nosso app', qrTexto: j.qrTexto !== undefined ? String(j.qrTexto) : 'Aponte a câmera do celular',
       tempos: j.tempos && typeof j.tempos === 'object' ? j.tempos : {},
@@ -1322,6 +1335,13 @@ async function verificarEstado() {
 }
 
 // v2.10: com mais de uma opção, o totem começa na tela inicial (1 BANHO / 2 VALE REFEIÇÃO); só banho fica como antes
+// enquanto o cliente espera: QR Code do app com a orientação (editável nos Ajustes)
+function prepararAppEspera() {
+  const box = $('#pApp'); if (!box) return;
+  box.classList.toggle('esconder', !AJ.appEspera);
+  if (!$('#pQr').innerHTML) { const q = document.querySelector('#vDescanso .desc-qr svg'); if (q) $('#pQr').innerHTML = q.outerHTML; }
+  $('#pAppTexto').textContent = AJ.textoAppEspera || TEXTO_APP_ESPERA;
+}
 function irDescanso() {
   if (!AJ.descanso) { irTotem(); return; }
   limparTotem();
@@ -1538,6 +1558,9 @@ function desenharAjustes() {
   });
   $('#ajConsulta').checked = !!AJ.consulta;
   $('#ajDescanso').checked = !!AJ.descanso;
+  $('#ajAppEspera').checked = !!AJ.appEspera;
+  if (document.activeElement !== $('#ajTextoAppEspera')) $('#ajTextoAppEspera').value = AJ.textoAppEspera || '';
+  { const q = document.querySelector('#vDescanso .desc-qr svg'); $('#ajPrevEspera').innerHTML = `<div class="espera-qr">${q ? q.outerHTML : ''}</div><p>${esc(AJ.textoAppEspera || TEXTO_APP_ESPERA)}</p>`; $('#ajPrevEspera').classList.toggle('esconder', !AJ.appEspera); }
   for (const [id, k] of [['#ajDescTitulo', 'descTitulo'], ['#ajQrTitulo', 'qrTitulo'], ['#ajQrTexto', 'qrTexto']]) if (document.activeElement !== $(id)) $(id).value = AJ[k] || '';
   if (!$('#ajTempos').contains(document.activeElement)) $('#ajTempos').innerHTML = Object.keys(TEMPOS_PADRAO).map(k => `<label>${esc(TEMPOS_NOMES[k])}<input type="number" min="5" max="900" data-t="${k}" value="${tempo(k)}"></label>`).join('');
   $('#ajTempos').querySelectorAll('input').forEach(i => i.onchange = () => { AJ.tempos = Object.assign({}, AJ.tempos, { [i.dataset.t]: Number(i.value) }); salvarAjustes(); i.value = tempo(i.dataset.t); });
@@ -1615,6 +1638,8 @@ function iniciarAjustes() {
   $('#ajAviso').addEventListener('input', () => { AJ.aviso = $('#ajAviso').value; salvarAjustes(); desenharAjustes(); });
   $('#ajModo').addEventListener('change', () => { AJ.senhaModo = $('#ajModo').value; salvarAjustes(); desenharAjustes(); });
   $('#ajDescanso').addEventListener('change', () => { AJ.descanso = $('#ajDescanso').checked; salvarAjustes(); });
+  $('#ajAppEspera').addEventListener('change', () => { AJ.appEspera = $('#ajAppEspera').checked; salvarAjustes(); desenharAjustes(); });
+  $('#ajTextoAppEspera').addEventListener('input', () => { AJ.textoAppEspera = $('#ajTextoAppEspera').value; salvarAjustes(); desenharAjustes(); });
   for (const [id, k] of [['#ajDescTitulo', 'descTitulo'], ['#ajQrTitulo', 'qrTitulo'], ['#ajQrTexto', 'qrTexto']]) $(id).addEventListener('input', () => { AJ[k] = $(id).value; salvarAjustes(); });
   $('#ajTesteDescanso').addEventListener('click', () => { T.teste = true; const d0 = AJ.descanso; AJ.descanso = true; irDescanso(); AJ.descanso = d0; $('#barraTeste').classList.remove('esconder'); });
   $('#ajConsulta').addEventListener('change', () => { AJ.consulta = $('#ajConsulta').checked; salvarAjustes(); desenharAjustes(); });
