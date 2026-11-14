@@ -125,7 +125,8 @@ h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.05;margin:0}
 .desc-relogio{position:fixed;top:20px;right:28px;text-align:right;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.25);font-family:var(--cond);line-height:1.05;z-index:2}
 .desc-relogio b{display:block;font-size:clamp(40px,4.2vw,58px);font-variant-numeric:tabular-nums}
 .desc-relogio span{font-size:clamp(17px,1.7vw,22px);text-transform:capitalize}
-@media (prefers-reduced-motion:reduce){#vDescanso,.desc-logo,.desc-enter,@media (max-width:820px){.desc-meio{flex-direction:column;gap:22px}.desc-logo{width:200px}}
+@media (prefers-reduced-motion:reduce){.desc-logo,.desc-enter{animation:none}}
+@media (max-width:820px){.desc-meio{flex-direction:column;gap:22px}.desc-logo{width:200px}}
 #cantinhos.esconder{display:none}
 body:has(#vDescanso:not(.esconder)) #cantinhos .cantinho{color:rgba(255,255,255,.75)}
 #vDescanso ~ #cantinhos .cantinho{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
