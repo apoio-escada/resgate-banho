@@ -320,11 +320,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <aside class="faixa">
       <div>
         <div class="marca">Postos <b>Pichilau</b> · <span id="tPosto"></span></div>
-        <h1 id="tTitulo">Seu banho com pontos ClubPetro</h1>
+        <h1 id="tTitulo">Seu banho com pontos Pichilau+</h1>
         <p id="tTexto">Digite seu CPF e sua data de nascimento. A senha do banho sai impressa em seguida.</p>
         <div class="faixa-img" id="tImg"></div>
       </div>
-      <p class="lgpd">Seu CPF e sua data de nascimento são usados só para este resgate no ClubPetro e não ficam guardados neste aparelho.</p>
+      <p class="lgpd">Seu CPF e sua data de nascimento são usados só para este resgate no Pichilau+ e não ficam guardados neste aparelho.</p>
     </aside>
     <main class="palco">
       <div class="topo-totem" id="tTopo"></div>
@@ -379,7 +379,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 
 <div id="vInicio" class="tela esconder">
   <div class="caixa">
-    <div class="ini-marca">Postos <b>Pichilau</b> · resgate com pontos ClubPetro</div>
+    <div class="ini-marca">Postos <b>Pichilau</b> · resgate com pontos Pichilau+</div>
     <div class="ini-opcoes" id="iniOpcoes"></div>
     <p class="ini-dica" id="iniDica"></p>
     <div class="topo-totem" id="iniTopo" style="margin:14px 0 0"></div>
@@ -402,7 +402,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p>Aguarde aqui, leva menos de um minuto.</p>
     <ul class="passos" id="passos">
       <li data-p="fila"><i></i>Pedido recebido</li>
-      <li data-p="club"><i></i>Resgatando o banho no ClubPetro</li>
+      <li data-p="club"><i></i>Resgatando o banho no Pichilau+</li>
       <li data-p="evo"><i></i>Gerando a senha do banho</li>
       <li data-p="imp"><i></i>Imprimindo o comprovante</li>
     </ul>
@@ -955,9 +955,9 @@ const DIRS = ['direita', 'esquerda', 'cima', 'baixo'];
 const AVISO_SEM_EVO = 'PEGUE SEU COMPROVANTE COM O CAIXA PARA CARIMBAR';
 // v2.10: textos de cada opção (tela inicial e faixa lateral) — editáveis nos Ajustes do totem
 const TELAS_PADRAO = {
-  geral: { opcao: '', detalhe: '', titulo: 'Resgate com pontos ClubPetro', texto: 'Digite seu CPF e sua data de nascimento para ver seus pontos e escolher banho ou refeição.' },
-  banho: { opcao: 'BANHO', detalhe: 'WC MASCULINO', titulo: 'Seu banho com pontos ClubPetro', texto: 'Digite seu CPF e sua data de nascimento. A senha do banho sai impressa em seguida.' },
-  refeicao: { opcao: 'VALE REFEIÇÃO', detalhe: 'RESTAURANTE BOA PARADA', titulo: 'Sua refeição com pontos ClubPetro', texto: 'Digite seu CPF e sua data de nascimento. O comprovante sai impresso para o caixa carimbar.' }
+  geral: { opcao: '', detalhe: '', titulo: 'Resgate com pontos Pichilau+', texto: 'Digite seu CPF e sua data de nascimento para ver seus pontos e escolher banho ou refeição.' },
+  banho: { opcao: 'BANHO', detalhe: 'WC MASCULINO', titulo: 'Seu banho com pontos Pichilau+', texto: 'Digite seu CPF e sua data de nascimento. A senha do banho sai impressa em seguida.' },
+  refeicao: { opcao: 'VALE REFEIÇÃO', detalhe: 'RESTAURANTE BOA PARADA', titulo: 'Sua refeição com pontos Pichilau+', texto: 'Digite seu CPF e sua data de nascimento. O comprovante sai impresso para o caixa carimbar.' }
 };
 const SVG_DUCHA = '<svg viewBox="0 0 200 200" aria-hidden="true"><path d="M60 30 h70 a12 12 0 0 1 12 12 v18" fill="none" stroke="#1565C0" stroke-width="12" stroke-linecap="round"/><path d="M98 66 h88 a10 10 0 0 0 -10 -18 h-68 a10 10 0 0 0 -10 18z" fill="#1565C0" transform="translate(-8 0)"/><rect x="40" y="22" width="16" height="150" rx="8" fill="#0D47A1"/><g fill="#42A5F5">' +
   [[104,96],[124,92],[144,96],[164,92],[112,124],[134,120],[156,124],[104,152],[126,150],[148,154],[170,148]].map(([x, y]) => `<path d="M${x} ${y} q6 10 0 16 q-6 -6 0 -16z" transform="scale(1)"/>`).join('') + '</g></svg>';
@@ -965,7 +965,7 @@ const SVG_PRATO = '<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100
   '<g fill="#F07F00"><rect x="18" y="40" width="8" height="40" rx="3"/><rect x="30" y="40" width="8" height="40" rx="3"/><rect x="42" y="40" width="8" height="40" rx="3"/><path d="M16 78 h36 v8 a18 18 0 0 1 -12 12 v74 a6 6 0 0 1 -12 0 v-74 a18 18 0 0 1 -12 -12z"/>' +
   '<path d="M172 36 c12 10 14 52 2 66 v76 a6 6 0 0 1 -12 0 v-142 a5 5 0 0 1 10 0z"/></g></svg>';
 function telaDe(id) {
-  const p = TELAS_PADRAO[id] || { opcao: String(modInfo(id).nome || id).toUpperCase(), detalhe: '', titulo: 'Seu resgate com pontos ClubPetro', texto: 'Digite seu CPF e sua data de nascimento.' };
+  const p = TELAS_PADRAO[id] || { opcao: String(modInfo(id).nome || id).toUpperCase(), detalhe: '', titulo: 'Seu resgate com pontos Pichilau+', texto: 'Digite seu CPF e sua data de nascimento.' };
   return Object.assign({}, p, (AJ.telas || {})[id] || {});
 }
 const iconeDe = id => id === 'banho' ? SVG_DUCHA : SVG_PRATO;
@@ -1421,8 +1421,12 @@ async function pedirBanho(tipo, qtdEscolhida) {
   $('#vProcesso h2').textContent = T.semEvoAtual ? 'Fazendo seu resgate' : 'Gerando sua senha';
   $('#vProcesso p').textContent = 'Aguarde aqui, leva menos de um minuto.';
   $('#passos').classList.remove('esconder');
-  $('#passos [data-p="club"]').lastChild.textContent = 'Resgatando ' + (tipo === 'banho' ? 'o banho' : mod.nome.toLowerCase()) + ' no ClubPetro';
-  $('#passos [data-p="evo"]').classList.toggle('esconder', T.semEvoAtual);
+  $('#passos [data-p="club"]').lastChild.textContent = 'Resgatando ' + (tipo === 'banho' ? 'o banho' : 'o ' + (telaDe(tipo).opcao || mod.nome).toLowerCase()) + ' no Pichilau+';
+  // v2.10.1: na refeição a etapa do EVO vira a do vale (sem "senha do banho")
+  const nomeVale = (telaDe(tipo).opcao || mod.nome || 'vale').toLowerCase();
+  $('#passos [data-p="evo"]').lastChild.textContent = T.semEvoAtual ? 'Gerando o ' + nomeVale : 'Gerando a senha do banho';
+  $('#passos [data-p="imp"]').lastChild.textContent = T.semEvoAtual ? 'Imprimindo o comprovante para o caixa carimbar' : 'Imprimindo o comprovante';
+  $('#passos [data-p="evo"]').classList.remove('esconder');
   marcarPassos('fila');
   mostrar('vProcesso');
   const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente,
@@ -1440,7 +1444,7 @@ function marcarPassos(etapaAtual) {
   const ordem = ['fila', 'club', 'evo', 'imp'];
   const idx = ordem.indexOf(etapaAtual);
   document.querySelectorAll('#passos li').forEach((li, i) => {
-    li.className = i < idx ? 'feito' : i === idx ? 'agora' : '';
+    li.classList.toggle('feito', i < idx); li.classList.toggle('agora', i === idx);
     li.querySelector('i').textContent = i < idx ? '✓' : '';
   });
 }
@@ -2213,7 +2217,7 @@ async function abrirRelatorio(turnoId, dadosProntos) {
     + (x.status === 'CANCELADO' ? `<tr><td></td><td colspan="6" style="font-size:12px;color:#444">${esc(x.mensagem)}</td></tr>` : '')).join('')
     || '<tr><td colspan="7">Nenhum resgate no turno.</td></tr>';
   $('#relatorio').innerHTML = `
-    <h2>Resgate de banho ClubPetro · Conferência de turno</h2>
+    <h2>Resgate de banho Pichilau+ · Conferência de turno</h2>
     <div class="sub">Postos Pichilau · ${esc(R.posto)}</div>
     <dl>
       <dt>Data</dt><dd>${esc(R.abertura.slice(0, 10))}</dd>
