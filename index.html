@@ -672,6 +672,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <button role="tab" aria-selected="true" data-aba="codigos">Códigos</button>
         <button role="tab" aria-selected="false" data-aba="lotes">Lotes e OPNF</button>
         <button role="tab" aria-selected="false" data-aba="refeicao">Refeição</button>
+        <button role="tab" aria-selected="false" data-aba="resumo">Resumo do dia</button>
       </nav>
 
       <div id="abaCodigos">
@@ -695,6 +696,17 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
           <thead><tr><th></th><th>Hora</th><th>Código do resgate</th><th>Qtd</th><th>Senha</th><th>Situação</th><th>Lote / OPNF</th><th>OK</th><th></th></tr></thead>
           <tbody id="cxLista"></tbody>
         </table></div>
+      </div>
+
+      <div id="abaResumo" class="esconder">
+        <div class="barra">
+          <label class="pequeno">Dia <input type="date" id="rsDia"></label>
+          <button class="btn peq" id="rsAtualizar">Atualizar</button>
+          <button class="btn peq sec" id="rsImprimir">Imprimir / PDF</button>
+          <button class="btn peq sec" id="rsPlanilha">Baixar planilha</button>
+          <span class="info" id="rsInfo"></span>
+        </div>
+        <div id="rsConteudo"><p class="vazio">Escolha o dia e toque em Atualizar.</p></div>
       </div>
 
       <div id="abaRefeicao" class="esconder">
@@ -784,6 +796,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn sec" id="cfgUsuarios">Usuários</button>
     <button class="btn sec" id="cfgPosto">Configurações do posto</button>
     <button class="btn sec" id="cfgModalidades">Opções de resgate</button>
+    <button class="btn sec" id="cfgInstalarRobo">Instalar robô em outro computador</button>
     <button class="btn sec" id="cfgErros">Erros e sugestões <span id="cfgErrosN"></span></button>
   </div>
   <div class="secao">
@@ -796,6 +809,14 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
 </dialog>
+<dialog id="dInstalar" style="max-width:520px">
+  <h3>Instalar o robô em outro computador</h3>
+  <p>No computador novo, extraia o <b>Instalador-Robo-Banho.zip</b>, rode o <b>INSTALAR.bat</b> e digite este código:</p>
+  <p style="text-align:center;font-family:var(--cond);font-size:56px;font-weight:700;letter-spacing:.12em;margin:10px 0" id="diCodigo">——————</p>
+  <p class="pequeno" id="diMsg">Vale por 15 minutos e só uma vez. O computador novo assume o robô; o atual fica em espera.</p>
+  <div class="acoes"><button class="btn sec" id="diNovo">Gerar outro código</button><button class="btn" id="diFechar">Fechar</button></div>
+</dialog>
+
 <dialog id="dModalidades" style="max-width:760px">
   <h3>Opções de resgate (modalidades)</h3>
   <p class="pequeno" id="dmPremiosInfo"></p>
@@ -1949,8 +1970,61 @@ function irAba(aba) {
   $('#abaCodigos').classList.toggle('esconder', aba !== 'codigos');
   $('#abaLotes').classList.toggle('esconder', aba !== 'lotes');
   $('#abaRefeicao').classList.toggle('esconder', aba !== 'refeicao');
+  $('#abaResumo').classList.toggle('esconder', aba !== 'resumo');
+  if (aba === 'resumo' && !C.rsCarregou) { C.rsCarregou = true; carregarResumo(); }
   if (aba === 'refeicao' && !C.rfCarregou) { C.rfCarregou = true; carregarRefeicoes(); }
 }
+// v2.12: código para instalar o robô em outro computador (vale 15 min, uma vez)
+async function gerarCodigoInstalacao() {
+  $('#diCodigo').textContent = '······'; $('#diMsg').textContent = 'Gerando…';
+  const r = await apiCx('caixa_codigoInstalacao');
+  if (!r.ok) { $('#diCodigo').textContent = '——————'; $('#diMsg').textContent = r.erro || 'Não foi possível gerar o código.'; return; }
+  $('#diCodigo').textContent = r.codigo;
+  $('#diMsg').textContent = 'Vale por 15 minutos e só uma vez. O computador novo assume o robô; o atual fica em espera.';
+}
+
+// v2.12: resumo dos resgates do dia (banho, refeição, por caixa, recusas, turnos e EVO)
+const MOTIVOS = { PONTOS_INSUFICIENTES: 'Pontos insuficientes', CPF_NAO_ENCONTRADO: 'CPF não cadastrado', NASCIMENTO_INVALIDO: 'Data de nascimento não confere' };
+async function carregarResumo() {
+  const z = n => String(n).padStart(2, '0'), d = new Date();
+  if (!$('#rsDia').value) $('#rsDia').value = `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+  $('#rsConteudo').innerHTML = '<p class="vazio">Carregando…</p>'; $('#rsInfo').textContent = '';
+  const r = await apiCx('caixa_resumoDia', { data: $('#rsDia').value });
+  if (!r.ok) { $('#rsConteudo').innerHTML = `<p class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</p>`; return; }
+  C.resumo = r;
+  const n = x => (x === null || x === undefined || x === '') ? '—' : esc(x);
+  const tab = (cab, linhas) => `<div class="rolagem"><table><thead><tr>${cab.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${linhas.length ? linhas.join('') : `<tr><td colspan="${cab.length}" class="vazio">Nada no dia.</td></tr>`}</tbody></table></div>`;
+  const tot = r.porTipo.reduce((a, x) => ({ res: a.res + x.resgates, fic: a.fic + x.fichas, rec: a.rec + x.recusados }), { res: 0, fic: 0, rec: 0 });
+  $('#rsInfo').textContent = `${r.data} · ${tot.res} resgate(s) · ${tot.fic} ficha(s) · ${tot.rec} recusa(s)`;
+  $('#rsConteudo').innerHTML =
+    '<h3 style="margin:8px 0">Por opção</h3>' + tab(['Opção', 'Resgates', 'Fichas', 'Recusados', 'Cancelados', 'Em andamento'],
+      r.porTipo.map(x => `<tr><td><b>${esc(x.nome)}</b></td><td>${x.resgates}</td><td><b>${x.fichas}</b></td><td>${x.recusados}</td><td>${x.cancelados}</td><td>${x.emAndamento}</td></tr>`)) +
+    '<h3 style="margin:14px 0 8px">Por caixa (fichas concluídas)</h3>' + tab(['Caixa', 'Banho', 'Refeição', 'Outras', 'Recusados'],
+      r.porCaixa.map(x => `<tr><td>${esc(x.caixa)}</td><td>${x.banho}</td><td>${x.refeicao}</td><td>${x.outros}</td><td>${x.recusados}</td></tr>`)) +
+    '<h3 style="margin:14px 0 8px">Recusas por motivo</h3>' + tab(['Motivo', 'Quantidade'],
+      Object.entries(r.recusas).map(([k, v]) => `<tr><td>${esc(MOTIVOS[k] || k)}</td><td>${v}</td></tr>`)) +
+    '<h3 style="margin:14px 0 8px">Turnos e fechamento do EVO</h3>' + tab(['Caixa', 'Abertura', 'Fechamento', 'Total robô', 'Total EVO', 'Externo'],
+      r.turnos.map(x => `<tr><td>${esc(x.caixa)}</td><td>${esc(x.abertura)}</td><td>${n(x.fechamento)}</td><td>${n(x.totalRobo)}</td><td>${x.totalEvo === null || x.totalEvo === undefined ? '<span class="pequeno">não lido</span>' : esc(x.totalEvo)}</td><td>${n(x.externo)}</td></tr>`));
+}
+function planilhaResumo() {
+  const r = C.resumo; if (!r) return;
+  const q = v => '"' + String(v === null || v === undefined ? '' : v).replace(/"/g, '""') + '"';
+  const L = [['Resumo dos resgates', r.data], [], ['Opção', 'Resgates', 'Fichas', 'Recusados', 'Cancelados', 'Em andamento'], ...r.porTipo.map(x => [x.nome, x.resgates, x.fichas, x.recusados, x.cancelados, x.emAndamento]),
+    [], ['Caixa', 'Banho', 'Refeição', 'Outras', 'Recusados'], ...r.porCaixa.map(x => [x.caixa, x.banho, x.refeicao, x.outros, x.recusados]),
+    [], ['Motivo da recusa', 'Quantidade'], ...Object.entries(r.recusas).map(([k, v]) => [MOTIVOS[k] || k, v]),
+    [], ['Caixa', 'Abertura', 'Fechamento', 'Total robô', 'Total EVO', 'Externo'], ...r.turnos.map(x => [x.caixa, x.abertura, x.fechamento, x.totalRobo, x.totalEvo, x.externo])];
+  const csv = '\ufeff' + L.map(l => l.map(q).join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'resumo-resgates-' + $('#rsDia').value + '.csv'; a.click();
+}
+function imprimirResumo() {
+  if (!C.resumo) return;
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><meta charset="utf-8"><title>Resumo ${C.resumo.data}</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:16px}h2{margin:0 0 4px}h3{margin:14px 0 6px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 6px;text-align:left}th{background:#eee}</style></head><body>
+    <h2>Resumo dos resgates — ${esc(C.resumo.data)}</h2><p>${esc($('#rsInfo').textContent)}</p>${$('#rsConteudo').innerHTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
+}
+
 async function carregarRefeicoes() {
   const hoje = new Date(), z = n => String(n).padStart(2, '0'), iso = d => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
   if (!$('#rfDe').value) $('#rfDe').value = iso(hoje);
@@ -2423,6 +2497,8 @@ function iniciarCaixa() {
   $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
   $('#cfgModalidades').onclick = () => { $('#dConfig').close(); abrirModalidades(); };
   iniciarModalidades();
+  $('#cfgInstalarRobo').onclick = () => { $('#dConfig').close(); gerarCodigoInstalacao(); $('#dInstalar').showModal(); };
+  $('#diNovo').onclick = gerarCodigoInstalacao; $('#diFechar').onclick = () => $('#dInstalar').close();
   $('#cfgErros').onclick = () => { $('#dConfig').close(); abrirErros(); };
   $('#erVoltar').onclick = () => entrarCaixa();
   $('#dpCanc').onclick = () => $('#dPosto').close();
@@ -2447,6 +2523,8 @@ function iniciarCaixa() {
   };
   document.querySelectorAll('.abas button').forEach(b => b.onclick = () => irAba(b.dataset.aba));
   $('#rfAtualizar').onclick = carregarRefeicoes;
+  $('#rsAtualizar').onclick = carregarResumo; $('#rsPlanilha').onclick = planilhaResumo; $('#rsImprimir').onclick = imprimirResumo;
+  $('#rsDia').onchange = carregarResumo;
  document.querySelectorAll('#cxFiltros input').forEach(i => i.onchange = () => desenharLista());
   $('#cxListaTurnos').onclick = () => { C.turnoSel = null; C.turno = null; C.verLista = true; entrarCaixa(); };
   $('#cxSelPend').onclick = () => { C.lista.filter(x => x.status === 'CONCLUIDO' && x.codigo && !x.lote).forEach(x => C.sel.add(x.id)); desenharLista(); };
