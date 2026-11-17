@@ -512,8 +512,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
       <div class="aj-previas" id="ajPrevSemEvo"></div>
 
       <h3>Impressão neste totem</h3>
-      <div><b>A senha imprime neste totem?</b> <label class="chk" style="display:inline-flex"><input type="radio" name="ajImpTotem" value="1"> Sim</label> <label class="chk" style="display:inline-flex"><input type="radio" name="ajImpTotem" value="0"> Não</label></div>
-      <p class="pequeno">Sim: a senha (e o comprovante da refeição) sai na impressora padrão deste computador, mesmo que um PDV também imprima senhas. Não: sai no PDV do caixa (se marcado lá) ou na impressora do robô.</p>
+      <label style="display:block;font-weight:600">O que for resgatado aqui imprime em
+        <select id="ajImpDestino" style="display:block;width:100%;margin-top:4px"></select></label>
+      <div class="acoes" style="justify-content:flex-start;margin-top:6px"><button class="btn peq sec" id="ajImpAtualizar">Atualizar impressoras do robô</button></div>
+      <p class="pequeno" id="ajImpInfo"></p>
+      <p class="pequeno">“Impressora do robô”: sai no computador do robô (na escolhida aqui ou na do painel); se um PDV estiver com Senha = Sim para o caixa, sai no PDV. “Este computador”: sai na impressora padrão deste totem. O fechamento dos caixas só imprime no PDV marcado com Fechamento = Sim (ou no robô).</p>
 
       <h3>Tela da senha</h3>
       <label style="display:block;font-weight:600;margin-bottom:6px">Impressão do comprovante
@@ -1004,7 +1007,7 @@ const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha
 const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade', aviso: 'Avisos (recusa, CPF, pontos)' };
 function tempo(k) { const v = Number((AJ.tempos || {})[k]); return v >= 5 && v <= 900 ? v : TEMPOS_PADRAO[k]; }
 const TEXTO_APP_ESPERA = 'Pelo aplicativo você também consegue trocar pontos por ficha de banho';
-const AJ_PADRAO = { impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+const AJ_PADRAO = { impDestino: '', impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
   teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], consulta: [], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
@@ -1017,7 +1020,7 @@ function carregarAjustes() {
     return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
       mods: Array.isArray(j.mods) && j.mods.length ? j.mods : ['banho'], consulta: !!j.consulta, telas: j.telas && typeof j.telas === 'object' ? j.telas : {},
-      impTotem: !!j.impTotem, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
+      impDestino: j.impDestino !== undefined ? String(j.impDestino) : (j.impTotem ? 'aqui' : ''), impTotem: false, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
       descanso: j.descanso !== false, descTitulo: j.descTitulo !== undefined && j.descTitulo !== 'Resgate com seus pontos ClubPetro' ? String(j.descTitulo) : '',
       qrTitulo: j.qrTitulo !== undefined ? String(j.qrTitulo) : 'Baixe nosso app', qrTexto: j.qrTexto !== undefined ? String(j.qrTexto) : 'Aponte a câmera do celular',
       tempos: j.tempos && typeof j.tempos === 'object' ? j.tempos : {},
@@ -1479,7 +1482,7 @@ async function pedirBanho(tipo, qtdEscolhida) {
   marcarPassos('fila');
   mostrar('vProcesso');
   const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente,
-    qtd: qtdEscolhida || T.qtd, tipo, consultaId, impTotem: !!AJ.impTotem, imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
+    qtd: qtdEscolhida || T.qtd, tipo, consultaId, impTotem: impAqui(), impressora: impressoraRobo(), imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
   limparTotem();                                   // não deixa o CPF na tela
   T.qtd = 1; $('#qNum').textContent = '1';
   T.ultimoSaldo = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');
@@ -1553,7 +1556,7 @@ function mostrarSenha(r) {
 // v2.7: etapa 1 = "anote ou tecle Enter" com a senha; etapa 2 (Enter) = imprime e mostra a seta
 function telaSenha(x) {
   T.senhaAtual = x;
-  if (AJ.impTotem && !T.teste && x.id && (x.semEvo || AJ.impressao === 'auto')) totemImprimir(x.id);   // v2.12: o totem imprime
+  if (impAqui() && !T.teste && x.id && (x.semEvo || AJ.impressao === 'auto')) totemImprimir(x.id);   // v2.12: o totem imprime
   const fimTxt = s => T.teste ? `Volta aos ajustes em ${s} s.` : `Esta tela volta ao início em ${s} s.`;
   if (x.semEvo) {
     T.etapaSenha = 2; $('#bImprimir').classList.add('esconder');
@@ -1592,13 +1595,31 @@ async function imprimirSenha() {
   $('#bImprimir').classList.add('esconder');
   contagemSenha(T.teste ? 10 : tempo('seta'), sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
   if (T.teste || !x.id) return;
-  if (AJ.impTotem) { if (!(await totemImprimir(x.id))) $('#sRodape').textContent = 'Não foi possível imprimir aqui. Se precisar, procure o caixa.'; return; }
+  if (impAqui()) { if (!(await totemImprimir(x.id))) $('#sRodape').textContent = 'Não foi possível imprimir aqui. Se precisar, procure o caixa.'; return; }
   const r = await api('totem_imprimir', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: x.id });
   if (!r.ok) $('#sRodape').textContent = (r.erro || 'Não foi possível imprimir.') + ' Se precisar, procure o caixa.';
 }
 
 /* ---- tela Ajustes do totem ---- */
 function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTeste').classList.add('esconder'); limparTotem(); mostrar('vAjustes'); desenharAjustes(); }
+// v2.12.3: onde imprime o que for resgatado neste totem (robô, impressora do robô escolhida, ou este computador)
+const impAqui = () => AJ.impDestino === 'aqui';
+const impressoraRobo = () => String(AJ.impDestino || '').indexOf('robo:') === 0 ? AJ.impDestino.slice(5) : '';
+function desenharImpDestino(lista) {
+  if (lista) T.impLista = lista;
+  const l = T.impLista || [], atual = AJ.impDestino || '';
+  const op = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`;
+  $('#ajImpDestino').innerHTML = op('', 'Impressora do robô (a escolhida no painel)') + l.map(n => op('robo:' + n, 'Robô: ' + n)).join('') +
+    (atual.indexOf('robo:') === 0 && !l.includes(atual.slice(5)) ? op(atual, 'Robô: ' + atual.slice(5)) : '') + op('aqui', 'Este computador (impressora padrão deste totem)');
+  $('#ajImpDestino').value = atual;
+  $('#ajImpDestino').onchange = () => { AJ.impDestino = $('#ajImpDestino').value; salvarAjustes(); };
+  if (!lista && !T.impBuscou) { T.impBuscou = true; buscarImpressorasTotem(); }
+}
+async function buscarImpressorasTotem() {
+  const r = await api('totem_impressoras', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto });
+  if (r.ok) { desenharImpDestino(r.lista || []); $('#ajImpInfo').textContent = (r.lista || []).length ? `Impressoras do robô (lista de ${r.em || '—'}).` : 'O robô ainda não enviou as impressoras. Toque em “Atualizar impressoras do robô”.'; }
+  return r;
+}
 function desenharPreviaInicio() {
   const box = $('#ajPrevInicioIn');
   if (modsAtivos().length < 2) { box.innerHTML = '<p class="pequeno">Só uma opção: o totem abre direto na tela de CPF.</p>'; box.style.transform = ''; return; }
@@ -1621,7 +1642,7 @@ function desenharAjustes() {
   });
   $('#ajConsulta').checked = !!AJ.consulta;
   $('#ajDescanso').checked = !!AJ.descanso;
-  document.querySelectorAll('input[name="ajImpTotem"]').forEach(i => { i.checked = (i.value === '1') === !!AJ.impTotem; i.onchange = () => { AJ.impTotem = i.value === '1'; salvarAjustes(); }; });
+  desenharImpDestino();
   $('#ajAppEspera').checked = !!AJ.appEspera;
   if (document.activeElement !== $('#ajTextoAppEspera')) $('#ajTextoAppEspera').value = AJ.textoAppEspera || '';
   { const q = document.querySelector('#vDescanso .desc-qr svg'); $('#ajPrevEspera').innerHTML = `<div class="espera-qr">${q ? q.outerHTML : ''}</div><p>${esc(AJ.textoAppEspera || TEXTO_APP_ESPERA)}</p>`; $('#ajPrevEspera').classList.toggle('esconder', !AJ.appEspera); }
@@ -1702,6 +1723,14 @@ function iniciarAjustes() {
   $('#ajAviso').addEventListener('input', () => { AJ.aviso = $('#ajAviso').value; salvarAjustes(); desenharAjustes(); });
   $('#ajModo').addEventListener('change', () => { AJ.senhaModo = $('#ajModo').value; salvarAjustes(); desenharAjustes(); });
   $('#ajDescanso').addEventListener('change', () => { AJ.descanso = $('#ajDescanso').checked; salvarAjustes(); });
+  $('#ajImpAtualizar').addEventListener('click', async () => {
+    $('#ajImpInfo').textContent = 'Pedindo ao robô a lista de impressoras…';
+    const r = await api('totem_atualizarImpressoras', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto });
+    if (!r.ok) { $('#ajImpInfo').textContent = r.erro || 'Não foi possível pedir.'; return; }
+    const antes = T.impEm;
+    for (let i = 0; i < 8; i++) { await new Promise(ok => setTimeout(ok, 3000)); const l = await buscarImpressorasTotem(); if (l.ok && l.em && l.em !== antes) { T.impEm = l.em; return; } }
+    $('#ajImpInfo').textContent = 'O robô não respondeu. Confira se ele está ligado.';
+  });
   $('#ajAppEspera').addEventListener('change', () => { AJ.appEspera = $('#ajAppEspera').checked; salvarAjustes(); desenharAjustes(); });
   $('#ajTextoAppEspera').addEventListener('input', () => { AJ.textoAppEspera = $('#ajTextoAppEspera').value; salvarAjustes(); desenharAjustes(); });
   for (const [id, k] of [['#ajDescTitulo', 'descTitulo'], ['#ajQrTitulo', 'qrTitulo'], ['#ajQrTexto', 'qrTexto']]) $(id).addEventListener('input', () => { AJ[k] = $(id).value; salvarAjustes(); });
