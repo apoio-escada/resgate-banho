@@ -970,8 +970,8 @@ function telaDe(id) {
 }
 const iconeDe = id => id === 'banho' ? SVG_DUCHA : SVG_PRATO;
 const corDe = id => id === 'banho' ? '#0A3A8C' : '#E07400';
-const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha: 40 };
-const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade' };
+const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha: 40, aviso: 8 };
+const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade', aviso: 'Avisos (recusa, CPF, pontos)' };
 function tempo(k) { const v = Number((AJ.tempos || {})[k]); return v >= 5 && v <= 900 ? v : TEMPOS_PADRAO[k]; }
 const TEXTO_APP_ESPERA = 'Pelo aplicativo você também consegue trocar pontos por ficha de banho';
 const AJ_PADRAO = { appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
@@ -1249,6 +1249,7 @@ function teclaFisica(e) {
     if (acaoDaTecla(e, 'senha') === 'imprimir') { e.preventDefault(); if (T.etapaSenha === 1) imprimirSenha(); else sairDaSenha(); }
     return;
   }
+  if (vis('vAviso') && T.acaoAviso && acaoDaTecla(e) === 'enviar') { e.preventDefault(); T.acaoAviso(); return; }
   if (vis('vDescanso') && T.teste) { e.preventDefault(); voltarAjustes(); return; }
   if (vis('vDescanso')) { if (!e.ctrlKey && !e.altKey && !e.metaKey && e.key !== 'Tab') { e.preventDefault(); irTotem(); } return; }
   if (vis('vTotem')) vigiarOcioso();
@@ -1294,11 +1295,29 @@ function validarTotem(mostrarErros) {
 }
 function limparTotem() { $('#iCpf').value = ''; $('#iNasc').value = ''; $('#mCpf').textContent = ''; $('#mNasc').textContent = ''; T.cur = { cpf: 0, nasc: 0 }; T.qtd = 1; $('#qNum').textContent = '1'; validarTotem(false); ativar('cpf'); }
 
+// v2.10.2: mensagem curta para o cliente (sem "precisa de X, tem Y" e sem o nome do sistema)
+function avisoCurto(titulo, texto) {
+  const t = String(texto || '').replace(/ClubPetro/g, 'Pichilau+');
+  const m = /precisa de (\d+), tem (\d+)/i.exec(t);
+  if (/pontos (suficientes|insuficientes)|não tem pontos/i.test(t)) return ['Pontos insuficientes', m ? `Faltam ${Number(m[1]) - Number(m[2])} pontos.` : 'Seus pontos não são suficientes.'];
+  if (/não encontr\w* esse CPF|CPF.*(não encontr|cadastr)/i.test(t)) return ['CPF não cadastrado', 'Procure o caixa para se cadastrar.'];
+  if (/nascimento não confere/i.test(t)) return ['Data não confere', 'Confira a data de nascimento.'];
+  return [titulo, t.replace(/\s*\(.*\)\s*$/, '')];
+}
 function avisoTotem(titulo, texto, botao, acao) {
+  [titulo, texto] = avisoCurto(titulo, texto);
   $('#aTitulo').textContent = titulo; $('#aTexto').textContent = texto;
   const b = $('#aBotao'); b.textContent = botao || 'Tentar de novo'; b.classList.toggle('esconder', botao === null);
-  b.onclick = acao || (() => irTotem());
+  const fazer = () => { clearInterval(T.timerAviso); (acao || (() => irTotem()))(); };
+  b.onclick = fazer; T.acaoAviso = botao === null ? null : fazer;
   mostrar('vAviso');
+  // volta sozinho para o início depois de alguns segundos (Enter = o botão)
+  clearInterval(T.timerAviso);
+  if (botao !== null) {
+    let s = tempo('aviso');
+    const tick = () => { b.textContent = `${botao || 'Tentar de novo'} (${s})`; if (s-- <= 0) { clearInterval(T.timerAviso); if (!document.getElementById('vAviso').classList.contains('esconder')) irDescanso(); } };
+    tick(); T.timerAviso = setInterval(tick, 1000);
+  }
 }
 
 async function verificarEstado() {
@@ -1475,7 +1494,7 @@ async function acompanhar(inicio) {
     } else if (r.status === 'ERRO') {
       T.pedido = null;
       const salTxt = (T.ultimoSaldo || '').replace(/<br>/g, ' · ').replace(/<[^>]+>/g, '');
-      avisoTotem('Não foi possível resgatar', (r.mensagem || 'Procure o caixa.') + (salTxt ? '  (' + salTxt + ')' : '')); return;
+      avisoTotem('Não foi possível resgatar', r.mensagem || 'Procure o caixa.'); return;
     } else if (r.status === 'VERIFICAR') {
       T.pedido = null;
       avisoTotem('Procure o caixa', r.mensagem || 'Seu resgate precisa de uma conferência.', 'Concluir'); return;
