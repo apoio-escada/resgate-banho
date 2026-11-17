@@ -511,6 +511,10 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <select id="ajSetaSemEvo" style="margin-left:8px"><option value="direita">➡ para a direita</option><option value="esquerda">⬅ para a esquerda</option><option value="cima">⬆ para cima</option><option value="baixo">⬇ para baixo</option></select></label>
       <div class="aj-previas" id="ajPrevSemEvo"></div>
 
+      <h3>Impressão neste totem</h3>
+      <div><b>A senha imprime neste totem?</b> <label class="chk" style="display:inline-flex"><input type="radio" name="ajImpTotem" value="1"> Sim</label> <label class="chk" style="display:inline-flex"><input type="radio" name="ajImpTotem" value="0"> Não</label></div>
+      <p class="pequeno">Sim: a senha (e o comprovante da refeição) sai na impressora padrão deste computador, mesmo que um PDV também imprima senhas. Não: sai no PDV do caixa (se marcado lá) ou na impressora do robô.</p>
+
       <h3>Tela da senha</h3>
       <label style="display:block;font-weight:600;margin-bottom:6px">Impressão do comprovante
         <select id="ajImp" style="margin-left:8px">
@@ -764,19 +768,24 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <dialog id="dConfig">
   <h3>Configurações</h3>
   <h4>Impressoras</h4>
-  <p style="margin-bottom:8px">Impressoras do computador do robô (DP002). Podem ser a mesma.</p>
+  <p style="margin-bottom:8px">Impressoras do computador do robô. Podem ser a mesma. Não apareceu? Toque em “Atualizar impressoras do robô”.</p>
   <label style="display:block;font-weight:600;font-size:15px;margin-bottom:4px">Senha do cliente</label>
   <select id="cfgImpressora" aria-label="Impressora da senha"></select>
   <label style="display:block;font-weight:600;font-size:15px;margin:6px 0 4px">Fechamento do EVO e relatório do turno</label>
   <select id="cfgImpFech" aria-label="Impressora do fechamento"></select>
   <p class="pequeno" id="cfgImpInfo"></p>
-  <div class="acoes" style="justify-content:flex-start"><button class="btn" id="cfgImpSalvar">Salvar impressoras</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
+  <div class="acoes" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="cfgImpSalvar">Salvar impressoras</button><button class="btn sec" id="cfgImpAtualizar">Atualizar impressoras do robô</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
   <div class="secao">
-    <h4>Imprimir neste computador</h4>
-    <p style="margin-bottom:8px">Para quando a impressora fica perto do caixa e longe do robô. Vale só para este navegador.</p>
-    <label class="chk"><input type="checkbox" id="cfgImpSenhaAqui"> Senhas do cliente dos meus caixas</label>
-    <label class="chk"><input type="checkbox" id="cfgImpFechAqui"> Fechamento do EVO e relatório do turno</label>
-    <p class="pequeno">Para sair sem a janela de impressão, abra o Chrome com a opção --kiosk-printing (o LEIA-ME explica).</p>
+    <h4>Impressão neste PDV</h4>
+    <p style="margin-bottom:8px">Vale só para este computador. O que este PDV imprimir não sai na impressora do robô. Senha pedida em totem que imprime sozinho sai no totem.</p>
+    <div style="font-weight:600;margin:4px 0">Quais caixas</div>
+    <div id="pdvCaixas" class="aj-mods"></div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap;margin:10px 0 4px">
+      <div><b>Senha?</b> <label class="chk" style="display:inline-flex"><input type="radio" name="pdvSenha" value="1"> Sim</label> <label class="chk" style="display:inline-flex"><input type="radio" name="pdvSenha" value="0"> Não</label></div>
+      <div><b>Fechamento?</b> <label class="chk" style="display:inline-flex"><input type="radio" name="pdvFech" value="1"> Sim</label> <label class="chk" style="display:inline-flex"><input type="radio" name="pdvFech" value="0"> Não</label></div>
+    </div>
+    <p class="pequeno" id="pdvInfo"></p>
+    <p class="pequeno">Para sair sem a janela de impressão, abra o Chrome com a opção --kiosk-printing.</p>
   </div>
   <div class="secao">
     <h4>Agentes de impressão</h4>
@@ -995,7 +1004,7 @@ const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha
 const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade', aviso: 'Avisos (recusa, CPF, pontos)' };
 function tempo(k) { const v = Number((AJ.tempos || {})[k]); return v >= 5 && v <= 900 ? v : TEMPOS_PADRAO[k]; }
 const TEXTO_APP_ESPERA = 'Pelo aplicativo você também consegue trocar pontos por ficha de banho';
-const AJ_PADRAO = { appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+const AJ_PADRAO = { impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
   teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], consulta: [], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
@@ -1008,7 +1017,7 @@ function carregarAjustes() {
     return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
       mods: Array.isArray(j.mods) && j.mods.length ? j.mods : ['banho'], consulta: !!j.consulta, telas: j.telas && typeof j.telas === 'object' ? j.telas : {},
-      appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
+      impTotem: !!j.impTotem, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
       descanso: j.descanso !== false, descTitulo: j.descTitulo !== undefined && j.descTitulo !== 'Resgate com seus pontos ClubPetro' ? String(j.descTitulo) : '',
       qrTitulo: j.qrTitulo !== undefined ? String(j.qrTitulo) : 'Baixe nosso app', qrTexto: j.qrTexto !== undefined ? String(j.qrTexto) : 'Aponte a câmera do celular',
       tempos: j.tempos && typeof j.tempos === 'object' ? j.tempos : {},
@@ -1470,7 +1479,7 @@ async function pedirBanho(tipo, qtdEscolhida) {
   marcarPassos('fila');
   mostrar('vProcesso');
   const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente,
-    qtd: qtdEscolhida || T.qtd, tipo, consultaId, imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
+    qtd: qtdEscolhida || T.qtd, tipo, consultaId, impTotem: !!AJ.impTotem, imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
   limparTotem();                                   // não deixa o CPF na tela
   T.qtd = 1; $('#qNum').textContent = '1';
   T.ultimoSaldo = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');
@@ -1544,6 +1553,7 @@ function mostrarSenha(r) {
 // v2.7: etapa 1 = "anote ou tecle Enter" com a senha; etapa 2 (Enter) = imprime e mostra a seta
 function telaSenha(x) {
   T.senhaAtual = x;
+  if (AJ.impTotem && !T.teste && x.id && (x.semEvo || AJ.impressao === 'auto')) totemImprimir(x.id);   // v2.12: o totem imprime
   const fimTxt = s => T.teste ? `Volta aos ajustes em ${s} s.` : `Esta tela volta ao início em ${s} s.`;
   if (x.semEvo) {
     T.etapaSenha = 2; $('#bImprimir').classList.add('esconder');
@@ -1565,6 +1575,14 @@ function telaSenha(x) {
   $('#bImprimir').classList.remove('esconder'); $('#bImprimir').disabled = false;
   mostrar('vSenha'); contagemSenha(T.teste ? 15 : tempo('senha'), sairDaSenha, fimTxt);
 }
+async function totemImprimir(id) {
+  for (let i = 0; i < 12 && id; i++) {
+    const r = await api('totem_imagem', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id });
+    if (r.ok && r.pronta) { await imprimirImagem(r.png); return true; }
+    await new Promise(ok => setTimeout(ok, 1500));
+  }
+  return false;
+}
 async function imprimirSenha() {
   if (T.etapaSenha !== 1 || !T.senhaAtual) return;
   T.etapaSenha = 2; $('#bImprimir').disabled = true;
@@ -1574,6 +1592,7 @@ async function imprimirSenha() {
   $('#bImprimir').classList.add('esconder');
   contagemSenha(T.teste ? 10 : tempo('seta'), sairDaSenha, s => (T.teste ? 'Volta aos ajustes' : 'Esta tela volta ao início') + ` em ${s} s.`);
   if (T.teste || !x.id) return;
+  if (AJ.impTotem) { if (!(await totemImprimir(x.id))) $('#sRodape').textContent = 'Não foi possível imprimir aqui. Se precisar, procure o caixa.'; return; }
   const r = await api('totem_imprimir', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: x.id });
   if (!r.ok) $('#sRodape').textContent = (r.erro || 'Não foi possível imprimir.') + ' Se precisar, procure o caixa.';
 }
@@ -1602,6 +1621,7 @@ function desenharAjustes() {
   });
   $('#ajConsulta').checked = !!AJ.consulta;
   $('#ajDescanso').checked = !!AJ.descanso;
+  document.querySelectorAll('input[name="ajImpTotem"]').forEach(i => { i.checked = (i.value === '1') === !!AJ.impTotem; i.onchange = () => { AJ.impTotem = i.value === '1'; salvarAjustes(); }; });
   $('#ajAppEspera').checked = !!AJ.appEspera;
   if (document.activeElement !== $('#ajTextoAppEspera')) $('#ajTextoAppEspera').value = AJ.textoAppEspera || '';
   { const q = document.querySelector('#vDescanso .desc-qr svg'); $('#ajPrevEspera').innerHTML = `<div class="espera-qr">${q ? q.outerHTML : ''}</div><p>${esc(AJ.textoAppEspera || TEXTO_APP_ESPERA)}</p>`; $('#ajPrevEspera').classList.toggle('esconder', !AJ.appEspera); }
@@ -1818,8 +1838,8 @@ function desenharAbertos(lista) {
 
 // ---------- impressão das imagens (senha, fechamento do EVO, relatório) na impressora deste navegador
 const IMP = {
-  senha: () => guardar.get('banho_imp_senha') === '1',
-  fech: () => guardar.get('banho_imp_fech') === '1',
+  senha: () => false,   // v2.12: substituído por "Impressão neste PDV" (fila do servidor)
+  fech: () => false,
   feitos: () => { try { return JSON.parse(guardar.get('banho_impressos') || '{}'); } catch (_) { return {}; } },
   marcar(id) { const f = IMP.feitos(); f[id] = Date.now(); const ks = Object.keys(f); if (ks.length > 400) ks.slice(0, 100).forEach(k => delete f[k]); guardar.set('banho_impressos', JSON.stringify(f)); },
   fila: Promise.resolve()
@@ -1846,6 +1866,45 @@ async function buscarEImprimir(tipo, ref, tentativas) {
   }
   return false;
 }
+
+// v2.12: Impressão neste PDV (caixas, senha, fechamento) — o PDV avisa o servidor e imprime o que é dele
+function pdvCfg() { try { return Object.assign({ ops: [], todos: false, senha: false, fech: false }, JSON.parse(guardar.get('banho_pdv') || '{}')); } catch (_) { return { ops: [], todos: false, senha: false, fech: false }; } }
+function pdvId() { let id = guardar.get('banho_pdv_id'); if (!id) { id = 'pdv' + Math.random().toString(36).slice(2, 10); guardar.set('banho_pdv_id', id); } return id; }
+async function desenharPdv() {
+  const cfg = pdvCfg();
+  if (!C.pdvOps) { const r = await apiCx('caixa_operadores'); C.pdvOps = (r.ok && r.operadores) || []; }
+  $('#pdvCaixas').innerHTML = `<label><input type="checkbox" data-todos ${cfg.todos ? 'checked' : ''}> Todos</label>` +
+    C.pdvOps.map(o => `<label><input type="checkbox" data-op="${esc(o.usuario)}" ${cfg.todos || cfg.ops.includes(o.usuario) ? 'checked' : ''} ${cfg.todos ? 'disabled' : ''}> ${esc(o.nome)}</label>`).join('');
+  document.querySelectorAll('input[name="pdvSenha"]').forEach(i => i.checked = (i.value === '1') === !!cfg.senha);
+  document.querySelectorAll('input[name="pdvFech"]').forEach(i => i.checked = (i.value === '1') === !!cfg.fech);
+  const salvar = () => {
+    const todos = $('#pdvCaixas [data-todos]').checked;
+    const ops = [...document.querySelectorAll('#pdvCaixas [data-op]:checked')].map(i => i.dataset.op);
+    const senha = (document.querySelector('input[name="pdvSenha"]:checked') || {}).value === '1';
+    const fech = (document.querySelector('input[name="pdvFech"]:checked') || {}).value === '1';
+    guardar.set('banho_pdv', JSON.stringify({ ops, todos, senha, fech })); C.pdvDesde = undefined; desenharPdv(); pdvTick();
+  };
+  $('#pdvCaixas').querySelectorAll('input').forEach(i => i.onchange = salvar);
+  document.querySelectorAll('input[name="pdvSenha"],input[name="pdvFech"]').forEach(i => i.onchange = salvar);
+  const nada = !cfg.senha && !cfg.fech, sem = !cfg.todos && !cfg.ops.length;
+  $('#pdvInfo').textContent = nada ? 'Este PDV não imprime nada (vai tudo para a impressora do robô ou do totem).'
+    : sem ? 'Escolha ao menos um caixa (ou Todos).' : 'Este PDV imprime: ' + [cfg.senha && 'senhas', cfg.fech && 'fechamentos e relatórios'].filter(Boolean).join(' e ') + ' de ' + (cfg.todos ? 'todos os caixas' : cfg.ops.length + ' caixa(s)') + '.';
+}
+async function pdvTick() {
+  if (!C.sessao || C.pdvRodando) return;
+  const cfg = pdvCfg();
+  if ((!cfg.senha && !cfg.fech) || (!cfg.todos && !cfg.ops.length)) return;
+  C.pdvRodando = true;
+  try {
+    const r = await apiCx('caixa_pdvImpressoes', { pdvId: pdvId(), ops: cfg.ops, todos: cfg.todos, senha: cfg.senha, fech: cfg.fech, desde: C.pdvDesde });
+    if (r && r.ok) {
+      const feitos = IMP.feitos();
+      for (const it of r.itens || []) { if (feitos['p' + it.idn]) continue; IMP.marcar('p' + it.idn); await buscarEImprimir(it.tipo, it.ref, 5); }
+      C.pdvDesde = r.ultimo;
+    }
+  } finally { C.pdvRodando = false; }
+}
+setInterval(pdvTick, 10000);
 
 async function carregarOperadores() {
   const r = await apiCx('caixa_operadores');
@@ -2459,7 +2518,8 @@ function iniciarCaixa() {
     sel.innerHTML = '<option value="">Impressora padrão do Windows' + esc(pad) + '</option>' + opcoes;
     selF.innerHTML = '<option value="">A mesma da senha</option>' + opcoes;
     sel.value = r.escolhida || ''; selF.value = r.escolhidaFechamento || '';
-    $('#cfgImpInfo').textContent = r.lista.length ? 'Lista enviada pelo robô em ' + r.atualizadoEm + '.' : 'O robô ainda não enviou a lista de impressoras. Ligue o robô no DP002 e abra de novo.';
+    C.impAtualizadoEm = r.atualizadoEm;
+    $('#cfgImpInfo').textContent = r.lista.length ? 'Lista enviada pelo robô em ' + r.atualizadoEm + '.' : 'O robô ainda não enviou a lista de impressoras. Toque em “Atualizar impressoras do robô”.';
   };
   $('#cfgImpSalvar').onclick = async () => {
     $('#cfgImpSalvar').disabled = true;
@@ -2476,7 +2536,7 @@ function iniciarCaixa() {
   };
   $('#cfgSenha').onclick = () => { $('#dConfig').close(); abrirPedido('senha'); };
   $('#cfgFechamentos').onclick = () => { $('#dConfig').close(); abrirFechamentos(); };
-  $('#cfgImpSenhaAqui').checked = IMP.senha(); $('#cfgImpFechAqui').checked = IMP.fech();
+  desenharPdv();
   $('#cxEngrenagem').addEventListener('click', () => {
     const ags = C.agentes || [];
     $('#cfgAgentePc').innerHTML = '<option value="">Nenhum (impressora do robô)</option>' + ags.map(a => `<option value="${esc(a.nome)}">${esc(a.nome)}</option>`).join('');
@@ -2487,11 +2547,23 @@ function iniciarCaixa() {
        Senha: ${esc(a.impressoras.senha || 'padrão')} · Fechamento: ${esc(a.impressoras.fechamento || 'padrão')} · Relatório: ${esc(a.impressoras.relatorio || 'padrão')}<br>
        Caixas: ${a.operadores && a.operadores.length ? esc(a.operadores.join(', ')) : 'todos'}</div>`).join('');
   });
-  $('#cfgImpSenhaAqui').onchange = () => {
-    guardar.set('banho_imp_senha', $('#cfgImpSenhaAqui').checked ? '1' : '0');
-    if ($('#cfgImpSenhaAqui').checked) C.lista.forEach(x => IMP.marcar(x.id));   // só as próximas senhas
+  $('#cfgImpAtualizar').onclick = async () => {
+    $('#cfgImpInfo').textContent = 'Pedindo ao robô a lista de impressoras do computador dele…';
+    const r = await apiCx('caixa_atualizarImpressoras');
+    if (!r.ok) { $('#cfgImpInfo').textContent = r.erro || 'Não foi possível pedir.'; return; }
+    for (let i = 0; i < 8; i++) {
+      await new Promise(ok => setTimeout(ok, 3000));
+      const l = await apiCx('caixa_impressoras');
+      if (l.ok && l.atualizadoEm && l.atualizadoEm !== C.impAtualizadoEm) {
+        const pad = l.padrao ? ' (' + l.padrao + ')' : '', op = l.lista.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+        const sel = $('#cfgImpressora'), selF = $('#cfgImpFech'), v1 = sel.value, v2 = selF.value;
+        sel.innerHTML = '<option value="">Impressora padrão do Windows' + esc(pad) + '</option>' + op; selF.innerHTML = '<option value="">A mesma da senha</option>' + op;
+        sel.value = v1; selF.value = v2; C.impAtualizadoEm = l.atualizadoEm;
+        $('#cfgImpInfo').textContent = 'Lista atualizada (' + l.lista.length + ' impressora(s)) em ' + l.atualizadoEm + '.'; return;
+      }
+    }
+    $('#cfgImpInfo').textContent = 'O robô não respondeu. Confira se ele está ligado (atalho "Robô Banho - Status").';
   };
-  $('#cfgImpFechAqui').onchange = () => guardar.set('banho_imp_fech', $('#cfgImpFechAqui').checked ? '1' : '0');
   $('#dfFechar').onclick = () => $('#dFechamentos').close();
   $('#cfgUsuarios').onclick = () => { $('#dConfig').close(); abrirUsuarios(); };
   $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
