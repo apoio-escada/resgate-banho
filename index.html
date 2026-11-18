@@ -137,7 +137,7 @@ body:has(#vDescanso:not(.esconder)) #cantinhos .cantinho{color:rgba(255,255,255,
 .aj-tempos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px 16px}
 .aj-tempos label{font-weight:600}.aj-tempos input{width:90px;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px;margin-left:6px}
 .ini-op.sel{outline:6px solid var(--cor);outline-offset:4px}
-.ini-op.nao{opacity:.6;cursor:not-allowed;background:#F4F5F7}
+.ini-op.nao{opacity:.45;filter:grayscale(.9);cursor:not-allowed;background:#F4F5F7}
 .ini-op.sel{box-shadow:0 0 0 10px color-mix(in srgb,var(--cor) 25%,transparent);transform:scale(1.02)}
 .ini-dica{text-align:center;font-size:clamp(22px,2.4vw,30px);font-weight:600}
 .ini-dica kbd{font-family:var(--cond);border:2px solid var(--tinta);border-bottom-width:5px;border-radius:10px;padding:0 12px;background:#fff}
@@ -511,6 +511,10 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         <select id="ajSetaSemEvo" style="margin-left:8px"><option value="direita">➡ para a direita</option><option value="esquerda">⬅ para a esquerda</option><option value="cima">⬆ para cima</option><option value="baixo">⬇ para baixo</option></select></label>
       <div class="aj-previas" id="ajPrevSemEvo"></div>
 
+      <h3>Nome deste totem</h3>
+      <input id="ajNomeTotem" maxlength="30" placeholder="ex.: Totem Robô, Totem PDV André" style="width:100%;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px">
+      <p class="pequeno">Aparece no painel do caixa, junto de cada resgate feito aqui, com o lugar onde a senha imprimiu.</p>
+
       <h3>Impressão neste totem</h3>
       <label style="display:block;font-weight:600">O que for resgatado aqui imprime em
         <select id="ajImpDestino" style="display:block;width:100%;margin-top:4px"></select></label>
@@ -561,9 +565,11 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p>Os resgates deste totem entram no turno e no EVO do caixa escolhido.</p>
     <div class="escolha" id="ecLista"></div>
     <div style="margin:22px auto 0;max-width:420px;text-align:left">
+      <div class="esconder" aria-hidden="true">
       <label style="display:block;font-weight:600;margin-bottom:6px">Impressora deste totem (agente de impressão)</label>
       <select id="ecAgente" style="width:100%;font:inherit;font-size:20px;padding:10px;border:2px solid var(--linha);border-radius:10px;background:#fff"></select>
       <p class="pequeno" style="margin-top:6px">A senha do cliente sai na impressora do agente escolhido.</p>
+      </div>
     </div>
     <p class="pequeno" id="ecMsg" style="margin-top:14px"></p>
     <button class="btn sec" id="ecVoltar" style="margin-top:10px">Voltar</button>
@@ -725,8 +731,8 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
         </div>
         <p class="pequeno" style="margin:-4px 0 10px">Resgates de refeição e outras opções sem EVO. Só consulta: o cliente leva o comprovante ao caixa para carimbar.</p>
         <div class="rolagem"><table>
-          <thead><tr><th>Data/hora</th><th>Opção</th><th>Código</th><th>Situação</th></tr></thead>
-          <tbody id="rfLista"><tr><td colspan="4" class="vazio">Toque em Atualizar.</td></tr></tbody>
+          <thead><tr><th>Data/hora</th><th>Opção</th><th>Código / cliente</th><th>Situação</th><th></th></tr></thead>
+          <tbody id="rfLista"><tr><td colspan="5" class="vazio">Toque em Atualizar.</td></tr></tbody>
         </table></div>
       </div>
 
@@ -791,11 +797,13 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p class="pequeno">Para sair sem a janela de impressão, abra o Chrome com a opção --kiosk-printing.</p>
   </div>
   <div class="secao">
+    <div class="esconder" aria-hidden="true">
     <h4>Agentes de impressão</h4>
     <p style="margin-bottom:8px">Programa instalado no computador do caixa que imprime sozinho, na impressora escolhida para cada tipo. Se usar o agente, desmarque as opções acima para não imprimir duas vezes.</p>
     <div id="cfgAgentes" class="pequeno"></div>
     <label style="display:block;font-weight:600;font-size:15px;margin:10px 0 4px">Fechamentos que eu fizer neste computador saem no agente</label>
     <select id="cfgAgentePc" aria-label="Agente deste computador"></select>
+    </div>
   </div>
   <div class="secao">
     <h4>Fechamentos</h4>
@@ -809,6 +817,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn sec" id="cfgPosto">Configurações do posto</button>
     <button class="btn sec" id="cfgModalidades">Opções de resgate</button>
     <button class="btn sec" id="cfgInstalarRobo">Instalar robô em outro computador</button>
+    <button class="btn sec" id="cfgAtualizarRobo">Atualização do robô</button>
     <button class="btn sec" id="cfgErros">Erros e sugestões <span id="cfgErrosN"></span></button>
   </div>
   <div class="secao">
@@ -821,6 +830,17 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
 </dialog>
+<dialog id="dAtualizar" style="max-width:520px">
+  <h3>Atualização do robô</h3>
+  <p id="daVersoes" class="pequeno">Carregando…</p>
+  <label style="display:block;font-weight:600;margin-top:8px">Atualizar sozinho às
+    <input type="time" id="daHora" style="font:inherit;font-size:18px;padding:4px;margin-left:8px"></label>
+  <label class="chk" style="display:block;margin:6px 0"><input type="checkbox" id="daManual"> Só manual (pelo botão abaixo)</label>
+  <p class="pequeno">Escolha um horário sem movimento (ex.: 03:00). Depois de atualizar, o robô reinicia e reabre o totem em tela cheia se ele roda no mesmo computador pelo atalho de quiosque.</p>
+  <p class="pequeno" id="daMsg"></p>
+  <div class="acoes" style="flex-wrap:wrap"><button class="btn sec" id="daSalvar">Salvar horário</button><button class="btn" id="daAgora">Atualizar o robô agora</button><button class="btn sec" id="daFechar">Fechar</button></div>
+</dialog>
+
 <dialog id="dInstalar" style="max-width:520px">
   <h3>Instalar o robô em outro computador</h3>
   <p>No computador novo, extraia o <b>Instalador-Robo-Banho.zip</b>, rode o <b>INSTALAR.bat</b> e digite este código:</p>
@@ -941,7 +961,7 @@ function mostrar(id) {
    ===================================================================== */
 var T = { pin: guardar.get('banho_pin_posto'), sessao: guardar.get('banho_sessao_totem'),
   operador: guardar.get('banho_totem_operador') || '', operadorNome: guardar.get('banho_totem_operador_nome') || '',
-  auto: guardar.get('banho_totem_auto') === '1', agente: guardar.get('banho_totem_agente') || '', qtd: 1, maxFichas: 1,
+  auto: guardar.get('banho_totem_auto') === '1', agente: '',   // v2.12.4: agentes de impressão não são mais usados qtd: 1, maxFichas: 1,
   campo: 'cpf', pedido: null, timer: null, estado: null };
 // Escolha do caixa do totem: só os caixas com turno aberto, ou "automático" (alterna entre eles a cada resgate).
 async function escolherCaixa() {
@@ -1007,7 +1027,7 @@ const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha
 const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade', aviso: 'Avisos (recusa, CPF, pontos)' };
 function tempo(k) { const v = Number((AJ.tempos || {})[k]); return v >= 5 && v <= 900 ? v : TEMPOS_PADRAO[k]; }
 const TEXTO_APP_ESPERA = 'Pelo aplicativo você também consegue trocar pontos por ficha de banho';
-const AJ_PADRAO = { impDestino: '', impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+const AJ_PADRAO = { nomeTotem: '', impDestino: '', impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
   teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], consulta: [], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
@@ -1020,7 +1040,7 @@ function carregarAjustes() {
     return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
       mods: Array.isArray(j.mods) && j.mods.length ? j.mods : ['banho'], consulta: !!j.consulta, telas: j.telas && typeof j.telas === 'object' ? j.telas : {},
-      impDestino: j.impDestino !== undefined ? String(j.impDestino) : (j.impTotem ? 'aqui' : ''), impTotem: false, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
+      nomeTotem: j.nomeTotem ? String(j.nomeTotem) : '', impDestino: j.impDestino !== undefined ? String(j.impDestino) : (j.impTotem ? 'aqui' : ''), impTotem: false, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
       descanso: j.descanso !== false, descTitulo: j.descTitulo !== undefined && j.descTitulo !== 'Resgate com seus pontos ClubPetro' ? String(j.descTitulo) : '',
       qrTitulo: j.qrTitulo !== undefined ? String(j.qrTitulo) : 'Baixe nosso app', qrTexto: j.qrTexto !== undefined ? String(j.qrTexto) : 'Aponte a câmera do celular',
       tempos: j.tempos && typeof j.tempos === 'object' ? j.tempos : {},
@@ -1106,7 +1126,9 @@ async function consultarEEscolher(soConsulta) {
   limparTotem();
   T.enviando = true;
   $('#vProcesso h2').textContent = 'Consultando seus pontos'; $('#vProcesso p').textContent = 'Aguarde um instante…';
-  $('#passos').classList.add('esconder'); mostrar('vProcesso');
+  $('#passos').classList.add('esconder');
+  T.ultimoSaldo = ''; $('#pSaldo').innerHTML = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');   // v2.13: nada do cliente anterior
+  mostrar('vProcesso');
   const r = await api('totem_consultarPontos', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, cpf: T.cli.cpf });
   if (!r.ok) { T.enviando = false; T.cli = null; avisoTotem('Não foi possível consultar', r.erro || 'Procure o caixa.'); return; }
   const fim = Date.now() + 70000;
@@ -1141,7 +1163,14 @@ function relogioEscolha() {
   const tick = () => { $('#eConta').textContent = `Esta tela volta ao início em ${s} s.`; if (s-- <= 0) sairEscolha(); };
   tick(); T.timer = setInterval(tick, 1000);
 }
+function custosComReserva(c) {
+  let cache = {}; try { cache = JSON.parse(guardar.get('banho_custos') || '{}'); } catch (_) {}
+  const novos = Object.assign({}, cache, c.custos || {});
+  if (c.custos && Object.keys(c.custos).length) guardar.set('banho_custos', JSON.stringify(novos));
+  c.custos = novos; return c;
+}
 function mostrarEscolha(c, soConsulta) {
+  custosComReserva(c);
   T.escolha = c; T.eSel = null; T.eEtapa = 'opcao';
   const algum = modsAtivos().some(id => maxQtdDe(id, c) >= 1);
   $('#eSaldo').innerHTML = htmlSaldo(c.pontos);
@@ -1395,6 +1424,7 @@ function prepararAppEspera() {
   $('#pAppTexto').textContent = AJ.textoAppEspera || TEXTO_APP_ESPERA;
 }
 function irDescanso() {
+  T.ultimoSaldo = ''; $('#pSaldo').innerHTML = ''; $('#pSaldo').classList.add('esconder');
   if (!AJ.descanso) { irTotem(); return; }
   limparTotem();
   const mods = modsAtivos();
@@ -1482,7 +1512,8 @@ async function pedirBanho(tipo, qtdEscolhida) {
   marcarPassos('fila');
   mostrar('vProcesso');
   const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente,
-    qtd: qtdEscolhida || T.qtd, tipo, consultaId, impTotem: impAqui(), impressora: impressoraRobo(), imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
+    qtd: qtdEscolhida || T.qtd, tipo, consultaId, impTotem: impAqui(), impressora: impressoraRobo(),
+    origem: (AJ.nomeTotem || 'Totem') + ' · ' + (impAqui() ? 'impresso no totem' : impressoraRobo() ? 'robô (' + impressoraRobo() + ')' : 'robô/PDV'), imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
   limparTotem();                                   // não deixa o CPF na tela
   T.qtd = 1; $('#qNum').textContent = '1';
   T.ultimoSaldo = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');
@@ -1643,6 +1674,8 @@ function desenharAjustes() {
   $('#ajConsulta').checked = !!AJ.consulta;
   $('#ajDescanso').checked = !!AJ.descanso;
   desenharImpDestino();
+  if (document.activeElement !== $('#ajNomeTotem')) $('#ajNomeTotem').value = AJ.nomeTotem || '';
+  $('#ajNomeTotem').oninput = () => { AJ.nomeTotem = $('#ajNomeTotem').value; salvarAjustes(); };
   $('#ajAppEspera').checked = !!AJ.appEspera;
   if (document.activeElement !== $('#ajTextoAppEspera')) $('#ajTextoAppEspera').value = AJ.textoAppEspera || '';
   { const q = document.querySelector('#vDescanso .desc-qr svg'); $('#ajPrevEspera').innerHTML = `<div class="espera-qr">${q ? q.outerHTML : ''}</div><p>${esc(AJ.textoAppEspera || TEXTO_APP_ESPERA)}</p>`; $('#ajPrevEspera').classList.toggle('esconder', !AJ.appEspera); }
@@ -2010,7 +2043,7 @@ function desenharLista() {
     return `<tr class="${x.status === 'CANCELADO' ? 'cancelada' : x.ok ? 'marcada' : ''}">
       <td>${podeSel ? `<input type="checkbox" data-sel="${esc(x.id)}" ${C.sel.has(x.id) ? 'checked' : ''} aria-label="Selecionar">` : ''}</td>
       <td>${esc(x.hora.slice(11, 16))}</td>
-      <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}</td>
+      <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}${x.cliente ? `<div class="pequeno" style="margin-top:3px;font-weight:600;color:var(--tinta)">${esc(x.cliente)}</div>` : ''}${x.totem ? `<div class="pequeno">${esc(x.totem)}</div>` : ''}</td>
       <td style="text-align:center"><b>${esc(x.qtd || 1)}</b></td>
       <td>${esc(x.ticket)}</td>
       <td><span class="chip ${esc(x.status)}">${nomes[x.status] || esc(x.status)}</span>${x.mensagem ? `<div class="pequeno">${esc(x.mensagem)}</div>` : ''}</td>
@@ -2029,9 +2062,7 @@ function desenharLista() {
     const it = C.lista.find(x => x.id === c.dataset.ok); if (it) it.ok = c.checked; desenharLista();
     await apiCx('caixa_marcarOk', { ids: [c.dataset.ok], ok: c.checked });
   });
-  tb.querySelectorAll('[data-reimp]').forEach(b => b.onclick = async () => {
-    b.disabled = true; b.textContent = 'Enviado'; await apiCx('caixa_reimprimir', { id: b.dataset.reimp });
-  });
+  tb.querySelectorAll('[data-reimp]').forEach(b => b.onclick = () => reimprimirJustificado(b, b.dataset.reimp));
   tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
   tb.querySelectorAll('[data-impaqui]').forEach(b => b.onclick = async () => {
     b.disabled = true; const ok = await buscarEImprimir('senha', b.dataset.impaqui, 3);
@@ -2063,6 +2094,24 @@ function irAba(aba) {
   if (aba === 'refeicao' && !C.rfCarregou) { C.rfCarregou = true; carregarRefeicoes(); }
 }
 // v2.12: código para instalar o robô em outro computador (vale 15 min, uma vez)
+// v2.13: atualização do robô (horário agendado ou agora)
+async function atualizacaoRobo(p) {
+  $('#daMsg').textContent = p.agora ? 'Pedindo ao robô…' : p.hora ? 'Salvando…' : '';
+  const r = await apiCx('caixa_atualizacaoRobo', p);
+  if (!r.ok) { $('#daMsg').textContent = r.erro || 'Não foi possível.'; return; }
+  $('#daVersoes').innerHTML = `Versão do robô: <b>${esc(r.versaoRobo || '—')}</b> · Versão disponível: <b>${esc(r.versaoNova || '—')}</b>`;
+  $('#daManual').checked = !r.hora; $('#daHora').value = r.hora || '03:00'; $('#daHora').disabled = !r.hora;
+  if (p.hora) $('#daMsg').textContent = r.hora ? `Salvo: o robô se atualiza sozinho às ${r.hora} (quando houver versão nova).` : 'Salvo: só atualiza pelo botão.';
+  if (p.agora && r.comando) {
+    for (let i = 0; i < 40; i++) {
+      await new Promise(ok => setTimeout(ok, 3000));
+      const c = await apiCx('caixa_comando', { id: r.comando });
+      if (c.ok && c.status && c.status !== 'PENDENTE' && c.status !== 'EXECUTANDO') { $('#daMsg').textContent = c.mensagem || c.status; return; }
+      $('#daMsg').textContent = 'Aguardando o robô…';
+    }
+    $('#daMsg').textContent = 'O robô não respondeu ainda (pode estar atendendo um cliente). Confira em alguns minutos.';
+  }
+}
 async function gerarCodigoInstalacao() {
   $('#diCodigo').textContent = '······'; $('#diMsg').textContent = 'Gerando…';
   const r = await apiCx('caixa_codigoInstalacao');
@@ -2113,6 +2162,15 @@ function imprimirResumo() {
   w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
 }
 
+// v2.13.1: reimpressão sempre com justificativa (fica registrada no resgate)
+async function reimprimirJustificado(b, id) {
+  const motivo = (prompt('Por que reimprimir? (obrigatório — ex.: impressora sem papel, cliente perdeu o papel)') || '').trim();
+  if (motivo.length < 4) { if (motivo !== '') alert('Escreva o motivo (pelo menos 4 letras).'); return; }
+  b.disabled = true; b.textContent = 'Enviando…';
+  let r = await apiCx('caixa_reimprimirJust', { id, motivo });
+  if (!r.ok && /desconhecida/i.test(r.erro || '')) r = await apiCx('caixa_reimprimir', { id, motivo });   // servidor antigo
+  b.textContent = r.ok ? 'Enviado' : (r.erro || 'Erro'); if (!r.ok) b.disabled = false;
+}
 async function carregarRefeicoes() {
   const hoje = new Date(), z = n => String(n).padStart(2, '0'), iso = d => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
   if (!$('#rfDe').value) $('#rfDe').value = iso(hoje);
@@ -2122,8 +2180,9 @@ async function carregarRefeicoes() {
   if (!r.ok) { $('#rfLista').innerHTML = `<tr><td colspan="4" class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</td></tr>`; return; }
   const ok = r.lista.filter(x => x.status === 'CONCLUIDO').length;
   $('#rfResumo').textContent = `${r.lista.length} pedido(s) · ${ok} concluído(s)`;
-  $('#rfLista').innerHTML = r.lista.length ? r.lista.map(x => `<tr><td>${esc(x.data)}</td><td>${esc(x.nome)}</td><td><b>${esc(x.codigo || '—')}</b></td><td>${esc(x.status === 'CONCLUIDO' ? 'Concluído' : x.status === 'ERRO' ? 'Recusado' : x.status)}${x.mensagem ? '<br><span class="pequeno">' + esc(x.mensagem) + '</span>' : ''}</td></tr>`).join('')
-    : '<tr><td colspan="4" class="vazio">Nenhum resgate no período.</td></tr>';
+  $('#rfLista').innerHTML = r.lista.length ? r.lista.map(x => `<tr><td>${esc(x.data)}</td><td>${esc(x.nome)}</td><td><b>${esc(x.codigo || '—')}</b>${x.cliente ? `<div class="pequeno" style="font-weight:600;color:var(--tinta)">${esc(x.cliente)}</div>` : ''}</td><td>${esc(x.status === 'CONCLUIDO' ? 'Concluído' : x.status === 'ERRO' ? 'Recusado' : x.status)}${x.mensagem ? '<br><span class="pequeno">' + esc(x.mensagem) + '</span>' : ''}</td><td>${x.status === 'CONCLUIDO' ? `<button class="btn peq sec" data-rfreimp="${esc(x.id)}">Reimprimir</button>` : ''}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="vazio">Nenhum resgate no período.</td></tr>';
+  $('#rfLista').querySelectorAll('[data-rfreimp]').forEach(b => b.onclick = () => reimprimirJustificado(b, b.dataset.rfreimp));
 }
 
 function desenharLotes() {
@@ -2180,12 +2239,12 @@ async function abrirFechamentos() {
   });
   $('#dfLista').querySelectorAll('[data-aquirel]').forEach(b => b.onclick = async () => {
     let ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 1);
-    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel, agente: guardar.get('banho_agente_pc') || '' }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
+    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel, agente: '' }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
     $('#dfMsg').textContent = ok ? 'Enviado para a impressora deste computador.' : 'O robô não gerou a imagem do relatório. Confira se ele está ligado.';
   });
   $('#dfLista').querySelectorAll('[data-revo]').forEach(b => b.onclick = async () => {
     b.disabled = true; $('#dfMsg').textContent = 'Pedido enviado ao robô. O fechamento do EVO sai na impressora em alguns segundos.';
-    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo, agente: guardar.get('banho_agente_pc') || '' });
+    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo, agente: '' });
     if (!r2.ok) { $('#dfMsg').textContent = r2.erro; b.disabled = false; return; }
     for (let i = 0; i < 20; i++) {
       await new Promise(ok => setTimeout(ok, 3000));
@@ -2446,7 +2505,7 @@ function pedirTotalEvoNoFechamento(turnoId) {
       if (!x.ok) { av.textContent = x.erro || 'Não consegui salvar o total.'; $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false; return; }
       dados = x.relatorio || null;
     }
-    await apiCx('caixa_imprimirRelatorio', { turnoId, agente: guardar.get('banho_agente_pc') || '' });
+    await apiCx('caixa_imprimirRelatorio', { turnoId, agente: '' });
     box.classList.add('esconder'); $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false;
     $('#evoMsg').textContent = 'O relatório do turno está saindo na impressora do fechamento…';
     if (IMP.fech()) await buscarEImprimir('relatorio', turnoId, 15);
@@ -2600,6 +2659,11 @@ function iniciarCaixa() {
   iniciarModalidades();
   $('#cfgInstalarRobo').onclick = () => { $('#dConfig').close(); gerarCodigoInstalacao(); $('#dInstalar').showModal(); };
   $('#diNovo').onclick = gerarCodigoInstalacao; $('#diFechar').onclick = () => $('#dInstalar').close();
+  $('#cfgAtualizarRobo').onclick = () => { $('#dConfig').close(); $('#dAtualizar').showModal(); atualizacaoRobo({}); };
+  $('#daFechar').onclick = () => $('#dAtualizar').close();
+  $('#daManual').onchange = () => { $('#daHora').disabled = $('#daManual').checked; };
+  $('#daSalvar').onclick = () => atualizacaoRobo({ hora: $('#daManual').checked ? 'MANUAL' : ($('#daHora').value || '03:00') });
+  $('#daAgora').onclick = () => atualizacaoRobo({ agora: true });
   $('#cfgErros').onclick = () => { $('#dConfig').close(); abrirErros(); };
   $('#erVoltar').onclick = () => entrarCaixa();
   $('#dpCanc').onclick = () => $('#dPosto').close();
@@ -2655,7 +2719,7 @@ function iniciarCaixa() {
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
     const turnoId = C.turno.id;
-    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: guardar.get('banho_agente_pc') || '', totalEvo: $('#dFecharTotalEvo').value });
+    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: '', totalEvo: $('#dFecharTotalEvo').value });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
@@ -2671,7 +2735,7 @@ function iniciarCaixa() {
   $('#relImprimirRobo').onclick = async () => {
     if (!C.relTurno) return;
     $('#relImprimirRobo').disabled = true; $('#relMsg').textContent = 'Enviando ao robô…';
-    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno, agente: guardar.get('banho_agente_pc') || '' });
+    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno, agente: '' });
     $('#relImprimirRobo').disabled = false;
     $('#relMsg').textContent = r.ok ? 'O relatório do turno está saindo na impressora do fechamento (formato bobina).' : r.erro;
   };
