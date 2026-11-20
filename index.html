@@ -515,6 +515,10 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 
       <label class="chk" style="display:block;margin:4px 0 10px"><input type="checkbox" id="ajDicaSair"> Mostrar no canto da tela “Funcionário: Alt+F4 sai da tela cheia”</label>
 
+      <h3>Pontos de cada opção</h3>
+      <p class="pequeno">Usado quando o ClubPetro não informar o custo na consulta, para apagar a opção sem pontos e limitar a quantidade.</p>
+      <div style="display:flex;gap:18px;flex-wrap:wrap" id="ajCustos"></div>
+
       <h3>Nome deste totem</h3>
       <input id="ajNomeTotem" maxlength="30" placeholder="ex.: Totem Robô, Totem PDV André" style="width:100%;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px">
       <p class="pequeno">Aparece no painel do caixa, junto de cada resgate feito aqui, com o lugar onde a senha imprimiu.</p>
@@ -1031,7 +1035,7 @@ const TEMPOS_PADRAO = { descanso: 60, senha: 25, seta: 15, avisoRef: 25, escolha
 const TEMPOS_NOMES = { descanso: 'Sem uso: volta ao descanso depois de', senha: 'Tela da senha (anote ou imprima)', seta: 'Tela da seta depois de imprimir', avisoRef: 'Aviso da refeição (pegue com o caixa)', escolha: 'Saldo e opções / quantidade', aviso: 'Avisos (recusa, CPF, pontos)' };
 function tempo(k) { const v = Number((AJ.tempos || {})[k]); return v >= 5 && v <= 900 ? v : TEMPOS_PADRAO[k]; }
 const TEXTO_APP_ESPERA = 'Pelo aplicativo você também consegue trocar pontos por ficha de banho';
-const AJ_PADRAO = { dicaSair: true, nomeTotem: '', impDestino: '', impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
+const AJ_PADRAO = { custos: { banho: 25, refeicao: 340 }, dicaSair: true, nomeTotem: '', impDestino: '', impTotem: false, appEspera: true, textoAppEspera: TEXTO_APP_ESPERA, descanso: true, descTitulo: '', qrTitulo: 'Baixe nosso app', qrTexto: 'Aponte a câmera do celular', tempos: {}, telas: {}, mods: ['banho'], consulta: false, avisoSemEvo: AVISO_SEM_EVO, setaSemEvo: 'direita', textoSetaSemEvo: 'PEGUE NO CAIXA', tamSenha: 0, tecladoTela: 'auto', impressao: 'pedir', senhaModo: 'numero', setaDir: 'direita', senhaNumJunto: true, wc: 'masculino', aviso: AVISO_PADRAO,
   teclas: { voltar: ['*'], avancar: ['/'], campo: ['.', ','], mais: ['+'], menos: ['-'], enviar: ['Enter'], apagar: ['Backspace'], limpar: ['Delete'], consulta: [], imprimir: ['Enter'] } };
 const AJ_NOMES = { voltar: 'Voltar um caractere (corrigir CPF/data)', avancar: 'Avançar um caractere', campo: 'Próximo campo (CPF › data › fichas › CPF)',
   mais: 'Mais uma ficha', menos: 'Menos uma ficha', enviar: 'Enviar o pedido', apagar: 'Apagar o caractere anterior', limpar: 'Limpar o campo',
@@ -1044,7 +1048,7 @@ function carregarAjustes() {
     return { tamSenha: Number(j.tamSenha) || 0, tecladoTela: j.tecladoTela || 'auto', teclas: Object.assign({}, AJ_PADRAO.teclas, j.teclas || {}),
       impressao: j.impressao === 'auto' ? 'auto' : 'pedir',
       mods: Array.isArray(j.mods) && j.mods.length ? j.mods : ['banho'], consulta: !!j.consulta, telas: j.telas && typeof j.telas === 'object' ? j.telas : {},
-      dicaSair: j.dicaSair !== false, nomeTotem: j.nomeTotem ? String(j.nomeTotem) : '', impDestino: j.impDestino !== undefined ? String(j.impDestino) : (j.impTotem ? 'aqui' : ''), impTotem: false, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
+      custos: Object.assign({ banho: 25, refeicao: 340 }, j.custos || {}), dicaSair: j.dicaSair !== false, nomeTotem: j.nomeTotem ? String(j.nomeTotem) : '', impDestino: j.impDestino !== undefined ? String(j.impDestino) : (j.impTotem ? 'aqui' : ''), impTotem: false, appEspera: j.appEspera !== false, textoAppEspera: j.textoAppEspera !== undefined ? String(j.textoAppEspera) : TEXTO_APP_ESPERA,
       descanso: j.descanso !== false, descTitulo: j.descTitulo !== undefined && j.descTitulo !== 'Resgate com seus pontos ClubPetro' ? String(j.descTitulo) : '',
       qrTitulo: j.qrTitulo !== undefined ? String(j.qrTitulo) : 'Baixe nosso app', qrTexto: j.qrTexto !== undefined ? String(j.qrTexto) : 'Aponte a câmera do celular',
       tempos: j.tempos && typeof j.tempos === 'object' ? j.tempos : {},
@@ -1150,7 +1154,8 @@ async function consultarEEscolher(soConsulta) {
 function maxQtdDe(id, c) {
   const custo = c && c.custos && c.custos[id] !== undefined ? Number(c.custos[id]) : null;
   const lim = Math.max(1, T.maxFichas || 1);
-  if (custo === null || c.pontos === null || c.pontos === undefined) return lim;
+  if (c.pontos === null || c.pontos === undefined) return lim;
+  if (custo === null) return 1;   // v2.13.2: custo desconhecido: só 1 por vez
   return Math.max(0, Math.min(lim, Math.floor(c.pontos / Math.max(1, custo))));
 }
 function htmlEscolha(c, sel) {
@@ -1168,11 +1173,19 @@ function relogioEscolha() {
   const tick = () => { $('#eConta').textContent = `Esta tela volta ao início em ${s} s.`; if (s-- <= 0) sairEscolha(); };
   tick(); T.timer = setInterval(tick, 1000);
 }
+// v2.13.2: custo de cada opção, nesta ordem: o lido agora no ClubPetro > o informado nos Ajustes do totem >
+// o último custo conhecido. Sem custo conhecido, a quantidade fica limitada a 1 (nunca deixa pedir a mais).
 function custosComReserva(c) {
   let cache = {}; try { cache = JSON.parse(guardar.get('banho_custos') || '{}'); } catch (_) {}
-  const novos = Object.assign({}, cache, c.custos || {});
-  if (c.custos && Object.keys(c.custos).length) guardar.set('banho_custos', JSON.stringify(novos));
-  c.custos = novos; return c;
+  const lidos = {}; Object.entries(c.custos || {}).forEach(([k, v]) => { if (Number(v) > 0) lidos[k] = Number(v); });
+  const ajustes = {}; Object.entries(AJ.custos || {}).forEach(([k, v]) => { if (Number(v) > 0) ajustes[k] = Number(v); });
+  if (Object.keys(lidos).length) guardar.set('banho_custos', JSON.stringify(Object.assign({}, cache, lidos)));
+  c.custos = Object.assign({}, cache, ajustes, lidos); return c;
+}
+function aprenderCusto(tipo, custoTotal, qtd) {   // custo real de um resgate concluído
+  const u = Number(custoTotal) / Math.max(1, Number(qtd) || 1); if (!(u > 0) || !tipo) return;
+  let cache = {}; try { cache = JSON.parse(guardar.get('banho_custos') || '{}'); } catch (_) {}
+  cache[tipo] = Math.round(u); guardar.set('banho_custos', JSON.stringify(cache));
 }
 function mostrarEscolha(c, soConsulta) {
   custosComReserva(c);
@@ -1429,7 +1442,21 @@ function prepararAppEspera() {
   if (!$('#pQr').innerHTML) { const q = document.querySelector('#vDescanso .desc-qr svg'); if (q) $('#pQr').innerHTML = q.outerHTML; }
   $('#pAppTexto').textContent = AJ.textoAppEspera || TEXTO_APP_ESPERA;
 }
+// v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
+// havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
+const VERSAO_SITE = '2026-11-20a';
+async function conferirVersaoSite() {
+  try {
+    if (location.protocol === 'file:') return;
+    const t = await (await fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' })).text();
+    const m = /const VERSAO_SITE = '([^']+)'/.exec(t);
+    if (m && m[1] !== VERSAO_SITE) T.siteNovo = m[1];
+  } catch (_) {}
+  if (T.siteNovo && !document.getElementById('vDescanso').classList.contains('esconder')) location.reload();
+}
+setInterval(conferirVersaoSite, 10 * 60 * 1000); setTimeout(conferirVersaoSite, 60 * 1000);
 function irDescanso() {
+  if (T.siteNovo) { setTimeout(() => location.reload(), 500); }
   T.ultimoSaldo = ''; $('#pSaldo').innerHTML = ''; $('#pSaldo').classList.add('esconder');
   if (!AJ.descanso) { irTotem(); return; }
   limparTotem();
@@ -1496,6 +1523,7 @@ function abrirModalidade(id, unico) {
 
 async function pedirBanho(tipo, qtdEscolhida) {
   if (T.teste) { $('#mNasc').textContent = 'Prévia: o pedido não é enviado.'; return; }
+  T.pedidoTipo = tipo || 'banho'; T.pedidoQtd = qtdEscolhida || T.qtd || 1;
   let cpf, nasc;
   if (T.cli) { cpf = T.cli.cpf; nasc = T.cli.nasc; }
   else { if (!validarTotem(true)) return; cpf = digitos($('#iCpf')); nasc = $('#iNasc').value; }
@@ -1556,6 +1584,7 @@ function textoSaldo(r) {
 async function acompanhar(inicio) {
   const r = await api('totem_consultar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, id: T.pedido });
   if (r.ok) {
+    if (r.status === 'CONCLUIDO' && r.custo) aprenderCusto(T.pedidoTipo, r.custo, T.pedidoQtd);   // v2.13.2
     T.ultimoSaldo = textoSaldo(r) || T.ultimoSaldo || '';
     $('#pSaldo').innerHTML = T.ultimoSaldo; $('#pSaldo').classList.toggle('esconder', !T.ultimoSaldo);
     if (r.status === 'CONCLUIDO' || (r.status === 'SENHA_GERADA' && r.ticket)) {
@@ -1680,6 +1709,8 @@ function desenharAjustes() {
   $('#ajConsulta').checked = !!AJ.consulta;
   $('#ajDescanso').checked = !!AJ.descanso;
   desenharImpDestino();
+  $('#ajCustos').innerHTML = modsServidor().map(m => `<label style="font-weight:600">${esc(m.nome)} <input type="number" min="1" step="1" data-custo="${esc(m.id)}" value="${esc((AJ.custos || {})[m.id] || '')}" style="width:110px;font:inherit;font-size:17px;padding:6px;border:2px solid var(--linha);border-radius:8px"> pontos</label>`).join('');
+  $('#ajCustos').querySelectorAll('[data-custo]').forEach(i => i.oninput = () => { AJ.custos = Object.assign({}, AJ.custos, { [i.dataset.custo]: Number(i.value) || 0 }); salvarAjustes(); });
   if (document.activeElement !== $('#ajNomeTotem')) $('#ajNomeTotem').value = AJ.nomeTotem || '';
   $('#ajDicaSair').checked = !!AJ.dicaSair; $('#ajDicaSair').onchange = () => { AJ.dicaSair = $('#ajDicaSair').checked; salvarAjustes(); };
   $('#ajNomeTotem').oninput = () => { AJ.nomeTotem = $('#ajNomeTotem').value; salvarAjustes(); };
