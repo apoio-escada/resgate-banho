@@ -1,0 +1,17 @@
+{
+  "name": "robo-resgate-banho",
+  "version": "1.0.0",
+  "description": "Robô do resgate de banho ClubPetro + EVO - Postos Pichilau",
+  "main": "robo.js",
+  "private": true,
+  "scripts": {
+    "start": "node robo.js",
+    "login": "node robo.js --login",
+    "teste-impressao": "node teste-impressao.js"
+  },
+  "dependencies": {
+    "pdf-lib": "1.17.1",
+    "pdf-to-printer": "5.6.0",
+    "playwright-core": "1.56.0"
+  }
+}
