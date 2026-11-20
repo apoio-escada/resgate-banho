@@ -20,7 +20,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 const { PDFDocument } = require('pdf-lib');
 
-const VERSAO = '2.13.1';
+const VERSAO = '2.13.2';
 // v2.11.0: só um computador roda o robô. O que for instalado por último "assume" (arquivo dados\assumir.flag);
 // o anterior recebe do servidor o aviso de que foi substituído, fecha os navegadores e fica em espera.
 const MAQUINA = require('os').hostname();
@@ -171,10 +171,25 @@ async function abrirNavegador() {
     ctx = await abrir();
   }
   ctx.on('close', () => { log('Navegador fechado. Vou reabrir.'); ctx = null; abasClub.clear(); });
+  // v2.13.2: as janelas do robô abrem minimizadas, para não roubar o teclado do totem (mesmo computador).
+  // Desligar: "minimizarJanelas": false no config.json.
+  if (CFG.minimizarJanelas !== false && !CFG.semJanela) {
+    ctx.on('page', p => minimizarJanela(p));
+    for (const p of ctx.pages()) minimizarJanela(p);
+  }
   await prepararContexto(ctx);
   return ctx;
 }
 
+async function minimizarJanela(p) {
+  try {
+    await dormir(800);
+    const s = await p.context().newCDPSession(p);
+    const { windowId } = await s.send('Browser.getWindowForTarget');
+    await s.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'minimized' } });
+    await s.detach().catch(() => {});
+  } catch (_) {}
+}
 const ARGS_NAVEGADOR = ['--start-maximized', '--disable-session-crashed-bubble', '--hide-crash-restore-bubble',
   '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'];
 
