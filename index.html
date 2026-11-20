@@ -934,6 +934,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <script>
 'use strict';
 const CFG = window.APP_CONFIG || {};
+// v2.14: cada posto tem o seu servidor. O link do posto traz ?servidor=<URL /exec>; fica guardado neste aparelho.
+(() => {
+  try {
+    const q = new URLSearchParams(location.search).get('servidor');
+    if (q && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(q)) localStorage.setItem('banho_api_url', q);
+    const guardado = localStorage.getItem('banho_api_url');
+    if (guardado) CFG.API_URL = guardado;
+  } catch (_) {}
+})();
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const guardar = { get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
@@ -1444,7 +1453,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-20a';
+const VERSAO_SITE = '2026-11-20b';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
