@@ -1,0 +1,24 @@
+ROBO DO RESGATE (BANHO E REFEICAO) - INSTALACAO EM QUALQUER COMPUTADOR (v2.12)
+
+1. No painel do caixa, entre como AUDITOR > Configuracoes >
+   "Instalar robo em outro computador". Anote o CODIGO de 6 numeros (15 min).
+2. Neste computador: clique com o botao direito no ZIP > Extrair tudo.
+3. Dois cliques em INSTALAR.bat. Digite o codigo quando pedir. Pronto.
+
+O robo roda em SEGUNDO PLANO (sem a janela preta). Atalhos na area de trabalho:
+  Robo Banho (abrir) - Robo Banho - Status (ver mensagens; fechar nao para o robo)
+  Robo Banho - Parar - Robo Banho - Comprovantes (pasta dos PDFs)
+
+O instalador faz tudo: copia para C:\RoboBanho, instala, autoriza este
+computador, cria os atalhos "Robo Banho" (area de trabalho e menu Iniciar),
+liga o robo junto com o Windows, imprime um teste (se quiser) e abre o robo.
+
+- Logins e senhas (ClubPetro e EVO de cada caixa): ficam no painel
+  (Configuracoes do posto e cadastro de usuarios). Nada fica neste computador.
+- Comprovantes em PDF: C:\RoboBanho\Comprovantes\AAAA-MM (atalho
+  "Robo Banho - Comprovantes"). Copia de reserva no Google Drive do app.
+- Este computador ASSUME o robo; o computador anterior fica em espera e
+  mostra na janela em qual computador o robo esta rodando.
+- Voltar para outro computador: rode ASSUMIR.bat nele.
+- Precisa: Windows, Google Chrome, internet, rede do posto (EVO) e a
+  impressora termica instalada.
