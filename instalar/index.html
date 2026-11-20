@@ -53,7 +53,6 @@ code{background:#EEF1F7;padding:1px 6px;border-radius:6px}
 // ===================== configuração da página =====================
 const REPO = 'https://raw.githubusercontent.com/apoio-escada/resgate-banho/main/';
 const SITE = 'https://apoio-escada.github.io/resgate-banho/';
-const TEMPLATE_PLANILHA = '';   // id da planilha-modelo (com o servidor dentro). Preenchido pela TI.
 const ARQUIVOS = ['INSTALAR.bat', 'instalar.js', 'package.json', 'package-lock.json', 'INICIAR.bat', 'PARAR.bat', 'STATUS.bat', 'iniciar-oculto.vbs',
   'TESTE-IMPRESSAO.bat', 'teste-impressao.js', 'DESINSTALAR.bat', 'ASSUMIR.bat', 'REINICIO-AUTOMATICO.bat', 'LEIA-ME.txt'];
 const RE_SERV = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
@@ -63,8 +62,10 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const D = Object.assign({ modo: '', passo: 0, posto: {}, emails: {}, servidor: '', evo: { url: 'http://', botao: 'B.PICHILAUMAIS' }, caixas: [{}], resultado: null },
   (() => { try { return JSON.parse(localStorage.getItem('instalar_posto') || '{}'); } catch (_) { return {}; } })());
 const SEG = { admin: '', club: { login: '', senha: '' } };
+// o link de instalação do posto (preparado pela TI) traz ?servidor=<URL /exec> do servidor do posto
+(() => { try { const q = new URLSearchParams(location.search).get('servidor'); if (q && RE_SERV.test(q)) { if (D.servidor && D.servidor !== q) { D.passo = 0; D.resultado = null; } D.servidor = q; } } catch (_) {} })();
 const salvar = () => { try { const c = JSON.parse(JSON.stringify(D)); c.caixas = (c.caixas || []).map(x => ({ nome: x.nome, usuario: x.usuario, evoLogin: x.evoLogin })); localStorage.setItem('instalar_posto', JSON.stringify(c)); } catch (_) {} };
-const PASSOS = ['Posto', 'Pessoas', 'Planilha', 'EVO', 'ClubPetro', 'Caixas', 'Enviar', 'Robô', 'Configurar', 'Primeiro resgate'];
+const PASSOS = ['Posto', 'Pessoas', 'Servidor', 'EVO', 'ClubPetro', 'Caixas', 'Enviar', 'Robô', 'Configurar', 'Primeiro resgate'];
 
 async function servidor(acao, dados) {
   const r = await fetch(D.servidor, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ acao }, dados || {})) });
@@ -127,8 +128,8 @@ function passoPosto(c) {
 // ---------- 2. pessoas
 function passoPessoas(c) {
   const e = D.emails;
-  c.innerHTML = `<h2>2. Responsáveis</h2><p>A planilha fica na conta Google do <b>auditor</b>. Os avisos e as redefinições de senha vão para estes e-mails.</p>
-    <div class="dupla">${campo('eAud', 'E-mail do auditor (dono da planilha)', e.auditor, 'type="email"')}${campo('eAdm', 'E-mail do administrador', e.adm, 'type="email"')}
+  c.innerHTML = `<h2>2. Responsáveis</h2><p>Os avisos, relatórios e redefinições de senha vão para estes e-mails (podem ser @pichilau.com.br).</p>
+    <div class="dupla">${campo('eAud', 'E-mail do auditor', e.auditor, 'type="email"')}${campo('eAdm', 'E-mail do administrador', e.adm, 'type="email"')}
     ${campo('eGer', 'E-mail do gerente', e.gerente, 'type="email"')}${campo('eRed', 'E-mail para redefinir senhas', e.redefinir, 'type="email"')}</div>
     <h3>Senha do administrador do painel</h3>
     <div class="dupla"><label>Senha<input id="aS1" type="password" autocomplete="new-password"></label><label>Repita<input id="aS2" type="password" autocomplete="new-password"></label></div>
@@ -144,18 +145,11 @@ function passoPessoas(c) {
 }
 // ---------- 3. planilha (conta Google do auditor)
 function passoPlanilha(c) {
-  const link = TEMPLATE_PLANILHA ? `https://docs.google.com/spreadsheets/d/${TEMPLATE_PLANILHA}/copy` : '';
-  c.innerHTML = `<h2>3. Planilha e servidor do posto</h2>
-    <div class="nota">Faça este passo no navegador onde está aberta a conta Google do <b>auditor</b> (${esc(D.emails.auditor || 'e-mail do passo 2')}). Sem conta Google? Crie uma gratuita em <a href="https://accounts.google.com/signup" target="_blank" rel="noopener">accounts.google.com/signup</a> (5 minutos) e volte aqui.</div>
-    <ol class="guia">
-      <li>Toque em <b>Criar a planilha do posto</b> › <b>Fazer uma cópia</b>. A planilha já vem com o servidor dentro.</li>
-      <li>Na planilha copiada: menu <b>Extensões › Apps Script</b>.</li>
-      <li>No Apps Script: <b>Implantar › Nova implantação</b> › tipo <b>App da Web</b> › Executar como <b>Eu</b> › Quem pode acessar <b>Qualquer pessoa</b> › <b>Implantar</b>.</li>
-      <li>Toque em <b>Autorizar acesso</b>, escolha a conta do auditor e <b>Permitir</b>.</li>
-      <li>Copie a <b>URL do app da Web</b> (termina em <code>/exec</code>) e cole abaixo.</li>
-    </ol>
-    <div class="acoes">${link ? `<a class="btn lar" href="${link}" target="_blank" rel="noopener">Criar a planilha do posto</a>` : '<span class="erro">A planilha-modelo ainda está sendo preparada pela TI.</span>'}</div>
-    ${campo('sUrl', 'URL do servidor do posto', D.servidor, 'placeholder="https://script.google.com/macros/s/…/exec"')}
+  // a planilha e o servidor do posto ficam na conta Google central da TI (igual ao Escada BR); o posto não mexe em conta Google
+  c.innerHTML = `<h2>3. Servidor do posto</h2>
+    ${D.servidor ? '<p class="ok">O servidor deste posto já foi preparado pela TI (veio no link de instalação).</p>'
+      : '<div class="nota">Este link não é o do seu posto. Peça à TI o <b>link de instalação do posto</b> (ele já vem com o servidor) ou cole abaixo o endereço que a TI enviar.</div>'}
+    ${campo('sUrl', 'Endereço do servidor do posto', D.servidor, 'placeholder="https://script.google.com/macros/s/…/exec"')}
     <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="tst">Testar e continuar</button></div><p id="msg"></p>`;
   $('#vol').onclick = () => ir(1);
   $('#tst').onclick = async () => {
@@ -218,7 +212,7 @@ function passoEnviar(c) {
   c.innerHTML = `<h2>7. Revisar e enviar</h2>
     <p><b>${esc(D.posto.nome)}</b> · código ${esc(D.posto.codigo)} · auditor ${esc(D.emails.auditor)}</p>
     <p>EVO ${esc(D.evo.url)} · botão ${esc(D.evo.botao)} · ${D.caixas.length} caixa(s): ${D.caixas.map(x => esc(x.nome)).join(', ')}</p>
-    <div class="nota">O servidor do posto cria as abas da planilha, as pastas dos comprovantes no Google Drive do auditor, os usuários e as configurações.</div>
+    <div class="nota">O servidor do posto cria as abas da planilha, as pastas dos comprovantes, os usuários e as configurações.</div>
     <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn lar" id="env">Enviar e configurar o posto</button></div><p id="msg"></p>`;
   $('#vol').onclick = () => ir(5);
   $('#env').onclick = async () => {
