@@ -59,6 +59,9 @@ function atalho(destino, alvo, args, minimizado) {
   console.log('OK: atalhos na área de trabalho: "Robô Banho" (abrir), "Robô Banho - Status" (ver mensagens),');
   console.log('    "Robô Banho - Parar" e "Robô Banho - Comprovantes".');
   console.log('OK: comprovantes em ' + path.join(BASE, 'Comprovantes'));
+  // v2.13.2: o computador do robô (e do totem) não pode suspender nem desligar a tela sozinho
+  ps('powercfg /change standby-timeout-ac 0; powercfg /change hibernate-timeout-ac 0; powercfg /change monitor-timeout-ac 0; powercfg /change standby-timeout-dc 0');
+  console.log('OK: suspensão automática desligada (o robô e o totem ficam sempre prontos).');
   if (/^s/i.test(await pergunta('\nImprimir uma página de teste na impressora térmica? (S/N) '))) spawnSync(process.execPath, [path.join(BASE, 'teste-impressao.js')], { stdio: 'inherit', cwd: BASE });
   // v2.14: totem neste mesmo computador, em tela cheia (quiosque) e abrindo junto com o Windows
   if (/^s/i.test(await pergunta('\nEste computador também será o TOTEM do cliente? (S/N) '))) {
