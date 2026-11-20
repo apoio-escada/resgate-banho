@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instalar o Resgate Pichilau+ no posto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--azul:#0B3A8C;--azul2:#1830D8;--lar:#E07400;--tinta:#141B33;--suave:#5B6478;--linha:#D8DEEA;--fundo:#F3F5FA;--ok:#1B7F3B;--erro:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:17px/1.45 'Barlow',Arial,sans-serif}
+header{background:var(--azul);color:#fff;padding:18px 24px}
+header h1{margin:0;font:700 30px/1.1 'Barlow Condensed',Arial,sans-serif}
+header p{margin:4px 0 0;opacity:.85}
+main{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+.cartao{background:#fff;border:1px solid var(--linha);border-radius:18px;padding:24px;margin-bottom:18px}
+h2{font:700 28px/1.1 'Barlow Condensed',Arial,sans-serif;margin:0 0 12px}
+h3{font:700 22px/1.1 'Barlow Condensed',Arial,sans-serif;margin:18px 0 8px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--linha);border-radius:10px;background:#fff}
+input:focus{outline:none;border-color:var(--azul2)}
+.dupla{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.btn{font:600 17px 'Barlow',Arial,sans-serif;border:0;border-radius:12px;padding:12px 20px;background:var(--azul);color:#fff;cursor:pointer}
+.btn.sec{background:#fff;color:var(--azul);border:2px solid var(--azul)}
+.btn.lar{background:var(--lar)}
+.btn:disabled{opacity:.5;cursor:default}
+.acoes{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.escolha{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.escolha button{text-align:left;background:#fff;border:2px solid var(--linha);border-radius:16px;padding:22px;cursor:pointer;font:inherit}
+.escolha button:hover{border-color:var(--azul2)}
+.escolha b{display:block;font:700 26px 'Barlow Condensed',Arial,sans-serif;color:var(--azul);margin-bottom:6px}
+.passos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.passos span{font-size:14px;padding:4px 10px;border-radius:20px;background:#E6EAF4;color:var(--suave)}
+.passos span.atual{background:var(--azul);color:#fff}
+.passos span.feito{background:#DDF1E3;color:var(--ok)}
+.nota{background:#FFF4E5;border-left:6px solid var(--lar);border-radius:10px;padding:12px 16px;margin:14px 0}
+.ok{color:var(--ok);font-weight:600}.erro{color:var(--erro);font-weight:600}
+ol.guia li{margin:6px 0}
+.caixa-item{border:1px solid var(--linha);border-radius:14px;padding:14px;margin:12px 0;position:relative}
+.caixa-item .rm{position:absolute;right:10px;top:8px;background:none;border:0;color:var(--erro);font-weight:600;cursor:pointer}
+code{background:#EEF1F7;padding:1px 6px;border-radius:6px}
+.grande{font:700 44px 'Barlow Condensed',Arial,sans-serif;color:var(--azul);letter-spacing:.06em}
+.esconder{display:none}
+@media (max-width:640px){.dupla,.escolha{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>Resgate Pichilau+ · Instalação no posto</h1><p>Banho, refeição e outras opções resgatadas pelo próprio cliente no totem.</p></header>
+<main id="app"></main>
+<script>
+// ===================== configuração da página =====================
+const REPO = 'https://raw.githubusercontent.com/apoio-escada/resgate-banho/main/';
+const SITE = 'https://apoio-escada.github.io/resgate-banho/';
+const TEMPLATE_PLANILHA = '';   // id da planilha-modelo (com o servidor dentro). Preenchido pela TI.
+const ARQUIVOS = ['INSTALAR.bat', 'instalar.js', 'package.json', 'package-lock.json', 'INICIAR.bat', 'PARAR.bat', 'STATUS.bat', 'iniciar-oculto.vbs',
+  'TESTE-IMPRESSAO.bat', 'teste-impressao.js', 'DESINSTALAR.bat', 'ASSUMIR.bat', 'REINICIO-AUTOMATICO.bat', 'LEIA-ME.txt'];
+const RE_SERV = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// o que não é senha fica guardado neste navegador para continuar depois; senhas nunca são guardadas
+const D = Object.assign({ modo: '', passo: 0, posto: {}, emails: {}, servidor: '', evo: { url: 'http://', botao: 'B.PICHILAUMAIS' }, caixas: [{}], resultado: null },
+  (() => { try { return JSON.parse(localStorage.getItem('instalar_posto') || '{}'); } catch (_) { return {}; } })());
+const SEG = { admin: '', club: { login: '', senha: '' } };
+const salvar = () => { try { const c = JSON.parse(JSON.stringify(D)); c.caixas = (c.caixas || []).map(x => ({ nome: x.nome, usuario: x.usuario, evoLogin: x.evoLogin })); localStorage.setItem('instalar_posto', JSON.stringify(c)); } catch (_) {} };
+const PASSOS = ['Posto', 'Pessoas', 'Planilha', 'EVO', 'ClubPetro', 'Caixas', 'Enviar', 'Robô', 'Configurar', 'Primeiro resgate'];
+
+async function servidor(acao, dados) {
+  const r = await fetch(D.servidor, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ acao }, dados || {})) });
+  return r.json();
+}
+function barra() { return '<div class="passos">' + PASSOS.map((p, i) => `<span class="${i === D.passo ? 'atual' : i < D.passo ? 'feito' : ''}">${i + 1}. ${p}</span>`).join('') + '</div>'; }
+function ir(n) { D.passo = n; salvar(); render(); window.scrollTo(0, 0); }
+function campo(id, rot, val, extra) { return `<label for="${id}">${rot}</label><input id="${id}" value="${esc(val || '')}" ${extra || ''}>`; }
+
+function render() {
+  const a = $('#app');
+  if (!D.modo) {
+    a.innerHTML = `<div class="cartao"><h2>O que você quer fazer?</h2>
+      <div class="escolha">
+        <button id="mInt"><b>Integração de novo posto</b>Primeira instalação: cria a planilha do posto, cadastra caixas e opções de resgate e instala o robô.</button>
+        <button id="mMig"><b>Migração de computador</b>O posto já usa o sistema e o robô vai para outro computador.</button>
+      </div></div>`;
+    $('#mInt').onclick = () => { D.modo = 'integracao'; ir(0); };
+    $('#mMig').onclick = () => { D.modo = 'migracao'; salvar(); render(); };
+    return;
+  }
+  if (D.modo === 'migracao') return renderMigracao(a);
+  const P = [passoPosto, passoPessoas, passoPlanilha, passoEvo, passoClub, passoCaixas, passoEnviar, passoRobo, passoConfigurar, passoPrimeiro][D.passo];
+  a.innerHTML = barra() + '<div class="cartao" id="c"></div><p><a href="#" id="recomecar">Recomeçar do zero</a></p>';
+  $('#recomecar').onclick = e => { e.preventDefault(); if (confirm('Apagar o que foi preenchido e recomeçar?')) { localStorage.removeItem('instalar_posto'); location.reload(); } };
+  P($('#c'));
+}
+
+function renderMigracao(a) {
+  a.innerHTML = `<div class="cartao"><h2>Migração de computador</h2>
+    <ol class="guia">
+      <li>No painel do caixa do posto, entre como <b>Auditor</b> › engrenagem › <b>Instalar robô em outro computador</b> e anote o código de 6 números (vale 15 minutos).</li>
+      <li>Cole aqui o <b>link do painel do seu posto</b> (o mesmo que os caixas usam). Assim o robô novo fala com o servidor certo.</li>
+    </ol>
+    ${campo('mLink', 'Link do painel do posto', D.linkPainel, 'placeholder="https://apoio-escada.github.io/resgate-banho/?servidor=…"')}
+    <p class="pequeno">Posto Escada BR: pode deixar em branco.</p>
+    <div class="acoes"><button class="btn lar" id="mBaixar">Baixar o instalador do robô</button><button class="btn sec" id="mVoltar">Voltar</button></div>
+    <p id="mMsg"></p>
+    <div class="nota">No computador novo: clique com o botão direito no arquivo baixado › <b>Extrair tudo</b> › abra a pasta › dois cliques em <b>INSTALAR.bat</b> › digite o código. O computador antigo fica em espera sozinho.</div></div>`;
+  $('#mVoltar').onclick = () => { D.modo = ''; salvar(); render(); };
+  $('#mBaixar').onclick = async () => {
+    const l = $('#mLink').value.trim(); D.linkPainel = l; salvar();
+    let serv = ''; try { serv = l ? new URL(l).searchParams.get('servidor') || '' : ''; } catch (_) {}
+    if (l && !RE_SERV.test(serv)) { $('#mMsg').innerHTML = '<span class="erro">Esse link não tem o servidor do posto. Copie o link do painel que os caixas usam.</span>'; return; }
+    await baixarInstalador(serv ? { servidorUrl: serv } : {}, $('#mMsg'));
+  };
+}
+
+// ---------- 1. posto
+function passoPosto(c) {
+  c.innerHTML = `<h2>1. Dados do posto</h2><p>O próprio posto escolhe como quer aparecer no sistema.</p>
+    <div class="dupla">${campo('pNome', 'Nome do posto', D.posto.nome, 'placeholder="ex.: Posto Pichilau Vila Esperança"')}${campo('pCod', 'Código interno do posto', D.posto.codigo, 'inputmode="numeric" placeholder="ex.: 16"')}</div>
+    <div class="acoes"><button class="btn" id="seg">Continuar</button></div><p id="msg"></p>`;
+  $('#seg').onclick = () => {
+    D.posto = { nome: $('#pNome').value.trim(), codigo: $('#pCod').value.trim() };
+    if (D.posto.nome.length < 3 || !/^\d{1,6}$/.test(D.posto.codigo)) { $('#msg').innerHTML = '<span class="erro">Preencha o nome e o código interno (só números).</span>'; return; }
+    ir(1);
+  };
+}
+// ---------- 2. pessoas
+function passoPessoas(c) {
+  const e = D.emails;
+  c.innerHTML = `<h2>2. Responsáveis</h2><p>A planilha fica na conta Google do <b>auditor</b>. Os avisos e as redefinições de senha vão para estes e-mails.</p>
+    <div class="dupla">${campo('eAud', 'E-mail do auditor (dono da planilha)', e.auditor, 'type="email"')}${campo('eAdm', 'E-mail do administrador', e.adm, 'type="email"')}
+    ${campo('eGer', 'E-mail do gerente', e.gerente, 'type="email"')}${campo('eRed', 'E-mail para redefinir senhas', e.redefinir, 'type="email"')}</div>
+    <h3>Senha do administrador do painel</h3>
+    <div class="dupla"><label>Senha<input id="aS1" type="password" autocomplete="new-password"></label><label>Repita<input id="aS2" type="password" autocomplete="new-password"></label></div>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="seg">Continuar</button></div><p id="msg"></p>`;
+  $('#vol').onclick = () => ir(0);
+  $('#seg').onclick = () => {
+    D.emails = { auditor: $('#eAud').value.trim(), adm: $('#eAdm').value.trim(), gerente: $('#eGer').value.trim(), redefinir: $('#eRed').value.trim() };
+    const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!re.test(D.emails.auditor) || !re.test(D.emails.redefinir)) { $('#msg').innerHTML = '<span class="erro">Informe ao menos o e-mail do auditor e o de redefinir senhas.</span>'; return; }
+    if ($('#aS1').value.length < 6 || $('#aS1').value !== $('#aS2').value) { $('#msg').innerHTML = '<span class="erro">A senha do administrador precisa ter 6 ou mais caracteres e ser igual nas duas vezes.</span>'; return; }
+    SEG.admin = $('#aS1').value; ir(2);
+  };
+}
+// ---------- 3. planilha (conta Google do auditor)
+function passoPlanilha(c) {
+  const link = TEMPLATE_PLANILHA ? `https://docs.google.com/spreadsheets/d/${TEMPLATE_PLANILHA}/copy` : '';
+  c.innerHTML = `<h2>3. Planilha e servidor do posto</h2>
+    <div class="nota">Faça este passo no navegador onde está aberta a conta Google do <b>auditor</b> (${esc(D.emails.auditor || 'e-mail do passo 2')}). Sem conta Google? Crie uma gratuita em <a href="https://accounts.google.com/signup" target="_blank" rel="noopener">accounts.google.com/signup</a> (5 minutos) e volte aqui.</div>
+    <ol class="guia">
+      <li>Toque em <b>Criar a planilha do posto</b> › <b>Fazer uma cópia</b>. A planilha já vem com o servidor dentro.</li>
+      <li>Na planilha copiada: menu <b>Extensões › Apps Script</b>.</li>
+      <li>No Apps Script: <b>Implantar › Nova implantação</b> › tipo <b>App da Web</b> › Executar como <b>Eu</b> › Quem pode acessar <b>Qualquer pessoa</b> › <b>Implantar</b>.</li>
+      <li>Toque em <b>Autorizar acesso</b>, escolha a conta do auditor e <b>Permitir</b>.</li>
+      <li>Copie a <b>URL do app da Web</b> (termina em <code>/exec</code>) e cole abaixo.</li>
+    </ol>
+    <div class="acoes">${link ? `<a class="btn lar" href="${link}" target="_blank" rel="noopener">Criar a planilha do posto</a>` : '<span class="erro">A planilha-modelo ainda está sendo preparada pela TI.</span>'}</div>
+    ${campo('sUrl', 'URL do servidor do posto', D.servidor, 'placeholder="https://script.google.com/macros/s/…/exec"')}
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="tst">Testar e continuar</button></div><p id="msg"></p>`;
+  $('#vol').onclick = () => ir(1);
+  $('#tst').onclick = async () => {
+    const u = $('#sUrl').value.trim();
+    if (!RE_SERV.test(u)) { $('#msg').innerHTML = '<span class="erro">A URL precisa começar com https://script.google.com/macros/s/ e terminar com /exec.</span>'; return; }
+    D.servidor = u; salvar(); $('#msg').textContent = 'Testando…';
+    try { const r = await servidor('acesso_setupStatus'); if (r && r.ok) { if (r.configurado) { $('#msg').innerHTML = '<span class="erro">Este servidor já foi configurado. Para outro computador, use Migração.</span>'; return; } ir(3); }
+      else $('#msg').innerHTML = `<span class="erro">O servidor respondeu: ${esc((r && r.erro) || 'erro')}. Confira a implantação (Qualquer pessoa).</span>`; }
+    catch (e) { $('#msg').innerHTML = '<span class="erro">Não respondeu. Confira se a implantação é "App da Web" com acesso "Qualquer pessoa".</span>'; }
+  };
+}
+// ---------- 4. EVO
+function passoEvo(c) {
+  c.innerHTML = `<h2>4. EVO do posto</h2><p>Endereço que aparece no navegador quando o caixa abre o EVO (rede interna do posto).</p>
+    <div class="dupla">${campo('vUrl', 'Endereço do EVO', D.evo.url, 'placeholder="http://192.168.x.x/"')}${campo('vBot', 'Nome do botão do produto no EVO', D.evo.botao)}</div>
+    <div class="acoes"><button class="btn sec" id="abr">Abrir para testar</button></div>
+    <p class="pequeno">O teste só abre dentro da rede do posto.</p>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="seg">Continuar</button></div><p id="msg"></p>`;
+  $('#abr').onclick = () => window.open($('#vUrl').value.trim(), '_blank', 'noopener');
+  $('#vol').onclick = () => ir(2);
+  $('#seg').onclick = () => {
+    D.evo = { url: $('#vUrl').value.trim(), botao: $('#vBot').value.trim() || 'B.PICHILAUMAIS' };
+    if (!/^https?:\/\/[\w.\-:]+\/?/.test(D.evo.url)) { $('#msg').innerHTML = '<span class="erro">Informe o endereço do EVO, ex.: http://192.168.1.50/</span>'; return; }
+    ir(4);
+  };
+}
+// ---------- 5. ClubPetro
+function passoClub(c) {
+  c.innerHTML = `<h2>5. ClubPetro do posto</h2><p>Login e senha do portal do posto. O robô usa para fazer os resgates e para ler as opções (banho, restaurante, conveniência…). Ficam só no servidor do posto.</p>
+    <div class="dupla"><label>Login do ClubPetro<input id="cL" autocomplete="off" value="${esc(SEG.club.login)}"></label><label>Senha do ClubPetro<input id="cS" type="password" autocomplete="new-password"></label></div>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="seg">Continuar</button></div><p id="msg"></p>`;
+  $('#vol').onclick = () => ir(3);
+  $('#seg').onclick = () => { SEG.club = { login: $('#cL').value.trim(), senha: $('#cS').value }; if (!SEG.club.login || !SEG.club.senha) { $('#msg').innerHTML = '<span class="erro">Informe login e senha.</span>'; return; } ir(5); };
+}
+// ---------- 6. caixas
+function passoCaixas(c) {
+  const lista = D.caixas.length ? D.caixas : [{}];
+  c.innerHTML = `<h2>6. Caixas</h2><p>Cada caixa entra no painel com o seu usuário. O login do EVO é o que ele usa no EVO do posto.</p><div id="lst"></div>
+    <div class="acoes"><button class="btn sec" id="add">+ Adicionar caixa</button></div>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="seg">Continuar</button></div><p id="msg"></p>`;
+  const desenhar = () => {
+    $('#lst').innerHTML = lista.map((x, i) => `<div class="caixa-item" data-i="${i}">${lista.length > 1 ? `<button class="rm" data-rm="${i}">remover</button>` : ''}
+      <div class="dupla"><label>Nome do caixa<input data-k="nome" value="${esc(x.nome || '')}"></label><label>Usuário do app<input data-k="usuario" value="${esc(x.usuario || '')}" autocomplete="off"></label>
+      <label>Senha do app<input data-k="senha" type="password" autocomplete="new-password" value="${esc(x.senha || '')}"></label><label>Login do EVO<input data-k="evoLogin" value="${esc(x.evoLogin || '')}" autocomplete="off"></label>
+      <label>Senha do EVO<input data-k="evoSenha" type="password" autocomplete="new-password" value="${esc(x.evoSenha || '')}"></label></div></div>`).join('');
+    $('#lst').querySelectorAll('input').forEach(inp => inp.oninput = () => { lista[inp.closest('.caixa-item').dataset.i][inp.dataset.k] = inp.value; });
+    $('#lst').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { lista.splice(Number(b.dataset.rm), 1); desenhar(); });
+  };
+  desenhar();
+  $('#add').onclick = () => { lista.push({}); desenhar(); };
+  $('#vol').onclick = () => { D.caixas = lista; ir(4); };
+  $('#seg').onclick = () => {
+    const ok = lista.every(x => (x.nome || '').trim() && /^[\w.\-]{3,}$/.test((x.usuario || '').trim()) && (x.senha || '').length >= 4 && (x.evoLogin || '').trim() && x.evoSenha);
+    if (!ok) { $('#msg').innerHTML = '<span class="erro">Preencha todos os campos de cada caixa (usuário com 3 ou mais letras/números; senha do app com 4 ou mais).</span>'; return; }
+    D.caixas = lista; ir(6);
+  };
+}
+// ---------- 7. enviar ao servidor
+function passoEnviar(c) {
+  c.innerHTML = `<h2>7. Revisar e enviar</h2>
+    <p><b>${esc(D.posto.nome)}</b> · código ${esc(D.posto.codigo)} · auditor ${esc(D.emails.auditor)}</p>
+    <p>EVO ${esc(D.evo.url)} · botão ${esc(D.evo.botao)} · ${D.caixas.length} caixa(s): ${D.caixas.map(x => esc(x.nome)).join(', ')}</p>
+    <div class="nota">O servidor do posto cria as abas da planilha, as pastas dos comprovantes no Google Drive do auditor, os usuários e as configurações.</div>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn lar" id="env">Enviar e configurar o posto</button></div><p id="msg"></p>`;
+  $('#vol').onclick = () => ir(5);
+  $('#env').onclick = async () => {
+    if (!SEG.admin || !SEG.club.senha || D.caixas.some(x => !x.senha || !x.evoSenha)) { $('#msg').innerHTML = '<span class="erro">Por segurança as senhas não ficam guardadas: volte aos passos 2, 5 e 6 e digite de novo.</span>'; return; }
+    $('#env').disabled = true; $('#msg').textContent = 'Configurando o servidor do posto… (até 1 minuto)';
+    try {
+      const r = await servidor('acesso_setupInicial', { posto: D.posto, emails: D.emails, adminSenha: SEG.admin, evo: D.evo, clubpetro: SEG.club,
+        caixas: D.caixas.map(x => ({ nome: x.nome.trim(), usuario: x.usuario.trim().toLowerCase(), senha: x.senha, evoLogin: x.evoLogin.trim(), evoSenha: x.evoSenha })) });
+      if (!r || !r.ok) { $('#env').disabled = false; $('#msg').innerHTML = `<span class="erro">${esc((r && r.erro) || 'Não foi possível configurar.')}</span>`; return; }
+      D.resultado = { pin: r.pin, codigo: r.codigoInstalacao, painel: SITE + '?servidor=' + encodeURIComponent(D.servidor) + '#caixa', totem: SITE + '?servidor=' + encodeURIComponent(D.servidor) };
+      D.caixas = D.caixas.map(x => ({ nome: x.nome, usuario: x.usuario, evoLogin: x.evoLogin }));
+      SEG.admin = ''; SEG.club = { login: '', senha: '' }; ir(7);
+    } catch (e) { $('#env').disabled = false; $('#msg').innerHTML = '<span class="erro">Sem resposta do servidor. Tente de novo.</span>'; }
+  };
+}
+// ---------- 8. robô
+async function baixarInstalador(posto, msg) {
+  msg.textContent = 'Preparando o instalador…';
+  try {
+    const zip = new JSZip(); const pasta = zip.folder('Instalador-Robo-Banho');
+    for (const f of ARQUIVOS) { const r = await fetch(REPO + 'instalador/' + f + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(f); pasta.file(f, await r.arrayBuffer()); }
+    const rr = await fetch(REPO + 'robo/robo.js?t=' + Date.now(), { cache: 'no-store' }); if (!rr.ok) throw new Error('robo.js'); pasta.file('robo.js', await rr.arrayBuffer());
+    if (posto.servidorUrl) pasta.file('posto.json', JSON.stringify(posto, null, 2));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Instalador-Robo-Banho.zip'; document.body.appendChild(a); a.click(); a.remove();
+    msg.innerHTML = '<span class="ok">Baixado: Instalador-Robo-Banho.zip</span>';
+  } catch (e) { msg.innerHTML = '<span class="erro">Não consegui montar o instalador (' + esc(e.message) + '). Confira a internet e tente de novo.</span>'; }
+}
+function passoRobo(c) {
+  const R = D.resultado || {};
+  c.innerHTML = `<h2>8. Instalar o robô</h2><p class="ok">Posto configurado.</p>
+    <p>Código de instalação do robô (vale 15 minutos):</p><p class="grande">${esc(R.codigo || '—')}</p>
+    <p>PIN do posto (para configurar os totens): <b>${esc(R.pin || '—')}</b></p>
+    <div class="acoes"><button class="btn lar" id="bx">Baixar o instalador do robô</button></div><p id="msg"></p>
+    <ol class="guia"><li>No computador do robô (com a impressora térmica e na rede do EVO): botão direito no arquivo › <b>Extrair tudo</b>.</li>
+      <li>Dois cliques em <b>INSTALAR.bat</b> › digite o código acima.</li>
+      <li>Responda <b>S</b> para a página de teste e, se este computador também for o totem, <b>S</b> em "Este computador também será o TOTEM".</li></ol>
+    <p class="pequeno">O código venceu? No painel (Auditor) › engrenagem › Instalar robô em outro computador.</p>
+    <div class="acoes"><button class="btn" id="seg">Robô instalado, continuar</button></div>`;
+  $('#bx').onclick = () => baixarInstalador({ servidorUrl: D.servidor, postoNome: D.posto.nome, postoCodigo: D.posto.codigo }, $('#msg'));
+  $('#seg').onclick = () => ir(8);
+}
+// ---------- 9. configurar no painel
+function passoConfigurar(c) {
+  const R = D.resultado || {};
+  c.innerHTML = `<h2>9. Ajustes no painel</h2>
+    <p>Abra o <a href="${esc(R.painel)}" target="_blank" rel="noopener"><b>painel do posto</b></a> e entre como <b>admin</b> (senha do passo 2). Guarde este link: é o que os caixas usam.</p>
+    <ol class="guia">
+      <li><b>Impressoras</b>: engrenagem › Impressoras › <b>Atualizar impressoras do robô</b> › escolha a térmica para a senha e para o fechamento › Salvar.</li>
+      <li><b>Opções de resgate</b>: engrenagem › Opções de resgate. A lista vem do ClubPetro (Serviço): marque as que o posto vai usar (banho, restaurante, conveniência…) e a <b>quantidade máxima</b> por resgate.</li>
+      <li><b>Atualização do robô</b>: deixe 03:00.</li>
+      <li><b>Totem</b>: no computador do totem, abra <a href="${esc(R.totem)}" target="_blank" rel="noopener">o link do totem</a> › Configurar totem › PIN <b>${esc(R.pin || '')}</b>. Em Ajustes do totem: nome do totem, impressão e pontos de cada opção.</li>
+    </ol>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button><button class="btn" id="seg">Continuar</button></div>`;
+  $('#vol').onclick = () => ir(7); $('#seg').onclick = () => ir(9);
+}
+// ---------- 10. primeiro resgate
+function passoPrimeiro(c) {
+  c.innerHTML = `<h2>10. Primeiro resgate de banho</h2>
+    <ol class="guia"><li>No painel, o caixa entra com o seu usuário › <b>Abrir turno</b>.</li>
+      <li>No totem: <b>Enter</b> › CPF e data de nascimento de um cliente com pontos › <b>1 Banho</b> › Enter › quantidade › Enter.</li>
+      <li>A senha aparece na tela; <b>Enter</b> imprime.</li>
+      <li>No painel aparece o resgate com o nome do cliente e do totem. Faça a OPNF no B2Click e <b>Gerar OPNF</b> no app.</li>
+      <li>No fim do turno: <b>Fechar turno</b> no app e depois o EVO no PDV.</li></ol>
+    <p class="ok">Pronto! O posto está funcionando.</p>
+    <div class="acoes"><button class="btn sec" id="vol">Voltar</button></div>`;
+  $('#vol').onclick = () => ir(8);
+}
+render();
+</script>
+</body>
+</html>
