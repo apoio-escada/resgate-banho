@@ -20,7 +20,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 const { PDFDocument } = require('pdf-lib');
 
-const VERSAO = '2.13.2';
+const VERSAO = '2.13.3';
 // v2.11.0: só um computador roda o robô. O que for instalado por último "assume" (arquivo dados\assumir.flag);
 // o anterior recebe do servidor o aviso de que foi substituído, fecha os navegadores e fica em espera.
 const MAQUINA = require('os').hostname();
@@ -1385,17 +1385,18 @@ async function comandoEntrarEvo() {
 // Lê no fechamento do EVO a quantidade do cartão do resgate (ex.: "B.PICHILAUMAIS ... 3").
 let qtdEvoFechamento = null;
 function lerQtdEvo(texto) {
-  // v2.10.1: a quantidade é o número inteiro logo depois do nome do cartão, ignorando valores em reais
-  // (R$ 0,00). No HTML do EVO o valor às vezes vem antes da quantidade e o robô lia o "0" de "R$ 0,00".
+  // v2.13.3: lê só dentro do quadro "FECHAMENTO DE CAIXA" e só o número logo depois do nome do cartão.
+  // Antes, quando o cartão não estava ali, o robô achava o nome no botão da tela do EVO e pegava o dia da data (17, 18, 19…).
   const nome = String(CFG.evo.botao || 'B.PICHILAUMAIS').replace(/[.\s]/g, '').split('').map(c => c.replace(/[-\/\\^$*+?()|[\]{}]/g, '\\$&')).join('[.\\s]*');
-  const t = String(texto || '').replace(/\s+/g, ' ');
+  let t = String(texto || '').replace(/\s+/g, ' ');
+  const f = t.search(/FECHAMENTO\s+DE\s+CAIXA/i);
+  if (f < 0) return null;
+  t = t.slice(f);
   const m = new RegExp(nome, 'i').exec(t);
-  if (!m) return null;     // fechamento sem esse cartão na lista: "não lido" (o painel pede ao caixa)
-  let resto = t.slice(m.index + m[0].length, m.index + m[0].length + 80);
-  const prox = resto.search(/[A-Z]{2,}[A-Z.\s$]*\d/);            // próximo item da lista (ex.: "B. PAGO $5")
-  if (prox > 0) resto = resto.slice(0, prox);
+  if (!m) return null;                       // cartão fora da lista: "não lido" (o painel pede ao caixa)
+  let resto = t.slice(m.index + m[0].length, m.index + m[0].length + 60);
   resto = resto.replace(/R\$\s*-?[\d.]*,\d{2}/gi, ' ').replace(/\d+,\d{2}/g, ' ');
-  const q = /(?:^|[^\d,.])(\d{1,4})(?![\d,])/.exec(resto);
+  const q = /^\s*(\d{1,4})(?![\d,\/:.])/.exec(resto);
   return q ? Number(q[1]) : null;
 }
 
@@ -1664,6 +1665,7 @@ async function principal() {
   setInterval(() => carregarConfigRemota(), 10 * 60 * 1000);
   setInterval(() => verificarAtualizacao(false), 10 * 60 * 1000);   // v2.13.0: aplica só no horário agendado
   setTimeout(reabrirTotemSePreciso, 20000);
+  setTimeout(atalhoTotem, 30000);   // v2.13.3
   let falhas = 0;
   for (;;) {
     try {
@@ -1773,7 +1775,8 @@ async function verificarAtualizacao(forcar) {
     if (mins < ini || mins > ini + 30) return;                      // fora da janela agendada
   }
   if (mins >= 17 * 60 + 50 && mins <= 18 * 60 + 10) return 'Agora não (fechamento do caixa). Tente depois das 18:10.';
-  if (trabalhando || ocupado || consultasAtivas > 0 || filaSalvar.length || clientesAbertos.size) return forcar ? 'O robô está atendendo agora; tente de novo em 1 minuto.' : undefined;
+  const atendendo = () => trabalhando || (!forcar && ocupado) || consultasAtivas > 0 || [...clientesAbertos.values()].some(c => Date.now() - (c.em || 0) < 3 * 60 * 1000);   // v2.13.3
+  if (atendendo()) return forcar ? 'O robô está atendendo agora; tente de novo em 1 minuto.' : undefined;
   try {
     const base = CFG.urlAtualizacao || URL_ATUALIZACAO;
     const info = await fetch(base + 'versao.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
@@ -1787,7 +1790,7 @@ async function verificarAtualizacao(forcar) {
     fs.writeFileSync(novo, cod);
     const chk = require('child_process').spawnSync(process.execPath, ['--check', novo], { encoding: 'utf8' });
     if (chk.status !== 0) { log('Atualização recusada: erro de sintaxe no arquivo novo.', (chk.stderr || '').slice(0, 300)); fs.unlinkSync(novo); return; }
-    if (trabalhando || ocupado || consultasAtivas > 0 || clientesAbertos.size) { fs.unlinkSync(novo); return; }   // chegou cliente: fica para a próxima
+    if (atendendo()) { fs.unlinkSync(novo); return forcar ? 'Chegou um cliente; tente de novo em 1 minuto.' : undefined; }   // chegou cliente: fica para a próxima
     const atual = path.join(BASE, 'robo.js');
     fs.copyFileSync(atual, path.join(BASE, 'robo.js.bak-' + VERSAO));
     fs.renameSync(novo, atual);
@@ -1800,6 +1803,25 @@ async function verificarAtualizacao(forcar) {
 }
 // depois de uma atualização: reabre o totem em tela cheia (modo quiosque) se ele roda neste computador pelo atalho
 // "Totem Resgate Banho" (REINICIO-AUTOMATICO.bat, opção 3)
+// v2.13.3: garante o atalho "Totem Resgate Banho" (tela cheia) na área de trabalho e no Iniciar, para reabrir o totem
+function atalhoTotem() {
+  if (process.platform !== 'win32' || CFG.atalhoTotem === false) return;
+  try {
+    const os = require('os'), cp = require('child_process');
+    const desk = path.join(os.homedir(), 'Desktop'), menu = path.join(process.env.APPDATA || '', 'Microsoft', 'Windows', 'Start Menu', 'Programs');
+    const alvo = [path.join(desk, 'Totem Resgate Banho.lnk'), path.join(menu, 'Totem Resgate Banho.lnk')].filter(f => !fs.existsSync(f));
+    if (!alvo.length) return;
+    const chrome = ['C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      path.join(process.env.LOCALAPPDATA || '', 'Google', 'Chrome', 'Application', 'chrome.exe')].find(f => fs.existsSync(f));
+    if (!chrome) return;
+    const escada = /AKfycbzt0MUjJtbjAaL8Y5USF38P8M3wax9aV/.test(CFG.servidorUrl || '');
+    const site = 'https://apoio-escada.github.io/resgate-banho/' + (escada || !CFG.servidorUrl ? '' : '?servidor=' + encodeURIComponent(CFG.servidorUrl));
+    const args = `--kiosk --kiosk-printing --no-first-run --disable-session-crashed-bubble --user-data-dir="${path.join(BASE, 'perfil-totem')}" "${site}"`;
+    for (const lnk of alvo) cp.spawnSync('powershell', ['-NoProfile', '-Command',
+      `$s=(New-Object -ComObject WScript.Shell).CreateShortcut('${lnk.replace(/'/g, "''")}');$s.TargetPath='${chrome}';$s.Arguments='${args.replace(/'/g, "''")}';$s.Save()`], { stdio: 'ignore' });
+    log('Atalho "Totem Resgate Banho" criado na área de trabalho (abre o totem em tela cheia; sair: Alt+F4).');
+  } catch (e) { log('Não criei o atalho do totem:', e.message); }
+}
 function reabrirTotemSePreciso() {
   const flag = path.join(DADOS, 'reabrir-totem.flag');
   if (!fs.existsSync(flag)) return;
