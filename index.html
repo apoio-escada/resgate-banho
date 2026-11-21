@@ -830,6 +830,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn sec" id="cfgModalidades">Opções de resgate</button>
     <button class="btn sec" id="cfgInstalarRobo">Instalar robô em outro computador</button>
     <button class="btn sec" id="cfgAtualizarRobo">Atualização do robô</button>
+    <button class="btn sec" id="cfgNovosPostos">Links para novos postos</button>
     <button class="btn sec" id="cfgErros">Erros e sugestões <span id="cfgErrosN"></span></button>
   </div>
   <div class="secao">
@@ -842,6 +843,16 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
 </dialog>
+<dialog id="dNovos" style="max-width:640px">
+  <h3>Links para novos postos</h3>
+  <p class="pequeno">Cada link instala um posto novo (servidor e planilha já preparados pela TI). Envie ao posto junto com o manual. Depois de usado, o link fica marcado com o nome do posto.</p>
+  <div id="dnLista"><p class="vazio">Carregando…</p></div>
+  <p class="pequeno" id="dnInfo"></p>
+  <details style="margin-top:10px"><summary class="pequeno">TI: incluir outro servidor preparado</summary>
+    <input id="dnUrl" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;margin-top:6px"><button class="btn peq sec" id="dnAdd" style="margin-top:6px">Incluir</button></details>
+  <div class="acoes"><button class="btn" id="dnFechar">Fechar</button></div>
+</dialog>
+
 <dialog id="dAtualizar" style="max-width:520px">
   <h3>Atualização do robô</h3>
   <p id="daVersoes" class="pequeno">Carregando…</p>
@@ -1457,7 +1468,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-20c';
+const VERSAO_SITE = '2026-11-21a';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2153,6 +2164,21 @@ function irAba(aba) {
   if (aba === 'refeicao' && !C.rfCarregou) { C.rfCarregou = true; carregarRefeicoes(); }
 }
 // v2.12: código para instalar o robô em outro computador (vale 15 min, uma vez)
+// v2.14: links de instalação dos novos postos (servidores preparados pela TI)
+async function novosPostos(p) {
+  $('#dnLista').innerHTML = '<p class="vazio">Conferindo os servidores…</p>';
+  const r = await apiCx('caixa_novosPostos', p);
+  if (!r.ok) { $('#dnLista').innerHTML = `<p class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</p>`; return; }
+  if (p.adicionar) $('#dnUrl').value = '';
+  $('#dnLista').innerHTML = r.postos.map(x => `<div style="border:1px solid var(--linha);border-radius:12px;padding:12px;margin:8px 0">
+    <b>Link ${x.numero}</b> · ${!x.ok ? '<span style="color:#B3261E">servidor sem resposta</span>' : x.configurado ? `em uso: <b>${esc(x.posto || 'posto configurado')}</b>` : '<span style="color:#1B7F3B;font-weight:600">disponível</span>'}
+    <div class="acoes" style="justify-content:flex-start;margin-top:8px">
+      ${x.ok && !x.configurado ? `<button class="btn peq" data-copiar="${esc(x.linkInstalacao)}">Copiar link de instalação</button>` : ''}
+      ${x.configurado ? `<button class="btn peq sec" data-copiar="${esc(x.linkPainel)}">Copiar link do painel do posto</button>` : ''}
+    </div></div>`).join('');
+  $('#dnLista').querySelectorAll('[data-copiar]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copiar); b.textContent = 'Copiado!'; } catch (_) { prompt('Copie o link:', b.dataset.copiar); } });
+  $('#dnInfo').textContent = r.disponiveis ? `${r.disponiveis} link(s) disponível(is).` : 'Nenhum link disponível: peça à TI para preparar outro servidor de posto.';
+}
 // v2.13: atualização do robô (horário agendado ou agora)
 async function atualizacaoRobo(p) {
   $('#daMsg').textContent = p.agora ? 'Pedindo ao robô…' : p.hora ? 'Salvando…' : '';
@@ -2720,6 +2746,9 @@ function iniciarCaixa() {
   $('#diNovo').onclick = gerarCodigoInstalacao; $('#diFechar').onclick = () => $('#dInstalar').close();
   $('#cfgAtualizarRobo').onclick = () => { $('#dConfig').close(); $('#dAtualizar').showModal(); atualizacaoRobo({}); };
   $('#daFechar').onclick = () => $('#dAtualizar').close();
+  $('#cfgNovosPostos').onclick = () => { $('#dConfig').close(); $('#dNovos').showModal(); novosPostos({}); };
+  $('#dnFechar').onclick = () => $('#dNovos').close();
+  $('#dnAdd').onclick = () => novosPostos({ adicionar: $('#dnUrl').value.trim() });
   $('#daManual').onchange = () => { $('#daHora').disabled = $('#daManual').checked; };
   $('#daSalvar').onclick = () => atualizacaoRobo({ hora: $('#daManual').checked ? 'MANUAL' : ($('#daHora').value || '03:00') });
   $('#daAgora').onclick = () => atualizacaoRobo({ agora: true });
