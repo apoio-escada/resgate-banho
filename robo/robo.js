@@ -20,7 +20,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 const { PDFDocument } = require('pdf-lib');
 
-const VERSAO = '2.13.3';
+const VERSAO = '2.13.4';
 // v2.11.0: só um computador roda o robô. O que for instalado por último "assume" (arquivo dados\assumir.flag);
 // o anterior recebe do servidor o aviso de que foi substituído, fecha os navegadores e fica em espera.
 const MAQUINA = require('os').hostname();
@@ -1466,7 +1466,11 @@ async function comandoFecharCaixaEvo(cmd) {
   try { if (cmd && cmd.imprimirLocal === false) log('Fechamento do EVO vai para o PDV imprimir.'); else await imprimir(pdf, 'fechamento-evo-' + Date.now() + '.pdf', 'fechamento'); impresso = true; }
   catch (e) { log('Falha ao imprimir o fechamento do EVO:', e.message); }
   (async () => {
-    if (cmd && cmd.ref) await enviarImagem('fechamento', cmd.ref, await docParaPng(docFech), pdf).catch(() => {});
+    if (cmd && cmd.ref) {
+      const pngF = await docParaPng(docFech).catch(() => null);
+      if (pngF) { try { fs.writeFileSync(path.join(TICKETS, 'fechamento-' + cmd.ref + '.png'), pngF); } catch (_) {} }   // v2.13.4: para reimprimir no agente
+      await enviarImagem('fechamento', cmd.ref, pngF, pdf).catch(() => {});
+    }
     for (const raiz of pastasDestino()) {
       try { fs.writeFileSync(path.join(pastaDoMes(raiz, d), nome), pdf); log('Fechamento do EVO salvo:', nome); } catch (e) { log('Não salvei o fechamento em', raiz, '-', e.message); }
     }
@@ -1483,8 +1487,14 @@ async function comandoFecharCaixaEvo(cmd) {
 async function comandoReimprimirFechamento(cmd) {
   const arq = path.join(TICKETS, 'fechamento-' + cmd.ref + '.pdf');
   if (!fs.existsSync(arq)) throw new Error('O PDF desse fechamento não está neste computador. Ele fica salvo também no OneDrive, na pasta do mês.');
-  await imprimir(fs.readFileSync(arq), 'reimpressao-fechamento-' + Date.now() + '.pdf', 'fechamento');
-  return 'Fechamento do EVO reimpresso';
+  const pdf = fs.readFileSync(arq);
+  let erroLocal = '';
+  if (cmd.imprimirLocal !== false) { try { await imprimir(pdf, 'reimpressao-fechamento-' + Date.now() + '.pdf', 'fechamento'); } catch (e) { erroLocal = e.message; } }
+  // v2.13.4: manda de novo ao painel/agente do PDV (a reimpressão não saía no agente)
+  const arqPng = path.join(TICKETS, 'fechamento-' + cmd.ref + '.png');
+  const png = fs.existsSync(arqPng) ? fs.readFileSync(arqPng) : Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+  await enviarImagem('fechamento', cmd.ref, png, pdf);
+  return 'Fechamento do EVO reimpresso' + (erroLocal ? ' (enviado ao agente; impressora do robô: ' + erroLocal + ')' : '');
 }
 
 // Relatório do turno no formato de bobina (80 mm), igual ao papel da senha do EVO.
