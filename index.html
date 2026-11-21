@@ -578,11 +578,10 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <p>Os resgates deste totem entram no turno e no EVO do caixa escolhido.</p>
     <div class="escolha" id="ecLista"></div>
     <div style="margin:22px auto 0;max-width:420px;text-align:left">
-      <div class="esconder" aria-hidden="true">
-      <label style="display:block;font-weight:600;margin-bottom:6px">Impressora deste totem (agente de impressão)</label>
-      <select id="ecAgente" style="width:100%;font:inherit;font-size:20px;padding:10px;border:2px solid var(--linha);border-radius:10px;background:#fff"></select>
-      <p class="pequeno" style="margin-top:6px">A senha do cliente sai na impressora do agente escolhido.</p>
-      </div>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Onde sai a senha deste totem</label>
+      <select id="ecImpressora" style="width:100%;font:inherit;font-size:20px;padding:10px;border:2px solid var(--linha);border-radius:10px;background:#fff"></select>
+      <p class="pequeno" style="margin-top:6px">Vale para este totem. Muda na hora (ex.: impressora com defeito).</p>
+      <select id="ecAgente" class="esconder" aria-hidden="true"></select>
     </div>
     <p class="pequeno" id="ecMsg" style="margin-top:14px"></p>
     <button class="btn sec" id="ecVoltar" style="margin-top:10px">Voltar</button>
@@ -791,15 +790,9 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
 <dialog id="dConfig">
   <h3>Configurações</h3>
   <h4>Impressoras</h4>
-  <p style="margin-bottom:8px">Impressoras do computador do robô. Podem ser a mesma. Não apareceu? Toque em “Atualizar impressoras do robô”.</p>
-  <label style="display:block;font-weight:600;font-size:15px;margin-bottom:4px">Senha do cliente</label>
-  <select id="cfgImpressora" aria-label="Impressora da senha"></select>
-  <label style="display:block;font-weight:600;font-size:15px;margin:6px 0 4px">Fechamento do EVO e relatório do turno</label>
-  <select id="cfgImpFech" aria-label="Impressora do fechamento"></select>
-  <p class="pequeno" id="cfgImpInfo"></p>
-  <div class="acoes" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="cfgImpSalvar">Salvar impressoras</button><button class="btn sec" id="cfgImpAtualizar">Atualizar impressoras do robô</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
-    <div class="acoes" style="justify-content:flex-start"><button class="btn lar" id="cfgImpGeral">Impressoras de todos os computadores</button></div>
-  <div class="secao">
+  <p style="margin-bottom:8px">Robô e todos os PDVs com o agente de impressão, num lugar só: onde sai a senha e onde sai o fechamento.</p>
+  <div class="acoes" style="justify-content:flex-start"><button class="btn lar" id="cfgImpGeral">Impressoras de todos os computadores</button></div>
+  <details class="secao"><summary class="pequeno">PDV sem agente: imprimir pelo navegador deste computador (avançado)</summary>
     <h4>Impressão neste PDV</h4>
     <p style="margin-bottom:8px">Vale só para este computador. O que este PDV imprimir não sai na impressora do robô. Senha pedida em totem que imprime sozinho sai no totem.</p>
     <div style="font-weight:600;margin:4px 0">Quais caixas</div>
@@ -810,7 +803,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     </div>
     <p class="pequeno" id="pdvInfo"></p>
     <p class="pequeno">Para sair sem a janela de impressão, abra o Chrome com a opção --kiosk-printing.</p>
-  </div>
+  </details>
   <div class="secao">
     <div class="esconder" aria-hidden="true">
     <h4>Agentes de impressão</h4>
@@ -854,6 +847,15 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   <p class="pequeno">O fechamento (EVO e relatório do app) de quem fecha o caixa aqui sai na impressora de fechamento deste agente. "Nenhum": imprime pelo navegador.</p>
   <label style="display:block;font-weight:600;margin-top:10px">Senha do cliente sai em
     <select id="diSenha" style="display:block;width:100%;margin-top:4px"></select></label>
+  <div style="border:1px solid var(--linha);border-radius:12px;padding:12px;margin:10px 0;background:#F6F8FC">
+    <b>Robô</b> <span class="pequeno">(computador do robô)</span>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+      <label class="pequeno" style="flex:1;min-width:220px">Impressora da senha<select id="cfgImpressora" aria-label="Impressora da senha do robô" style="display:block;width:100%"></select></label>
+      <label class="pequeno" style="flex:1;min-width:220px">Impressora do fechamento<select id="cfgImpFech" aria-label="Impressora do fechamento do robô" style="display:block;width:100%"></select></label>
+    </div>
+    <p class="pequeno" id="cfgImpInfo"></p>
+    <div class="acoes" style="justify-content:flex-start;flex-wrap:wrap;margin-top:4px"><button class="btn peq" id="cfgImpSalvar">Salvar impressoras do robô</button><button class="btn peq sec" id="cfgImpAtualizar">Atualizar impressoras do robô</button><button class="btn peq sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
+  </div>
   <div id="diAgentes" style="margin-top:10px"></div>
   <p class="pequeno" id="diMsg"></p>
   <div class="acoes" style="flex-wrap:wrap"><button class="btn sec" id="diInstalar">Instalar agente neste computador</button><button class="btn" id="diSalvar">Salvar</button><button class="btn sec" id="diFechar">Fechar</button></div>
@@ -1022,12 +1024,12 @@ async function escolherCaixa() {
   $('#ecLista').innerHTML = abertos.map(t => `<button data-op="${esc(t.operador)}" data-nome="${esc(t.caixa)}">${esc(t.caixa)}</button>`).join('') +
     (abertos.length > 1 ? '<button class="auto" data-auto="1">Automático: alternar entre os caixas abertos</button>' : '');
   if (abertos.length) $('#ecMsg').textContent = '';
-  const ag = await api('totem_agentes', { pin: T.pin, sessao: T.sessao });
-  const lista = (ag.ok && ag.agentes) || [];
-  $('#ecAgente').innerHTML = '<option value="">Nenhum (impressora do robô)</option>' +
-    lista.map(a => `<option value="${esc(a.nome)}">${esc(a.nome)}${a.ligado ? '' : ' (desligado)'}</option>`).join('');
-  $('#ecAgente').value = T.agente;
-  $('#ecAgente').onchange = () => { T.agente = $('#ecAgente').value; guardar.set('banho_totem_agente', T.agente); };
+  // v2.15: impressora da senha deste totem escolhida aqui mesmo (robô, agentes dos PDVs ou este computador)
+  const [ag, imp] = await Promise.all([api('totem_agentes', { pin: T.pin, sessao: T.sessao }), api('totem_impressoras', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto })]);
+  T.agentesTotem = (ag.ok && ag.agentes) || []; if (imp.ok) T.impLista = imp.lista || [];
+  $('#ecImpressora').innerHTML = opcoesImpressoraTotem();
+  $('#ecImpressora').value = AJ.impDestino || '';
+  $('#ecImpressora').onchange = () => { AJ.impDestino = $('#ecImpressora').value; salvarAjustes(); };
   $('#ecLista').querySelectorAll('button').forEach(b => b.onclick = () => {
     T.auto = !!b.dataset.auto; guardar.set('banho_totem_auto', T.auto ? '1' : '0');
     if (!T.auto) { T.operador = b.dataset.op; T.operadorNome = b.dataset.nome;
@@ -1484,7 +1486,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-21d';
+const VERSAO_SITE = '2026-11-22a';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -1593,9 +1595,9 @@ async function pedirBanho(tipo, qtdEscolhida) {
   $('#passos [data-p="evo"]').classList.remove('esconder');
   marcarPassos('fila');
   mostrar('vProcesso');
-  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: T.agente,
+  const r = await api('totem_solicitar', { pin: T.pin, sessao: T.sessao, operador: T.operador, auto: T.auto, agente: agenteTotem(),
     qtd: qtdEscolhida || T.qtd, tipo, consultaId, impTotem: impAqui(), impressora: impressoraRobo(),
-    origem: (AJ.nomeTotem || 'Totem') + ' · ' + (impAqui() ? 'impresso no totem' : impressoraRobo() ? 'robô (' + impressoraRobo() + ')' : 'robô/PDV'), imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
+    origem: (AJ.nomeTotem || 'Totem') + ' · ' + (impAqui() ? 'impresso no totem' : agenteTotem() ? 'PDV ' + agenteTotem() : impressoraRobo() ? 'robô (' + impressoraRobo() + ')' : 'robô/PDV'), imprimir: T.semEvoAtual || AJ.impressao === 'auto', cpf, nasc });
   limparTotem();                                   // não deixa o CPF na tela
   T.qtd = 1; $('#qNum').textContent = '1';
   T.ultimoSaldo = ''; $('#pSaldo').classList.add('esconder'); $('#sSaldo').classList.add('esconder');
@@ -1730,13 +1732,27 @@ async function imprimirSenha() {
 function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTeste').classList.add('esconder'); limparTotem(); mostrar('vAjustes'); desenharAjustes(); }
 // v2.12.3: onde imprime o que for resgatado neste totem (robô, impressora do robô escolhida, ou este computador)
 const impAqui = () => AJ.impDestino === 'aqui';
+const agenteTotem = () => String(AJ.impDestino || '').indexOf('agente:') === 0 ? AJ.impDestino.slice(7) : '';
+function avisoRapido(t) {
+  const d = document.createElement('div'); d.textContent = t;
+  d.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:9999;background:#1B7F3B;color:#fff;font:600 18px/1.2 Arial,sans-serif;padding:12px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+  document.body.appendChild(d); setTimeout(() => d.remove(), 3500);
+}
+function opcoesImpressoraTotem() {
+  const op = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`, atual = AJ.impDestino || '';
+  const l = T.impLista || [], ags = T.agentesTotem || [];
+  let h = op('', 'Impressora do robô (a escolhida no painel)') + l.map(n => op('robo:' + n, 'Robô: ' + n)).join('') +
+    ags.map(a => op('agente:' + a.nome, 'Agente ' + a.nome + (a.impressora ? ': ' + a.impressora : '') + (a.ligado === false ? ' (desligado)' : ''))).join('') +
+    op('aqui', 'Este computador (impressora padrão deste totem)');
+  if (atual && !new RegExp('value="' + atual.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"').test(h)) h += op(atual, atual.replace(/^(robo|agente):/, '') + ' (não encontrado)');
+  return h;
+}
 const impressoraRobo = () => String(AJ.impDestino || '').indexOf('robo:') === 0 ? AJ.impDestino.slice(5) : '';
 function desenharImpDestino(lista) {
   if (lista) T.impLista = lista;
   const l = T.impLista || [], atual = AJ.impDestino || '';
   const op = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`;
-  $('#ajImpDestino').innerHTML = op('', 'Impressora do robô (a escolhida no painel)') + l.map(n => op('robo:' + n, 'Robô: ' + n)).join('') +
-    (atual.indexOf('robo:') === 0 && !l.includes(atual.slice(5)) ? op(atual, 'Robô: ' + atual.slice(5)) : '') + op('aqui', 'Este computador (impressora padrão deste totem)');
+  $('#ajImpDestino').innerHTML = opcoesImpressoraTotem();
   $('#ajImpDestino').value = atual;
   $('#ajImpDestino').onchange = () => { AJ.impDestino = $('#ajImpDestino').value; salvarAjustes(); };
   if (!lista && !T.impBuscou) { T.impBuscou = true; buscarImpressorasTotem(); }
@@ -1914,7 +1930,7 @@ function iniciarTotem() {
     $('#cfgTSenha').value = '';
     if (!r.ok) { $('#cfgMsg').textContent = r.erro; return; }
     T.sessao = r.sessao; guardar.set('banho_sessao_totem', r.sessao); $('#cfgMsg').textContent = '';
-    irTotem(); verificarEstado();
+    irTotem(); verificarEstado(); avisoRapido('Totem configurado neste aparelho ✓');
   });
   $('#cfgSalvar').addEventListener('click', async () => {
     const pin = $('#cfgPin').value.trim(); if (!pin) return;
@@ -2242,8 +2258,7 @@ async function impressaoGeral() {
         <label class="pequeno" style="flex:1;min-width:220px">Impressora do fechamento<select data-tipo="fechamento" style="display:block;width:100%">${ops(a.cfg.fechamento)}</select></label>
       </div></div>`;
   };
-  $('#diAgentes').innerHTML = `<div style="border:1px solid var(--linha);border-radius:12px;padding:12px;margin:8px 0;background:#F6F8FC"><b>Robô</b> · impressoras: ${esc((r.robo.lista || []).join(', ') || '—')}<div class="pequeno">A impressora do robô é escolhida em Configurações › Impressoras.</div></div>` +
-    (r.agentes.length ? r.agentes.map(lin).join('') : '<p class="pequeno">Nenhum agente instalado ainda. Use "Instalar agente neste computador" em cada PDV (login de admin ou auditor).</p>');
+  $('#diAgentes').innerHTML = (r.agentes.length ? r.agentes.map(lin).join('') : '<p class="pequeno">Nenhum agente instalado ainda. Use "Instalar agente neste computador" em cada PDV (login de admin ou auditor).</p>');
 }
 async function salvarImpressaoGeral() {
   const agentesCfg = {};
