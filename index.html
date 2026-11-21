@@ -798,6 +798,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
   <select id="cfgImpFech" aria-label="Impressora do fechamento"></select>
   <p class="pequeno" id="cfgImpInfo"></p>
   <div class="acoes" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="cfgImpSalvar">Salvar impressoras</button><button class="btn sec" id="cfgImpAtualizar">Atualizar impressoras do robô</button><button class="btn sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
+    <div class="acoes" style="justify-content:flex-start"><button class="btn lar" id="cfgImpGeral">Impressoras de todos os computadores</button></div>
   <div class="secao">
     <h4>Impressão neste PDV</h4>
     <p style="margin-bottom:8px">Vale só para este computador. O que este PDV imprimir não sai na impressora do robô. Senha pedida em totem que imprime sozinho sai no totem.</p>
@@ -845,6 +846,19 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
     <button class="btn" id="cfgFechar">Fechar</button>
   </div>
 </dialog>
+<dialog id="dImpr" style="max-width:760px">
+  <h3>Impressoras de todos os computadores</h3>
+  <p class="pequeno">O robô e os PDVs com o <b>agente de impressão</b> aparecem aqui com as impressoras de cada um.</p>
+  <label style="display:block;font-weight:600;margin-top:8px">Este computador é
+    <select id="diPc" style="display:block;width:100%;margin-top:4px"></select></label>
+  <p class="pequeno">O fechamento (EVO e relatório do app) de quem fecha o caixa aqui sai na impressora de fechamento deste agente. "Nenhum": imprime pelo navegador.</p>
+  <label style="display:block;font-weight:600;margin-top:10px">Senha do cliente sai em
+    <select id="diSenha" style="display:block;width:100%;margin-top:4px"></select></label>
+  <div id="diAgentes" style="margin-top:10px"></div>
+  <p class="pequeno" id="diMsg"></p>
+  <div class="acoes" style="flex-wrap:wrap"><button class="btn sec" id="diInstalar">Instalar agente neste computador</button><button class="btn" id="diSalvar">Salvar</button><button class="btn sec" id="diFechar">Fechar</button></div>
+</dialog>
+
 <dialog id="dNovos" style="max-width:640px">
   <h3>Links para novos postos</h3>
   <p class="pequeno">Cada link instala um posto novo (servidor e planilha já preparados pela TI). Envie ao posto junto com o manual. Depois de usado, o link fica marcado com o nome do posto.</p>
@@ -995,7 +1009,7 @@ function mostrar(id) {
    ===================================================================== */
 var T = { pin: guardar.get('banho_pin_posto'), sessao: guardar.get('banho_sessao_totem'),
   operador: guardar.get('banho_totem_operador') || '', operadorNome: guardar.get('banho_totem_operador_nome') || '',
-  auto: guardar.get('banho_totem_auto') === '1', agente: '',   // v2.12.4: agentes de impressão não são mais usados qtd: 1, maxFichas: 1,
+  auto: guardar.get('banho_totem_auto') === '1', agente: '', qtd: 1, maxFichas: 1,   // v2.12.4: agente do totem não é mais usado
   campo: 'cpf', pedido: null, timer: null, estado: null };
 // Escolha do caixa do totem: só os caixas com turno aberto, ou "automático" (alterna entre eles a cada resgate).
 async function escolherCaixa() {
@@ -1470,7 +1484,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-21c';
+const VERSAO_SITE = '2026-11-21d';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2208,6 +2222,54 @@ function irAba(aba) {
   if (aba === 'refeicao' && !C.rfCarregou) { C.rfCarregou = true; carregarRefeicoes(); }
 }
 // v2.12: código para instalar o robô em outro computador (vale 15 min, uma vez)
+// v2.15: impressoras de todos os computadores (robô + agentes dos PDVs)
+async function impressaoGeral() {
+  $('#diAgentes').innerHTML = '<p class="vazio">Carregando…</p>'; $('#diMsg').textContent = '';
+  const r = await apiCx('caixa_impressaoGeral', {});
+  if (!r.ok) { $('#diAgentes').innerHTML = `<p class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</p>`; return; }
+  C.impGeral = r;
+  const op = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
+  const pc = guardar.get('banho_agente_pc') || '';
+  $('#diPc').innerHTML = op('', 'Nenhum (imprimir pelo navegador)', !pc) + r.agentes.map(a => op(a.nome, a.nome, a.nome === pc)).join('');
+  $('#diSenha').innerHTML = op('', 'Impressora do robô' + (r.impressoraRobo ? ' (' + r.impressoraRobo + ')' : ''), !r.destSenha) +
+    r.agentes.map(a => op('agente:' + a.nome, 'Agente ' + a.nome + (a.cfg.senha ? ' (' + a.cfg.senha + ')' : ''), r.destSenha === 'agente:' + a.nome)).join('');
+  const lin = a => {
+    const ops = (sel) => op('', 'Padrão do Windows' + (a.padrao ? ' (' + a.padrao + ')' : ''), !sel) + (a.lista || []).map(n => op(n, n, n === sel)).join('');
+    return `<div style="border:1px solid var(--linha);border-radius:12px;padding:12px;margin:8px 0" data-ag="${esc(a.nome)}">
+      <b>${esc(a.nome)}</b> · ${a.online ? '<span style="color:#1B7F3B;font-weight:600">ligado</span>' : '<span style="color:#B3261E">desligado</span>'} <span class="pequeno">v${esc(a.versao || '?')}</span>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+        <label class="pequeno" style="flex:1;min-width:220px">Impressora da senha<select data-tipo="senha" style="display:block;width:100%">${ops(a.cfg.senha)}</select></label>
+        <label class="pequeno" style="flex:1;min-width:220px">Impressora do fechamento<select data-tipo="fechamento" style="display:block;width:100%">${ops(a.cfg.fechamento)}</select></label>
+      </div></div>`;
+  };
+  $('#diAgentes').innerHTML = `<div style="border:1px solid var(--linha);border-radius:12px;padding:12px;margin:8px 0;background:#F6F8FC"><b>Robô</b> · impressoras: ${esc((r.robo.lista || []).join(', ') || '—')}<div class="pequeno">A impressora do robô é escolhida em Configurações › Impressoras.</div></div>` +
+    (r.agentes.length ? r.agentes.map(lin).join('') : '<p class="pequeno">Nenhum agente instalado ainda. Use "Instalar agente neste computador" em cada PDV (login de admin ou auditor).</p>');
+}
+async function salvarImpressaoGeral() {
+  const agentesCfg = {};
+  document.querySelectorAll('#diAgentes [data-ag]').forEach(d => { agentesCfg[d.dataset.ag] = { senha: d.querySelector('[data-tipo="senha"]').value, fechamento: d.querySelector('[data-tipo="fechamento"]').value }; });
+  $('#diMsg').textContent = 'Salvando…';
+  const r = await apiCx('caixa_impressaoGeral', { salvar: true, destSenha: $('#diSenha').value, agentesCfg });
+  $('#diMsg').textContent = r.ok ? 'Salvo. Os agentes recebem a escolha em até 1 minuto.' : (r.erro || 'Não foi possível salvar.');
+  if (r.ok) impressaoGeral();
+}
+async function instalarAgente() {
+  $('#diMsg').textContent = 'Gerando o código…';
+  const r = await apiCx('caixa_codigoAgente');
+  if (!r.ok) { $('#diMsg').textContent = r.erro || 'Só o admin ou o auditor instala o agente.'; return; }
+  $('#diMsg').innerHTML = `Código do agente: <b style="font-size:22px;letter-spacing:.1em">${esc(r.codigo)}</b> (vale 15 min). Baixando o instalador…`;
+  try {
+    if (!window.JSZip) await new Promise((ok, er) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = ok; sc.onerror = er; document.head.appendChild(sc); });
+    const zip = new JSZip(), pasta = zip.folder('Instalador-Agente-Impressao');
+    const BASE = 'https://raw.githubusercontent.com/apoio-escada/resgate-banho/main/agente/';
+    for (const f of ['INSTALAR-AGENTE.bat', 'instalar-agente.js', 'agente.js', 'package.json', 'iniciar-agente-oculto.vbs', 'PARAR-AGENTE.bat']) {
+      const x = await fetch(BASE + f + '?t=' + Date.now(), { cache: 'no-store' }); if (!x.ok) throw new Error(f); pasta.file(f, await x.arrayBuffer());
+    }
+    pasta.file('posto.json', JSON.stringify({ servidorUrl: CFG.API_URL }, null, 2));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(await zip.generateAsync({ type: 'blob' })); a.download = 'Instalador-Agente-Impressao.zip'; document.body.appendChild(a); a.click(); a.remove();
+    $('#diMsg').innerHTML = `Código do agente: <b style="font-size:22px;letter-spacing:.1em">${esc(r.codigo)}</b> (vale 15 min). Extraia o arquivo baixado, dê dois cliques em <b>INSTALAR-AGENTE.bat</b> e digite o código. Depois toque em Atualizar (reabra esta tela).`;
+  } catch (e) { $('#diMsg').textContent = 'Não consegui baixar o instalador (' + e.message + '). Confira a internet.'; }
+}
 // v2.14: links de instalação dos novos postos (servidores preparados pela TI)
 async function novosPostos(p) {
   $('#dnLista').innerHTML = '<p class="vazio">Conferindo os servidores…</p>';
@@ -2368,12 +2430,12 @@ async function abrirFechamentos() {
   });
   $('#dfLista').querySelectorAll('[data-aquirel]').forEach(b => b.onclick = async () => {
     let ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 1);
-    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel, agente: '' }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
+    if (!ok) { await apiCx('caixa_imprimirRelatorio', { turnoId: b.dataset.aquirel, agente: guardar.get('banho_agente_pc') || '' }); $('#dfMsg').textContent = 'Gerando a imagem do relatório…'; ok = await buscarEImprimir('relatorio', b.dataset.aquirel, 15); }
     $('#dfMsg').textContent = ok ? 'Enviado para a impressora deste computador.' : 'O robô não gerou a imagem do relatório. Confira se ele está ligado.';
   });
   $('#dfLista').querySelectorAll('[data-revo]').forEach(b => b.onclick = async () => {
     b.disabled = true; $('#dfMsg').textContent = 'Pedido enviado ao robô. O fechamento do EVO sai na impressora em alguns segundos.';
-    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo, agente: '' });
+    const r2 = await apiCx('caixa_reimprimirFechamento', { turnoId: b.dataset.revo, agente: guardar.get('banho_agente_pc') || '' });
     if (!r2.ok) { $('#dfMsg').textContent = r2.erro; b.disabled = false; return; }
     for (let i = 0; i < 20; i++) {
       await new Promise(ok => setTimeout(ok, 3000));
@@ -2635,7 +2697,7 @@ function pedirTotalEvoNoFechamento(turnoId) {
       if (!x.ok) { av.textContent = x.erro || 'Não consegui salvar o total.'; $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false; return; }
       dados = x.relatorio || null;
     }
-    await apiCx('caixa_imprimirRelatorio', { turnoId, agente: '' });
+    await apiCx('caixa_imprimirRelatorio', { turnoId, agente: guardar.get('banho_agente_pc') || '' });
     box.classList.add('esconder'); $('#evoTotalSalvar').disabled = $('#evoTotalPular').disabled = false;
     $('#evoMsg').textContent = 'O relatório do turno está saindo na impressora do fechamento…';
     if (IMP.fech()) await buscarEImprimir('relatorio', turnoId, 15);
@@ -2659,8 +2721,9 @@ async function aguardarFechamentoEvo(comandoId, turnoId) {
       const rel = await apiCx('caixa_relatorio', { turnoId });
       if (rel.ok && rel.relatorio && rel.relatorio.qtdEvo == null) { pedirTotalEvoNoFechamento(turnoId); return; }
       // v2.13.3: o fechamento do EVO imprime aqui, no computador que mandou fechar; depois aparece o relatório do app
-      msg.textContent = 'Imprimindo aqui o fechamento do EVO…';
-      const impEvo = await buscarEImprimir('fechamento', turnoId, 10);
+      const agPc = guardar.get('banho_agente_pc') || '';
+      msg.textContent = agPc ? 'O fechamento do EVO sai no agente deste computador (' + agPc + ')…' : 'Imprimindo aqui o fechamento do EVO…';
+      const impEvo = agPc ? true : await buscarEImprimir('fechamento', turnoId, 10);
       msg.textContent = impEvo ? 'Fechamento do EVO impresso. Abrindo o relatório do turno para imprimir…' : 'O comprovante do EVO ainda não chegou; ele pode ser reimpresso em Fechamentos anteriores. Abrindo o relatório do turno…';
       setTimeout(() => abrirRelatorio(turnoId, rel.relatorio), 800);
       return;
@@ -2789,6 +2852,11 @@ function iniciarCaixa() {
   $('#diNovo').onclick = gerarCodigoInstalacao; $('#diFechar').onclick = () => $('#dInstalar').close();
   $('#cfgAtualizarRobo').onclick = () => { $('#dConfig').close(); $('#dAtualizar').showModal(); atualizacaoRobo({}); };
   $('#daFechar').onclick = () => $('#dAtualizar').close();
+  $('#cfgImpGeral').onclick = () => { $('#dConfig').close(); $('#dImpr').showModal(); impressaoGeral(); };
+  $('#diFechar').onclick = () => $('#dImpr').close();
+  $('#diPc').onchange = () => { guardar.set('banho_agente_pc', $('#diPc').value); $('#diMsg').textContent = $('#diPc').value ? 'Este computador: ' + $('#diPc').value + '. O fechamento de quem fechar aqui sai no agente.' : 'Este computador imprime pelo navegador.'; };
+  $('#diSalvar').onclick = salvarImpressaoGeral;
+  $('#diInstalar').onclick = instalarAgente;
   $('#cfgNovosPostos').onclick = () => { $('#dConfig').close(); $('#dNovos').showModal(); novosPostos({}); };
   $('#dnFechar').onclick = () => $('#dNovos').close();
   $('#dnAdd').onclick = () => novosPostos({ adicionar: $('#dnUrl').value.trim() });
@@ -2850,7 +2918,7 @@ function iniciarCaixa() {
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
     const turnoId = C.turno.id;
-    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: '', totalEvo: $('#dFecharTotalEvo').value, imprimirAqui: true });
+    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: guardar.get('banho_agente_pc') || '', totalEvo: $('#dFecharTotalEvo').value, imprimirAqui: true });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
@@ -2866,7 +2934,7 @@ function iniciarCaixa() {
   $('#relImprimirRobo').onclick = async () => {
     if (!C.relTurno) return;
     $('#relImprimirRobo').disabled = true; $('#relMsg').textContent = 'Enviando ao robô…';
-    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno, agente: '' });
+    const r = await apiCx('caixa_imprimirRelatorio', { turnoId: C.relTurno, agente: guardar.get('banho_agente_pc') || '' });
     $('#relImprimirRobo').disabled = false;
     $('#relMsg').textContent = r.ok ? 'O relatório do turno está saindo na impressora do fechamento (formato bobina).' : r.erro;
   };
