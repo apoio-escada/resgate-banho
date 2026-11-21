@@ -80,7 +80,7 @@ function render() {
   if (!D.modo) {
     a.innerHTML = `<div class="cartao"><h2>O que você quer fazer?</h2>
       <div class="escolha">
-        <button id="mInt"><b>Integração de novo posto</b>Primeira instalação: cria a planilha do posto, cadastra caixas e opções de resgate e instala o robô.</button>
+        <button id="mInt"><b>Integração de novo posto</b>Primeira instalação: cadastra o posto, os responsáveis, o EVO, o ClubPetro e os caixas, e instala o robô.</button>
         <button id="mMig"><b>Migração de computador</b>O posto já usa o sistema e o robô vai para outro computador.</button>
       </div></div>`;
     $('#mInt').onclick = () => { D.modo = 'integracao'; ir(0); };
