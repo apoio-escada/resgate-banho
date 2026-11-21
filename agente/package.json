@@ -1,0 +1,1 @@
+{ "name": "agente-impressao-banho", "version": "1.0.0", "private": true, "main": "agente.js", "dependencies": { "pdf-to-printer": "5.6.0" } }
