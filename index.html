@@ -717,6 +717,7 @@ dialog label.chk{display:flex;gap:10px;align-items:center;margin-bottom:16px;fon
           <label><input type="radio" name="filtro" value="resolver"> Resolver</label>
           <label><input type="radio" name="filtro" value="erros"> Erros</label>
           <label><input type="radio" name="filtro" value="cancelados"> Cancelados</label>
+          <label><input type="radio" name="filtro" value="dia"> Todos do dia</label>
         </div>
         <div class="rolagem"><table>
           <thead><tr><th></th><th>Hora</th><th>Código do resgate</th><th>Qtd</th><th>Senha</th><th>Situação</th><th>Lote / OPNF</th><th>OK</th><th></th></tr></thead>
@@ -1469,7 +1470,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-21b';
+const VERSAO_SITE = '2026-11-21c';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2140,24 +2141,31 @@ function desenharLista() {
     erros: x => x.status === 'ERRO',
     cancelados: x => x.status === 'CANCELADO'
   };
-  const visiveis = C.lista.filter(FILTROS[f] || FILTROS.semlote);
-  if (!visiveis.length) { tb.innerHTML = `<tr><td colspan="9" class="vazio">${C.lista.length ? 'Nenhum resgate neste filtro.' : 'Nenhum resgate neste turno ainda.'}</td></tr>`; return; }
+  // v2.14: "Todos do dia" mostra os resgates de todos os caixas; ali só dá para reimprimir e resolver (OPNF continua no turno de cada caixa)
+  C.modoDia = f === 'dia';
+  if (C.modoDia && (!C.listaDia || Date.now() - (C.listaDiaEm || 0) > 20000) && !C.carregandoDia) {
+    C.carregandoDia = true;
+    apiCx('caixa_resgatesDoDia').then(r => { C.carregandoDia = false; if (r.ok) { C.listaDia = r.lista || []; C.listaDiaEm = Date.now(); desenharLista(); } });
+    if (!C.listaDia) { tb.innerHTML = '<tr><td colspan="9" class="vazio">Carregando os resgates do dia…</td></tr>'; return; }
+  }
+  const visiveis = C.modoDia ? (C.listaDia || []) : C.lista.filter(FILTROS[f] || FILTROS.semlote);
+  if (!visiveis.length) { tb.innerHTML = `<tr><td colspan="9" class="vazio">${C.modoDia ? 'Nenhum resgate hoje.' : C.lista.length ? 'Nenhum resgate neste filtro.' : 'Nenhum resgate neste turno ainda.'}</td></tr>`; return; }
   const nomes = { CONCLUIDO: 'Concluído', ERRO: 'Recusado', VERIFICAR: 'Verificar', AGUARDANDO: 'Na fila', PROCESSANDO: 'Processando', SENHA_GERADA: 'Imprimindo', CANCELADO: 'Cancelado' };
   tb.innerHTML = visiveis.map(x => {
-    const podeSel = x.status === 'CONCLUIDO' && x.codigo && !x.lote;
+    const podeSel = !C.modoDia && x.status === 'CONCLUIDO' && x.codigo && !x.lote;
     return `<tr class="${x.status === 'CANCELADO' ? 'cancelada' : x.ok ? 'marcada' : ''}">
       <td>${podeSel ? `<input type="checkbox" data-sel="${esc(x.id)}" ${C.sel.has(x.id) ? 'checked' : ''} aria-label="Selecionar">` : ''}</td>
       <td>${esc(x.hora.slice(11, 16))}</td>
-      <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}${x.cliente ? `<div class="pequeno" style="margin-top:3px;font-weight:600;color:var(--tinta)">${esc(x.cliente)}</div>` : ''}${x.totem ? `<div class="pequeno">${esc(x.totem)}</div>` : ''}</td>
+      <td>${x.codigo ? `<button class="cod" data-copia="${esc(x.codigo)}" title="Copiar">${esc(x.codigo)}</button>` : '<span class="pequeno">—</span>'}${x.cliente ? `<div class="pequeno" style="margin-top:3px;font-weight:600;color:var(--tinta)">${esc(x.cliente)}</div>` : ''}${x.totem ? `<div class="pequeno">${esc(x.totem)}</div>` : ''}${C.modoDia && x.caixa ? `<div class="pequeno" style="font-weight:600">Caixa: ${esc(x.caixa)}</div>` : ''}</td>
       <td style="text-align:center"><b>${esc(x.qtd || 1)}</b></td>
       <td>${esc(x.ticket)}</td>
       <td><span class="chip ${esc(x.status)}">${nomes[x.status] || esc(x.status)}</span>${x.mensagem ? `<div class="pequeno">${esc(x.mensagem)}</div>` : ''}</td>
       <td>${x.lote ? `OPNF ${esc(x.lote)}` : ''}</td>
-      <td>${x.status === 'CONCLUIDO' ? `<input type="checkbox" data-ok="${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
+      <td>${x.status === 'CONCLUIDO' && !C.modoDia ? `<input type="checkbox" data-ok=""${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
       <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
           ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir no robô</button>
           <button class="btn peq sec" data-impaqui="${esc(x.id)}">Imprimir aqui</button>` : ''}
-          ${(x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}
+          ${!C.modoDia && (x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}
           ${['AGUARDANDO', 'PROCESSANDO', 'SENHA_GERADA'].includes(x.status) && minutosDesde(x.hora) >= 3 ? `<button class="btn peq lar" data-destravar="${esc(x.id)}" title="Resgate parado há mais de 3 minutos">Destravar</button>` : ''}</td>
     </tr>`;
   }).join('');
@@ -2171,7 +2179,7 @@ function desenharLista() {
   tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
   tb.querySelectorAll('[data-impaqui]').forEach(b => b.onclick = async () => {
     b.disabled = true; let ok = await buscarEImprimir('senha', b.dataset.impaqui, 2);
-    if (!ok) { const x = (C.lista || []).find(r => r.id === b.dataset.impaqui); if (x && (x.ticket || x.codigo)) { await imprimirHtml(htmlSenhaAqui(x)); ok = true; } }   // v2.13.3
+    if (!ok) { const x = (C.lista || []).concat(C.listaDia || []).find(r => r.id === b.dataset.impaqui); if (x && (x.ticket || x.codigo)) { await imprimirHtml(htmlSenhaAqui(x)); ok = true; } }   // v2.13.3
     b.disabled = false; if (!ok) alert('Não encontrei a senha desse resgate para imprimir.');
   });
   tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
@@ -2288,7 +2296,7 @@ async function reimprimirJustificado(b, id) {
   const motivo = (prompt('Por que reimprimir? (obrigatório — ex.: impressora sem papel, cliente perdeu o papel)') || '').trim();
   if (motivo.length < 4) { if (motivo !== '') alert('Escreva o motivo (pelo menos 4 letras).'); return; }
   b.disabled = true; b.textContent = 'Enviando…';
-  let r = await apiCx('caixa_reimprimirJust', { id, motivo });
+  let r = await apiCx('caixa_reimprimirJust', { id, motivo, todosDoDia: !!C.modoDia });
   if (!r.ok && /desconhecida/i.test(r.erro || '')) r = await apiCx('caixa_reimprimir', { id, motivo });   // servidor antigo
   b.textContent = r.ok ? 'Enviado' : (r.erro || 'Erro'); if (!r.ok) b.disabled = false;
 }
@@ -2550,10 +2558,11 @@ function abrirCancelar(id) {
 }
 
 function abrirResolver(id) {
-  const d = $('#dResolver'); const it = C.lista.find(x => x.id === id) || {};
+  const d = $('#dResolver'); const it = C.lista.concat(C.listaDia || []).find(x => x.id === id) || {};
   $('#dResCod').value = it.codigo || ''; $('#dResTk').value = it.ticket || '';
   $('#dResOk').onclick = async () => {
-    const r = await apiCx('caixa_resolverManual', { id, codigo: $('#dResCod').value.trim(), ticket: $('#dResTk').value.trim(), caixa: C.turno && C.turno.caixa });
+    const r = await apiCx('caixa_resolverManual', { id, codigo: $('#dResCod').value.trim(), ticket: $('#dResTk').value.trim(), caixa: C.turno && C.turno.caixa, todosDoDia: !!C.modoDia });
+    if (C.modoDia) C.listaDiaEm = 0;
     if (!r.ok) { alert(r.erro); return; }
     d.close(); atualizarPainel();
   };
@@ -2841,7 +2850,7 @@ function iniciarCaixa() {
   $('#dFecharOk').onclick = async () => {
     $('#dFecharOk').disabled = true;
     const turnoId = C.turno.id;
-    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: '', totalEvo: $('#dFecharTotalEvo').value });
+    const r = await apiCx('caixa_fecharTurno', { turnoId, fecharEvo: $('#dFecharEvo').checked, agente: '', totalEvo: $('#dFecharTotalEvo').value, imprimirAqui: true });
     $('#dFecharOk').disabled = false;
     if (!r.ok) { alert(r.erro); return; }
     $('#dFechar').close(); C.turno = null; C.sel.clear();
