@@ -20,7 +20,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 const { PDFDocument } = require('pdf-lib');
 
-const VERSAO = '2.13.4';
+const VERSAO = '2.13.5';
 // v2.11.0: só um computador roda o robô. O que for instalado por último "assume" (arquivo dados\assumir.flag);
 // o anterior recebe do servidor o aviso de que foi substituído, fecha os navegadores e fica em espera.
 const MAQUINA = require('os').hostname();
@@ -1634,8 +1634,12 @@ async function comandoReimprimir(cmd) {
   const arq = path.join(TICKETS, cmd.ref + '-cliente.pdf');
   const pdf = fs.existsSync(arq) ? fs.readFileSync(arq)
     : await htmlParaPdf(ticketReserva({ ticket: cmd.ticket, codigo: cmd.codigo }), 'about:blank', CFG.larguraPapelMm || 80);
-  await imprimir(pdf, cmd.ref + '-cliente.pdf');
-  return 'Reimpresso';
+  // v2.13.5: a reimpressão também vai ao agente do PDV que pediu (antes só saía na impressora do robô)
+  let erroLocal = '';
+  if (cmd.imprimirLocal !== false) { try { await imprimir(pdf, cmd.ref + '-cliente.pdf'); } catch (e) { erroLocal = e.message; } }
+  const png1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+  await enviarImagem('senha', cmd.ref, png1, pdf).catch(e => log('Falha ao enviar a reimpressão ao agente:', e.message));
+  return cmd.imprimirLocal === false ? 'Reimpresso no agente do PDV' : 'Reimpresso' + (erroLocal ? ' (impressora do robô: ' + erroLocal + ')' : '');
 }
 
 async function executarComando(t) {
