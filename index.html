@@ -1499,7 +1499,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-23b';
+const VERSAO_SITE = '2026-11-23c';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -1745,7 +1745,19 @@ async function imprimirSenha() {
 function voltarAjustes() { T.teste = false; clearInterval(T.timer); $('#barraTeste').classList.add('esconder'); limparTotem(); mostrar('vAjustes'); desenharAjustes(); }
 // v2.12.3: onde imprime o que for resgatado neste totem (robô, impressora do robô escolhida, ou este computador)
 const impAqui = () => AJ.impDestino === 'aqui';
-const agenteTotem = () => String(AJ.impDestino || '').indexOf('agente:') === 0 ? AJ.impDestino.slice(7) : '';
+// v2.16: só usa o agente se ele estiver na lista atual e ligado; senão a senha sai no robô (nunca se perde)
+const agenteTotem = () => {
+  const n = String(AJ.impDestino || '').indexOf('agente:') === 0 ? AJ.impDestino.slice(7) : '';
+  if (!n) return '';
+  const l = T.agentesTotem; if (!Array.isArray(l)) return n;
+  const a = l.find(x => x.nome === n); return a && a.ligado !== false ? n : '';
+};
+async function atualizarAgentesTotem() {
+  if (!T.pin || !T.sessao) return;
+  const r = await api('totem_agentes', { pin: T.pin, sessao: T.sessao }).catch(() => null);
+  if (r && r.ok) T.agentesTotem = r.agentes || [];
+}
+setInterval(atualizarAgentesTotem, 5 * 60 * 1000); setTimeout(atualizarAgentesTotem, 5000);
 function avisoRapido(t) {
   const d = document.createElement('div'); d.textContent = t;
   d.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:9999;background:#1B7F3B;color:#fff;font:600 18px/1.2 Arial,sans-serif;padding:12px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)';
