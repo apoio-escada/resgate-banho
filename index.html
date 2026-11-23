@@ -1499,7 +1499,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-23e';
+const VERSAO_SITE = '2026-11-23f';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2244,7 +2244,7 @@ function desenharLista() {
   tb.querySelectorAll('[data-impaqui]').forEach(b => b.onclick = async () => {
     b.disabled = true; let ok = await buscarEImprimir('senha', b.dataset.impaqui, 2);
     // v2.13.7: refeição reimprime só o recibo do ClubPetro (imagem do robô); o espelho montado aqui vale só para a senha do banho
-    if (!ok) { const x = (C.lista || []).concat(C.listaDia || []).find(r => r.id === b.dataset.impaqui); if (x && (x.ticket || x.codigo) && (x.tipo || 'banho') === 'banho') { await imprimirHtml(htmlSenhaAqui(x)); ok = true; } }
+    if (!ok) { const x = (C.lista || []).concat(C.listaDia || []).find(r => r.id === b.dataset.impaqui); const ehRef = x && (x.tipo === 'refeicao' || /^REF:/.test(String(x.turnoId || x.turno || ''))); if (x && !ehRef && (x.ticket || x.codigo)) { await imprimirHtml(htmlSenhaAqui(x)); ok = true; } }
     b.disabled = false; if (!ok) alert('O comprovante desse resgate ainda não chegou do robô. Use "Reimprimir" ou tente em alguns segundos.');
   });
   tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
@@ -2423,7 +2423,14 @@ async function carregarRefeicoes() {
   $('#rfResumo').textContent = `${r.lista.length} pedido(s) · ${ok} concluído(s)`;
   $('#rfLista').innerHTML = r.lista.length ? r.lista.map(x => `<tr><td>${esc(x.data)}</td><td>${esc(x.nome)}</td><td><b>${esc(x.codigo || '—')}</b>${x.cliente ? `<div class="pequeno" style="font-weight:600;color:var(--tinta)">${esc(x.cliente)}</div>` : ''}</td><td>${esc(x.status === 'CONCLUIDO' ? 'Concluído' : x.status === 'ERRO' ? 'Recusado' : x.status)}${x.mensagem ? '<br><span class="pequeno">' + esc(x.mensagem) + '</span>' : ''}</td><td>${x.status === 'CONCLUIDO' ? `<button class="btn peq sec" data-rfreimp="${esc(x.id)}">Reimprimir</button>` : ''}</td></tr>`).join('')
     : '<tr><td colspan="5" class="vazio">Nenhum resgate no período.</td></tr>';
-  $('#rfLista').querySelectorAll('[data-rfreimp]').forEach(b => b.onclick = () => reimprimirJustificado(b, b.dataset.rfreimp));
+  $('#rfLista').querySelectorAll('[data-rfreimp]').forEach(b => {
+    b.onclick = () => reimprimirJustificado(b, b.dataset.rfreimp);
+    // v2.13.7: imprimir aqui o recibo do ClubPetro (o mesmo da primeira impressão), sem passar pelo robô
+    const aq = document.createElement('button'); aq.className = 'btn peq sec'; aq.textContent = 'Imprimir aqui'; aq.style.marginLeft = '6px';
+    aq.onclick = async () => { aq.disabled = true; const ok = await buscarEImprimir('senha', b.dataset.rfreimp, 2); aq.disabled = false;
+      if (!ok) alert('O recibo do ClubPetro desse resgate não está disponível aqui. Use "Reimprimir".'); };
+    b.after(aq);
+  });
 }
 
 function desenharLotes() {
