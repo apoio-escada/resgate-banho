@@ -20,7 +20,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 const { PDFDocument } = require('pdf-lib');
 
-const VERSAO = '2.13.6';
+const VERSAO = '2.13.7';
 // v2.11.0: só um computador roda o robô. O que for instalado por último "assume" (arquivo dados\assumir.flag);
 // o anterior recebe do servidor o aviso de que foi substituído, fecha os navegadores e fica em espera.
 const MAQUINA = require('os').hostname();
@@ -1293,6 +1293,7 @@ async function processar(j) {
           j.impresso = true; j.aguardaCliente = true;
           log(`[${j.id}] Senha pronta; impressão só se o cliente pedir no totem.`);
         } else {
+          try { fs.writeFileSync(path.join(TICKETS, j.id + '-cliente.pdf'), pdfCli); } catch (_) {}   // v2.13.7: reimpressão = o mesmo comprovante
           const envio = (async () => enviarImagem('senha', j.id, await pngCli(), pdfCli))();
           // v2.12.1: se um PDV marcou "imprimir senha" para este caixa, quem imprime é o PDV (o robô só manda a imagem)
           if (j.imprimirLocal !== false) await imprimir(pdfCli, j.id + '-cliente.pdf', undefined, j.impressora);
@@ -1631,9 +1632,19 @@ async function comandoReimprimir(cmd) {
     await envio;
     return 'Senha impressa a pedido do cliente';
   }
+  // v2.13.7: reimprime o comprovante ORIGINAL (na refeição, o recibo do ClubPetro), nunca um espelho, quando existir
   const arq = path.join(TICKETS, cmd.ref + '-cliente.pdf');
-  const pdf = fs.existsSync(arq) ? fs.readFileSync(arq)
-    : await htmlParaPdf(ticketReserva({ ticket: cmd.ticket, codigo: cmd.codigo }), 'about:blank', CFG.larguraPapelMm || 80);
+  let pdf = fs.existsSync(arq) ? fs.readFileSync(arq) : null;
+  if (!pdf && cmd.codigo) {
+    try {
+      const pastas = fs.readdirSync(PASTA_LOCAL).filter(p => /^\d{4}-\d{2}$/.test(p)).sort().reverse().slice(0, 3);
+      for (const p of pastas) {
+        const f = fs.readdirSync(path.join(PASTA_LOCAL, p)).find(n => n.endsWith(' - resgate.' + cmd.codigo + '.pdf') && !/ - id /.test(n));   // só refeição e outros sem EVO (o do banho tem a via do caixa junto)
+        if (f) { pdf = fs.readFileSync(path.join(PASTA_LOCAL, p, f)); log(`[${cmd.ref}] Reimpressão pelo comprovante salvo: ${f}`); break; }
+      }
+    } catch (_) {}
+  }
+  if (!pdf) pdf = await htmlParaPdf(ticketReserva({ ticket: cmd.ticket, codigo: cmd.codigo }), 'about:blank', CFG.larguraPapelMm || 80);
   // v2.13.5: a reimpressão também vai ao agente do PDV que pediu (antes só saía na impressora do robô)
   let erroLocal = '';
   if (cmd.imprimirLocal !== false) { try { await imprimir(pdf, cmd.ref + '-cliente.pdf'); } catch (e) { erroLocal = e.message; } }
