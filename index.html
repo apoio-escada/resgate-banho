@@ -776,6 +776,7 @@ body.termica #relatorio .assin div{font-size:11px!important}
   <div class="nao-imprime">
     <button class="btn" id="relImprimirRobo">Imprimir na impressora do fechamento</button>
     <button class="btn sec" id="relImprimir">Imprimir neste computador</button>
+    <label class="chk" style="display:inline-flex;align-items:center;gap:6px;margin-left:6px;font-size:15px"><input type="checkbox" id="relA4"> Imprimir em A4</label>
     <button class="btn sec" id="relVoltar">Voltar ao painel</button>
   </div>
   <p class="pequeno" id="relMsg" style="text-align:center;margin:-6px 0 12px"></p>
@@ -1498,7 +1499,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-23a';
+const VERSAO_SITE = '2026-11-23b';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2976,8 +2977,15 @@ function iniciarCaixa() {
   };
   $('#relImprimir').onclick = () => {
     // v2.15: fita da térmica (80 mm) com a altura do relatório
-    document.body.classList.add('imprimindo', 'termica');
+    // v2.15: padrão é a fita da térmica; A4 só com a opção marcada no ato
     let pg = document.getElementById('pgTermica'); if (!pg) { pg = document.createElement('style'); pg.id = 'pgTermica'; document.head.appendChild(pg); }
+    if ($('#relA4').checked) {
+      document.body.classList.add('imprimindo');
+      pg.textContent = '@media print{@page{size:A4;margin:14mm}}';
+      window.print(); document.body.classList.remove('imprimindo'); $('#relA4').checked = false;
+      return;
+    }
+    document.body.classList.add('imprimindo', 'termica');
     pg.textContent = '@media print{@page{size:80mm 300mm;margin:0}}';
     const alt = Math.ceil(document.body.scrollHeight * 25.4 / 96) + 8;
     pg.textContent = '@media print{@page{size:80mm ' + alt + 'mm;margin:0}}';
