@@ -1499,7 +1499,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-23d';
+const VERSAO_SITE = '2026-11-23e';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2243,8 +2243,9 @@ function desenharLista() {
   tb.querySelectorAll('[data-resolver]').forEach(b => b.onclick = () => abrirResolver(b.dataset.resolver));
   tb.querySelectorAll('[data-impaqui]').forEach(b => b.onclick = async () => {
     b.disabled = true; let ok = await buscarEImprimir('senha', b.dataset.impaqui, 2);
-    if (!ok) { const x = (C.lista || []).concat(C.listaDia || []).find(r => r.id === b.dataset.impaqui); if (x && (x.ticket || x.codigo)) { await imprimirHtml(htmlSenhaAqui(x)); ok = true; } }   // v2.13.3
-    b.disabled = false; if (!ok) alert('Não encontrei a senha desse resgate para imprimir.');
+    // v2.13.7: refeição reimprime só o recibo do ClubPetro (imagem do robô); o espelho montado aqui vale só para a senha do banho
+    if (!ok) { const x = (C.lista || []).concat(C.listaDia || []).find(r => r.id === b.dataset.impaqui); if (x && (x.ticket || x.codigo) && (x.tipo || 'banho') === 'banho') { await imprimirHtml(htmlSenhaAqui(x)); ok = true; } }
+    b.disabled = false; if (!ok) alert('O comprovante desse resgate ainda não chegou do robô. Use "Reimprimir" ou tente em alguns segundos.');
   });
   tb.querySelectorAll('[data-cancelar]').forEach(b => b.onclick = () => abrirCancelar(b.dataset.cancelar));
   tb.querySelectorAll('[data-destravar]').forEach(b => b.onclick = async () => {
