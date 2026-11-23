@@ -20,7 +20,7 @@ const path = require('path');
 const { chromium } = require('playwright-core');
 const { PDFDocument } = require('pdf-lib');
 
-const VERSAO = '2.13.5';
+const VERSAO = '2.13.6';
 // v2.11.0: só um computador roda o robô. O que for instalado por último "assume" (arquivo dados\assumir.flag);
 // o anterior recebe do servidor o aviso de que foi substituído, fecha os navegadores e fica em espera.
 const MAQUINA = require('os').hostname();
@@ -1789,7 +1789,9 @@ async function verificarAtualizacao(forcar) {
     if (mins < ini || mins > ini + 30) return;                      // fora da janela agendada
   }
   if (mins >= 17 * 60 + 50 && mins <= 18 * 60 + 10) return 'Agora não (fechamento do caixa). Tente depois das 18:10.';
-  const atendendo = () => trabalhando || (!forcar && ocupado) || consultasAtivas > 0 || [...clientesAbertos.values()].some(c => Date.now() - (c.em || 0) < 3 * 60 * 1000);   // v2.13.3
+  // v2.13.6: o botão "Atualizar agora" roda como comando, que já marca trabalhando/ocupado; como resgates e comandos
+  // andam um por vez, nesse caso não há resgate em andamento. Só espera consulta de pontos ou cliente escolhendo opção.
+  const atendendo = () => (!forcar && (trabalhando || ocupado)) || consultasAtivas > 0 || [...clientesAbertos.values()].some(c => Date.now() - (c.em || 0) < 3 * 60 * 1000);
   if (atendendo()) return forcar ? 'O robô está atendendo agora; tente de novo em 1 minuto.' : undefined;
   try {
     const base = CFG.urlAtualizacao || URL_ATUALIZACAO;
