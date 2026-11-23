@@ -1499,7 +1499,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-23c';
+const VERSAO_SITE = '2026-11-23d';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2227,7 +2227,7 @@ function desenharLista() {
       <td>${x.lote ? `OPNF ${esc(x.lote)}` : ''}</td>
       <td>${x.status === 'CONCLUIDO' && !C.modoDia ? `<input type="checkbox" data-ok=""${esc(x.id)}" ${x.ok ? 'checked' : ''} aria-label="Marcar OK">` : ''}</td>
       <td>${x.status === 'VERIFICAR' ? `<button class="btn peq lar" data-resolver="${esc(x.id)}">Resolver</button>` : ''}
-          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">Reimprimir no robô</button>
+          ${x.status === 'CONCLUIDO' && x.ticket ? `<button class="btn peq sec" data-reimp="${esc(x.id)}">${guardar.get('banho_agente_pc') ? 'Reimprimir neste PDV' : 'Reimprimir no robô'}</button>
           <button class="btn peq sec" data-impaqui="${esc(x.id)}">Imprimir aqui</button>` : ''}
           ${!C.modoDia && (x.status === 'VERIFICAR' || (x.status === 'CONCLUIDO' && !x.lote)) ? `<button class="btn peq sec" data-cancelar="${esc(x.id)}">Cancelar</button>` : ''}
           ${['AGUARDANDO', 'PROCESSANDO', 'SENHA_GERADA'].includes(x.status) && minutosDesde(x.hora) >= 3 ? `<button class="btn peq lar" data-destravar="${esc(x.id)}" title="Resgate parado há mais de 3 minutos">Destravar</button>` : ''}</td>
@@ -2407,7 +2407,7 @@ async function reimprimirJustificado(b, id) {
   const motivo = (prompt('Por que reimprimir? (obrigatório — ex.: impressora sem papel, cliente perdeu o papel)') || '').trim();
   if (motivo.length < 4) { if (motivo !== '') alert('Escreva o motivo (pelo menos 4 letras).'); return; }
   b.disabled = true; b.textContent = 'Enviando…';
-  let r = await apiCx('caixa_reimprimirJust', { id, motivo, todosDoDia: !!C.modoDia });
+  let r = await apiCx('caixa_reimprimirJust', { id, motivo, todosDoDia: !!C.modoDia, agente: guardar.get('banho_agente_pc') || '' });
   if (!r.ok && /desconhecida/i.test(r.erro || '')) r = await apiCx('caixa_reimprimir', { id, motivo });   // servidor antigo
   b.textContent = r.ok ? 'Enviado' : (r.erro || 'Erro'); if (!r.ok) b.disabled = false;
 }
