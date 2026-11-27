@@ -4,7 +4,7 @@ const fs = require('fs'), path = require('path'), os = require('os'), readline =
 const { spawnSync } = require('child_process');
 const BASE = __dirname;
 let POSTO = {}; try { POSTO = JSON.parse(fs.readFileSync(path.join(BASE, 'posto.json'), 'utf8')); } catch (_) {}
-const SERVIDOR = POSTO.servidorUrl || 'https://script.google.com/macros/s/AKfycbzt0MUjJtbjAaL8Y5USF38P8M3wax9aV-LCPi0d3sHKOaefTPz3yR7xji7rJplznkSY/exec';
+let SERVIDOR = POSTO.servidorUrl || 'https://script.google.com/macros/s/AKfycbzt0MUjJtbjAaL8Y5USF38P8M3wax9aV-LCPi0d3sHKOaefTPz3yR7xji7rJplznkSY/exec';
 const pergunta = q => new Promise(ok => { const rl = readline.createInterface({ input: process.stdin, output: process.stdout }); rl.question(q, r => { rl.close(); ok(r.trim()); }); });
 const ps = cmd => spawnSync('powershell', ['-NoProfile', '-Command', cmd], { stdio: 'ignore' });
 (async () => {
@@ -13,6 +13,11 @@ const ps = cmd => spawnSync('powershell', ['-NoProfile', '-Command', cmd], { std
   const arq = path.join(BASE, 'config.json');
   let cfg = fs.existsSync(arq) ? JSON.parse(fs.readFileSync(arq, 'utf8')) : {};
   if (!cfg.token) {
+    if (!POSTO.servidorUrl) {   // instalador padrão (download direto): pergunta o posto
+      const l = await pergunta('Link do painel do posto (Enter = Posto Escada BR): ');
+      const m = /servidor=([^&#\s]+)/.exec(l); const u = m ? decodeURIComponent(m[1]) : (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(l) ? l : '');
+      if (u) SERVIDOR = u;
+    }
     console.log('\nNo painel do caixa (admin ou auditor): engrenagem > Impressoras > "Instalar agente neste computador".\n');
     for (let t = 1; t <= 5; t++) {
       const codigo = (await pergunta('Digite o código de 6 números: ')).replace(/\D/g, '');
@@ -26,11 +31,13 @@ const ps = cmd => spawnSync('powershell', ['-NoProfile', '-Command', cmd], { std
     }
     fs.writeFileSync(arq, JSON.stringify(cfg, null, 2));
   }
-  const wscript = path.join(process.env.WINDIR || 'C:\\Windows', 'System32', 'wscript.exe');
-  const vbs = path.join(BASE, 'iniciar-agente-oculto.vbs');
+  // v2.15: sem .vbs (bloqueado pelo Controle Inteligente de Aplicativos); abre escondido pelo PowerShell do Windows
+  const psExe = path.join(process.env.WINDIR || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  const node = path.join(BASE, 'node', 'node.exe');
+  const cmd = `Start-Process -FilePath '${node}' -ArgumentList 'agente.js' -WorkingDirectory '${BASE}' -WindowStyle Hidden`;
   const startup = path.join(process.env.APPDATA || '', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', 'Agente Impressao Banho.lnk');
-  ps(`$s=(New-Object -ComObject WScript.Shell).CreateShortcut('${startup}');$s.TargetPath='${wscript}';$s.Arguments='"${vbs}"';$s.WorkingDirectory='${BASE}';$s.Save()`);
-  spawnSync(wscript, [vbs], { stdio: 'ignore' });
+  ps(`$s=(New-Object -ComObject WScript.Shell).CreateShortcut('${startup}');$s.TargetPath='${psExe}';$s.Arguments='-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command "${cmd.replace(/'/g, "''")}"';$s.WorkingDirectory='${BASE}';$s.Save()`);
+  spawnSync(psExe, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-Command', cmd], { stdio: 'ignore' });
   console.log('OK: o agente roda escondido e abre junto com o Windows.');
   console.log('\nAgora, no painel: engrenagem > Impressoras. Este computador aparece como "' + os.hostname() + '" com as impressoras dele.');
   console.log('Escolha a impressora da senha e do fechamento e onde a senha do cliente deve sair.\n');
