@@ -4,6 +4,7 @@ title Instalar o agente de impressao
 cd /d "%~dp0"
 set "DESTINO=C:\AgenteBanho"
 set NODEVER=v22.12.0
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -LiteralPath '%~dp0.' -Recurse -File | Unblock-File" >nul 2>nul
 if not exist "%~dp0agente.js" (echo Abra o ZIP, clique em "Extrair tudo" e rode o INSTALAR-AGENTE.bat da pasta extraida. & pause & exit /b 1)
 if /i not "%~dp0"=="%DESTINO%\" (
   if not exist "%DESTINO%" mkdir "%DESTINO%"
