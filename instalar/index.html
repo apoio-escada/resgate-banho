@@ -104,6 +104,7 @@ function renderMigracao(a) {
     <p class="pequeno">Posto Escada BR: pode deixar em branco.</p>
     <div class="acoes"><button class="btn lar" id="mBaixar">Baixar o instalador do robô</button><button class="btn sec" id="mVoltar">Voltar</button></div>
     <p id="mMsg"></p>
+    <p class="pequeno">Não baixou? Use o link direto: <a href="https://github.com/apoio-escada/resgate-banho/raw/main/downloads/Instalador-Robo-Banho.zip" target="_blank" rel="noopener">Instalador-Robo-Banho.zip</a>. Ele pergunta o link do painel do posto ao instalar.</p>
     <div class="nota">No computador novo: clique com o botão direito no arquivo baixado › <b>Extrair tudo</b> › abra a pasta › dois cliques em <b>INSTALAR.bat</b> › digite o código. O computador antigo fica em espera sozinho.</div></div>`;
   $('#mVoltar').onclick = () => { D.modo = ''; salvar(); render(); };
   $('#mBaixar').onclick = async () => {
@@ -247,6 +248,7 @@ function passoRobo(c) {
     <p>Código de instalação do robô (vale 15 minutos):</p><p class="grande">${esc(R.codigo || '—')}</p>
     <p>PIN do posto (para configurar os totens): <b>${esc(R.pin || '—')}</b></p>
     <div class="acoes"><button class="btn lar" id="bx">Baixar o instalador do robô</button></div><p id="msg"></p>
+    <p class="pequeno">Não baixou? Link direto: <a href="https://github.com/apoio-escada/resgate-banho/raw/main/downloads/Instalador-Robo-Banho.zip" target="_blank" rel="noopener">Instalador-Robo-Banho.zip</a>. Quando pedir o link do painel do posto, cole: <span style="user-select:all;word-break:break-all">${esc(R.painel || '')}</span></p>
     <ol class="guia"><li>No computador do robô (com a impressora térmica e na rede do EVO): botão direito no arquivo › <b>Extrair tudo</b>.</li>
       <li>Dois cliques em <b>INSTALAR.bat</b> › digite o código acima.</li>
       <li>Responda <b>S</b> para a página de teste e, se este computador também for o totem, <b>S</b> em "Este computador também será o TOTEM".</li></ol>
