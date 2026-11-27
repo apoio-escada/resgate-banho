@@ -856,10 +856,10 @@ body.termica #relatorio .assin div{font-size:11px!important}
   <h3>Impressoras de todos os computadores</h3>
   <p class="pequeno">O robô e os PDVs com o <b>agente de impressão</b> aparecem aqui com as impressoras de cada um.</p>
   <label style="display:block;font-weight:600;margin-top:8px">Este computador é
-    <select id="diPc" style="display:block;width:100%;margin-top:4px"></select></label>
+    <select id="ipPc" style="display:block;width:100%;margin-top:4px"></select></label>
   <p class="pequeno">O fechamento (EVO e relatório do app) de quem fecha o caixa aqui sai na impressora de fechamento deste agente. "Nenhum": imprime pelo navegador.</p>
   <label style="display:block;font-weight:600;margin-top:10px">Senha do cliente sai em
-    <select id="diSenha" style="display:block;width:100%;margin-top:4px"></select></label>
+    <select id="ipSenha" style="display:block;width:100%;margin-top:4px"></select></label>
   <div style="border:1px solid var(--linha);border-radius:12px;padding:12px;margin:10px 0;background:#F6F8FC">
     <b>Robô</b> <span class="pequeno">(computador do robô)</span>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
@@ -869,9 +869,10 @@ body.termica #relatorio .assin div{font-size:11px!important}
     <p class="pequeno" id="cfgImpInfo"></p>
     <div class="acoes" style="justify-content:flex-start;flex-wrap:wrap;margin-top:4px"><button class="btn peq" id="cfgImpSalvar">Salvar impressoras do robô</button><button class="btn peq sec" id="cfgImpAtualizar">Atualizar impressoras do robô</button><button class="btn peq sec" id="cfgImpTeste">Reimprimir o último ticket</button></div>
   </div>
-  <div id="diAgentes" style="margin-top:10px"></div>
-  <p class="pequeno" id="diMsg"></p>
-  <div class="acoes" style="flex-wrap:wrap"><button class="btn sec" id="diInstalar">Instalar agente neste computador</button><button class="btn" id="diSalvar">Salvar</button><button class="btn sec" id="diFechar">Fechar</button></div>
+  <div id="ipAgentes" style="margin-top:10px"></div>
+  <p class="pequeno" id="ipMsg"></p>
+  <p class="pequeno">Instalador do agente também em link direto: <a href="https://github.com/apoio-escada/resgate-banho/raw/main/downloads/Instalador-Agente-Impressao.zip" target="_blank" rel="noopener"><b>Instalador-Agente-Impressao.zip</b></a> (o código é gerado pelo botão abaixo).</p>
+  <div class="acoes" style="flex-wrap:wrap"><button class="btn sec" id="ipInstalar">Instalar agente neste computador</button><button class="btn" id="ipSalvar">Salvar</button><button class="btn sec" id="ipFechar">Fechar</button></div>
 </dialog>
 
 <dialog id="dNovos" style="max-width:640px">
@@ -897,9 +898,11 @@ body.termica #relatorio .assin div{font-size:11px!important}
 
 <dialog id="dInstalar" style="max-width:520px">
   <h3>Instalar o robô em outro computador</h3>
-  <p>No computador novo, extraia o <b>Instalador-Robo-Banho.zip</b>, rode o <b>INSTALAR.bat</b> e digite este código:</p>
+  <p>1. No computador novo, baixe o instalador: <a href="https://github.com/apoio-escada/resgate-banho/raw/main/downloads/Instalador-Robo-Banho.zip" target="_blank" rel="noopener"><b>Instalador-Robo-Banho.zip</b></a> (o link também abre de qualquer navegador).</p>
+  <p>2. Botão direito › <b>Extrair tudo</b> › dois cliques em <b>INSTALAR.bat</b> › digite este código:</p>
   <p style="text-align:center;font-family:var(--cond);font-size:56px;font-weight:700;letter-spacing:.12em;margin:10px 0" id="diCodigo">——————</p>
   <p class="pequeno" id="diMsg">Vale por 15 minutos e só uma vez. O computador novo assume o robô; o atual fica em espera.</p>
+  <p class="pequeno">Se o instalador pedir o <b>link do painel do posto</b>: <span id="diLinkPosto" style="user-select:all;word-break:break-all"></span> (no Posto Escada BR, só Enter).</p>
   <div class="acoes"><button class="btn sec" id="diNovo">Gerar outro código</button><button class="btn" id="diFechar">Fechar</button></div>
 </dialog>
 
@@ -1499,7 +1502,7 @@ function prepararAppEspera() {
 }
 // v2.13.2: o totem se atualiza sozinho. A cada 10 min confere se há versão nova do site publicada no GitHub;
 // havendo, recarrega quando estiver na tela de descanso (nunca no meio de um atendimento). Dispensa o Ctrl+F5.
-const VERSAO_SITE = '2026-11-23f';
+const VERSAO_SITE = '2026-11-27a';
 async function conferirVersaoSite() {
   try {
     if (location.protocol === 'file:') return;
@@ -2275,14 +2278,14 @@ function irAba(aba) {
 // v2.12: código para instalar o robô em outro computador (vale 15 min, uma vez)
 // v2.15: impressoras de todos os computadores (robô + agentes dos PDVs)
 async function impressaoGeral() {
-  $('#diAgentes').innerHTML = '<p class="vazio">Carregando…</p>'; $('#diMsg').textContent = '';
+  $('#ipAgentes').innerHTML = '<p class="vazio">Carregando…</p>'; $('#ipMsg').textContent = '';
   const r = await apiCx('caixa_impressaoGeral', {});
-  if (!r.ok) { $('#diAgentes').innerHTML = `<p class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</p>`; return; }
+  if (!r.ok) { $('#ipAgentes').innerHTML = `<p class="vazio">${esc(r.erro || 'Não foi possível carregar.')}</p>`; return; }
   C.impGeral = r;
   const op = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
   const pc = guardar.get('banho_agente_pc') || '';
-  $('#diPc').innerHTML = op('', 'Nenhum (imprimir pelo navegador)', !pc) + r.agentes.map(a => op(a.nome, a.nome, a.nome === pc)).join('');
-  $('#diSenha').innerHTML = op('', 'Impressora do robô' + (r.impressoraRobo ? ' (' + r.impressoraRobo + ')' : ''), !r.destSenha) +
+  $('#ipPc').innerHTML = op('', 'Nenhum (imprimir pelo navegador)', !pc) + r.agentes.map(a => op(a.nome, a.nome, a.nome === pc)).join('');
+  $('#ipSenha').innerHTML = op('', 'Impressora do robô' + (r.impressoraRobo ? ' (' + r.impressoraRobo + ')' : ''), !r.destSenha) +
     r.agentes.map(a => op('agente:' + a.nome, 'Agente ' + a.nome + (a.cfg.senha ? ' (' + a.cfg.senha + ')' : ''), r.destSenha === 'agente:' + a.nome)).join('');
   const lin = a => {
     const ops = (sel) => op('', 'Padrão do Windows' + (a.padrao ? ' (' + a.padrao + ')' : ''), !sel) + (a.lista || []).map(n => op(n, n, n === sel)).join('');
@@ -2293,21 +2296,21 @@ async function impressaoGeral() {
         <label class="pequeno" style="flex:1;min-width:220px">Impressora do fechamento<select data-tipo="fechamento" style="display:block;width:100%">${ops(a.cfg.fechamento)}</select></label>
       </div></div>`;
   };
-  $('#diAgentes').innerHTML = (r.agentes.length ? r.agentes.map(lin).join('') : '<p class="pequeno">Nenhum agente instalado ainda. Use "Instalar agente neste computador" em cada PDV (login de admin ou auditor).</p>');
+  $('#ipAgentes').innerHTML = (r.agentes.length ? r.agentes.map(lin).join('') : '<p class="pequeno">Nenhum agente instalado ainda. Use "Instalar agente neste computador" em cada PDV (login de admin ou auditor).</p>');
 }
 async function salvarImpressaoGeral() {
   const agentesCfg = {};
-  document.querySelectorAll('#diAgentes [data-ag]').forEach(d => { agentesCfg[d.dataset.ag] = { senha: d.querySelector('[data-tipo="senha"]').value, fechamento: d.querySelector('[data-tipo="fechamento"]').value }; });
-  $('#diMsg').textContent = 'Salvando…';
-  const r = await apiCx('caixa_impressaoGeral', { salvar: true, destSenha: $('#diSenha').value, agentesCfg });
-  $('#diMsg').textContent = r.ok ? 'Salvo. Os agentes recebem a escolha em até 1 minuto.' : (r.erro || 'Não foi possível salvar.');
+  document.querySelectorAll('#ipAgentes [data-ag]').forEach(d => { agentesCfg[d.dataset.ag] = { senha: d.querySelector('[data-tipo="senha"]').value, fechamento: d.querySelector('[data-tipo="fechamento"]').value }; });
+  $('#ipMsg').textContent = 'Salvando…';
+  const r = await apiCx('caixa_impressaoGeral', { salvar: true, destSenha: $('#ipSenha').value, agentesCfg });
+  $('#ipMsg').textContent = r.ok ? 'Salvo. Os agentes recebem a escolha em até 1 minuto.' : (r.erro || 'Não foi possível salvar.');
   if (r.ok) impressaoGeral();
 }
 async function instalarAgente() {
-  $('#diMsg').textContent = 'Gerando o código…';
+  $('#ipMsg').textContent = 'Gerando o código…';
   const r = await apiCx('caixa_codigoAgente');
-  if (!r.ok) { $('#diMsg').textContent = r.erro || 'Só o admin ou o auditor instala o agente.'; return; }
-  $('#diMsg').innerHTML = `Código do agente: <b style="font-size:22px;letter-spacing:.1em">${esc(r.codigo)}</b> (vale 15 min). Baixando o instalador…`;
+  if (!r.ok) { $('#ipMsg').textContent = r.erro || 'Só o admin ou o auditor instala o agente.'; return; }
+  $('#ipMsg').innerHTML = `Código do agente: <b style="font-size:22px;letter-spacing:.1em">${esc(r.codigo)}</b> (vale 15 min). Baixando o instalador…`;
   try {
     if (!window.JSZip) await new Promise((ok, er) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = ok; sc.onerror = er; document.head.appendChild(sc); });
     const zip = new JSZip(), pasta = zip.folder('Instalador-Agente-Impressao');
@@ -2317,8 +2320,8 @@ async function instalarAgente() {
     }
     pasta.file('posto.json', JSON.stringify({ servidorUrl: CFG.API_URL }, null, 2));
     const a = document.createElement('a'); a.href = URL.createObjectURL(await zip.generateAsync({ type: 'blob' })); a.download = 'Instalador-Agente-Impressao.zip'; document.body.appendChild(a); a.click(); a.remove();
-    $('#diMsg').innerHTML = `Código do agente: <b style="font-size:22px;letter-spacing:.1em">${esc(r.codigo)}</b> (vale 15 min). Extraia o arquivo baixado, dê dois cliques em <b>INSTALAR-AGENTE.bat</b> e digite o código. Depois toque em Atualizar (reabra esta tela).`;
-  } catch (e) { $('#diMsg').textContent = 'Não consegui baixar o instalador (' + e.message + '). Confira a internet.'; }
+    $('#ipMsg').innerHTML = `Código do agente: <b style="font-size:22px;letter-spacing:.1em">${esc(r.codigo)}</b> (vale 15 min). Extraia o arquivo baixado, dê dois cliques em <b>INSTALAR-AGENTE.bat</b> e digite o código. Depois toque em Atualizar (reabra esta tela).`;
+  } catch (e) { $('#ipMsg').textContent = 'Não consegui baixar o instalador (' + e.message + '). Confira a internet.'; }
 }
 // v2.14: links de instalação dos novos postos (servidores preparados pela TI)
 async function novosPostos(p) {
@@ -2905,15 +2908,15 @@ function iniciarCaixa() {
   $('#cfgPosto').onclick = () => { $('#dConfig').close(); abrirConfigPosto(); };
   $('#cfgModalidades').onclick = () => { $('#dConfig').close(); abrirModalidades(); };
   iniciarModalidades();
-  $('#cfgInstalarRobo').onclick = () => { $('#dConfig').close(); gerarCodigoInstalacao(); $('#dInstalar').showModal(); };
+  $('#cfgInstalarRobo').onclick = () => { $('#dConfig').close(); gerarCodigoInstalacao(); $('#diLinkPosto').textContent = location.origin + location.pathname + '?servidor=' + encodeURIComponent(CFG.API_URL || ''); $('#dInstalar').showModal(); };
   $('#diNovo').onclick = gerarCodigoInstalacao; $('#diFechar').onclick = () => $('#dInstalar').close();
   $('#cfgAtualizarRobo').onclick = () => { $('#dConfig').close(); $('#dAtualizar').showModal(); atualizacaoRobo({}); };
   $('#daFechar').onclick = () => $('#dAtualizar').close();
   $('#cfgImpGeral').onclick = () => { $('#dConfig').close(); $('#dImpr').showModal(); impressaoGeral(); };
-  $('#diFechar').onclick = () => $('#dImpr').close();
-  $('#diPc').onchange = () => { guardar.set('banho_agente_pc', $('#diPc').value); $('#diMsg').textContent = $('#diPc').value ? 'Este computador: ' + $('#diPc').value + '. O fechamento de quem fechar aqui sai no agente.' : 'Este computador imprime pelo navegador.'; };
-  $('#diSalvar').onclick = salvarImpressaoGeral;
-  $('#diInstalar').onclick = instalarAgente;
+  $('#ipFechar').onclick = () => $('#dImpr').close();
+  $('#ipPc').onchange = () => { guardar.set('banho_agente_pc', $('#ipPc').value); $('#ipMsg').textContent = $('#ipPc').value ? 'Este computador: ' + $('#ipPc').value + '. O fechamento de quem fechar aqui sai no agente.' : 'Este computador imprime pelo navegador.'; };
+  $('#ipSalvar').onclick = salvarImpressaoGeral;
+  $('#ipInstalar').onclick = instalarAgente;
   $('#cfgNovosPostos').onclick = () => { $('#dConfig').close(); $('#dNovos').showModal(); novosPostos({}); };
   $('#dnFechar').onclick = () => $('#dNovos').close();
   $('#dnAdd').onclick = () => novosPostos({ adicionar: $('#dnUrl').value.trim() });
