@@ -4,6 +4,8 @@ title Instalar o robo do resgate de banho
 cd /d "%~dp0"
 set "DESTINO=C:\RoboBanho"
 set NODEVER=v22.12.0
+rem v2.15: tira a marca "baixado da internet" dos arquivos (o Windows/Controle Inteligente bloqueia scripts com essa marca)
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -LiteralPath '%~dp0.' -Recurse -File | Unblock-File" >nul 2>nul
 if not exist "%~dp0robo.js" (echo Abra o ZIP, clique em "Extrair tudo" e rode o INSTALAR.bat da pasta extraida. & pause & exit /b 1)
 if /i not "%~dp0"=="%DESTINO%\" (
   echo Copiando para %DESTINO% ...
